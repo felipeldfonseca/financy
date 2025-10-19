@@ -3,15 +3,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { redisStore } from 'cache-manager-redis-store';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { ContextsModule } from './contexts/contexts.module';
-import { TransactionsModule } from './transactions/transactions.module';
-import { CategoriesModule } from './categories/categories.module';
-import { TelegramModule } from './telegram/telegram.module';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { typeOrmConfig } from './config/typeorm.config';
 
 @Module({
@@ -53,12 +51,14 @@ import { typeOrmConfig } from './config/typeorm.config';
     // Feature modules
     AuthModule,
     UsersModule,
-    ContextsModule,
-    TransactionsModule,
-    CategoriesModule,
-    TelegramModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AppModule {}

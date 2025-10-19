@@ -1,40 +1,88 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box } from '@mui/material';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { PublicRoute } from './components/auth/PublicRoute';
 import Layout from './components/Layout/Layout';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import TransactionsPage from './pages/TransactionsPage';
 import ContextsPage from './pages/ContextsPage';
 import SettingsPage from './pages/SettingsPage';
-import { useAuthStore } from './stores/authStore';
 
 function App() {
-  const { isAuthenticated } = useAuthStore();
-
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <Routes>
-        {!isAuthenticated ? (
-          <>
-            <Route path='/' element={<HomePage />} />
-            <Route path='/login' element={<LoginPage />} />
-            <Route path='/register' element={<RegisterPage />} />
-            <Route path='*' element={<HomePage />} />
-          </>
-        ) : (
-          <Route path='/' element={<Layout />}>
-            <Route index element={<DashboardPage />} />
-            <Route path='dashboard' element={<DashboardPage />} />
-            <Route path='transactions' element={<TransactionsPage />} />
-            <Route path='contexts' element={<ContextsPage />} />
-            <Route path='settings' element={<SettingsPage />} />
-          </Route>
-        )}
-      </Routes>
-    </Box>
+    <AuthProvider>
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Routes>
+          {/* Public routes */}
+          <Route
+            path="/"
+            element={
+              <PublicRoute>
+                <HomePage />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <LoginPage />
+              </PublicRoute>
+            }
+          />
+          
+          {/* Protected routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <DashboardPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transactions"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <TransactionsPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/contexts"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ContextsPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <SettingsPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Fallback routes */}
+          <Route path="/register" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Box>
+    </AuthProvider>
   );
 }
 

@@ -1,42 +1,29 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+// This file is deprecated - using AuthContext instead
+// Keeping for backward compatibility during migration
 
-interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-}
+import { User } from '../services/authApi';
 
-interface AuthStore {
+export interface LegacyAuthStore {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
-  login: (user: User, token: string) => void;
-  logout: () => void;
 }
 
-export const useAuthStore = create<AuthStore>()(
-  persist(
-    (set) => ({
-      user: null,
-      token: null,
-      isAuthenticated: false,
-      login: (user, token) =>
-        set({
-          user,
-          token,
-          isAuthenticated: true,
-        }),
-      logout: () =>
-        set({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-        }),
-    }),
-    {
-      name: 'financy-auth',
-    }
-  )
-);
+// For compatibility with existing components that might import this
+export const useAuthStore = () => {
+  const token = localStorage.getItem('financy_token');
+  const userStr = localStorage.getItem('financy_user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  
+  return {
+    user,
+    token,
+    isAuthenticated: !!token && !!user,
+    login: () => {
+      console.warn('useAuthStore.login is deprecated. Use AuthContext instead.');
+    },
+    logout: () => {
+      console.warn('useAuthStore.logout is deprecated. Use AuthContext instead.');
+    },
+  };
+};

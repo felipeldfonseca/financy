@@ -1,6 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { DataSource, DataSourceOptions } from 'typeorm';
+import { User } from '../users/entities/user.entity';
 
 export const typeOrmConfig = (
   configService: ConfigService,
@@ -11,7 +12,7 @@ export const typeOrmConfig = (
   username: configService.get('DATABASE_USER', 'financy_user'),
   password: configService.get('DATABASE_PASSWORD', 'financy_pass'),
   database: configService.get('DATABASE_NAME', 'financy_dev'),
-  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+  entities: [User],
   migrations: [__dirname + '/../migrations/*{.ts,.js}'],
   synchronize: configService.get('NODE_ENV') === 'development',
   logging: configService.get('NODE_ENV') === 'development',
@@ -25,7 +26,7 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DATABASE_USER || 'financy_user',
   password: process.env.DATABASE_PASSWORD || 'financy_pass',
   database: process.env.DATABASE_NAME || 'financy_dev',
-  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+  entities: [User],
   migrations: [__dirname + '/../migrations/*{.ts,.js}'],
   synchronize: false,
   logging: process.env.NODE_ENV === 'development',
