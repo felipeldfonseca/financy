@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Exclude } from 'class-transformer';
+import { Transaction } from '../../transactions/entities/transaction.entity';
 
 @Entity('users')
 export class User {
@@ -48,6 +49,9 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => Transaction, transaction => transaction.user)
+  transactions: Transaction[];
 
   // Virtual property for full name
   get fullName(): string {
