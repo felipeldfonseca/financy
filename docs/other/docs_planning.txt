@@ -1,0 +1,171 @@
+# 1) Produto & Estratégia
+
+* **Visão & Objetivos do Produto** (1–2 páginas): problema, proposta de valor, personas, JTBD, metas.
+* **PRD – Product Requirements Document**: escopo, histórias de usuário, critérios de aceitação, não-funcionais.
+* **Roadmap & Milestones**: fases (MVP-1, MVP-2, v1, v1.5), dependências, riscos.
+* **Métricas de Sucesso (North Star & KPIs)**: adoção, retenção, engajamento, NPS, precisão de parsing, latência.
+* **Análise de Mercado & Benchmark**: concorrentes, lacunas, posicionamento, diferenciais.
+* **GTM (Go-to-Market) & Pricing**: proposta de planos, freemium, limites de uso, custos de infra x margem.
+* **Branding Brief**: nome, tom de voz, guia de estilo, princípios de UX writing.
+
+# 2) Usuário, UX & Conteúdo
+
+* **Personas & Cenários de Uso**: pessoal, família, projetos, casal.
+* **Mapa de Jornada (User Journey)**: descoberta → onboarding → uso recorrente → share.
+* **Arquitetura de Informação**: estrutura de “contextos/carteiras” (pessoal vs grupos), navegação, nomenclaturas.
+* **Fluxos de Usuário (User Flows)**: criar contexto, adicionar despesa (texto/áudio/foto), assinatura, parcela, rateio, alertas.
+* **Wireframes & Mockups**: abas (Pessoal, Família, Projetos), dashboards, estados vazios/erro.
+* **Microcopy & Conteúdo**: mensagens do bot, confirmações, feedbacks, consentimentos, políticas de privacidade em UX.
+* **Acessibilidade & i18n/L10n**: idiomas (pt-BR, en-US), formatos regionais (data, moeda), contrastes, navegação por teclado.
+* **Manual Rápido do Usuário**: atalhos por chat, comandos, exemplos de mensagens “que funcionam bem”.
+
+# 3) Arquitetura Técnica & Infra
+
+* **Arquitetura de Alto Nível**: diagrama de serviços, limites de contexto, fluxos de dados.
+* **ADRs (Architecture Decision Records)**: decisões-chave (Stack, DB, filas, provedores de OCR/ASR, multitenancy).
+* **Diagrama de Contexto/Componentes/Sequência**: ingestão → processamento → storage → jobs → dashboard.
+* **Modelo de Ambientes**: dev, staging, produção; isolamentos; chaves/tokens.
+* **Escalabilidade & Resiliência**: padrões (idempotência, backoff, retry), limites, cotas, cache.
+* **Gestão de Custos**: estimativas, alavancas de otimização (batching, compressão, TTLs).
+
+# 4) Dados & Esquemas
+
+* **Modelo de Dados Canônico**: entidades (contexts, transactions, contracts/subscriptions/installments, alerts, users).
+* **ERD & Dicionário de Dados**: tipos, chaves, índices, constraints, unidade/escala de valores.
+* **Taxonomia de Categorias & Tags**: mapeamentos, regras de classificação, aliases (ex.: “luz/energia/eletricidade”).
+* **Moedas & FX**: provedores de câmbio, periodicidade, arredondamento, timezone, consistência histórica.
+* **Retenção & Ciclo de Vida de Dados**: TTLs, anonimização, exclusão por contexto/usuário.
+* **Qualidade de Dados & Regras de Validação**: unicidade, deduplicação, reconciliação, tolerância a nulos.
+
+# 5) Ingestão & Processamento (Texto/Áudio/Imagem)
+
+* **Especificação da Camada de Entrada**: conectores (Telegram MVP, WhatsApp Cloud depois), webhooks, throttling.
+* **Parsing de Texto & Comandos**: gramática leve, intents, exemplos, fallback.
+* **ASR (Voz→Texto)**: provedor, idiomas, métricas de WER, limpeza de ruído.
+* **OCR (Imagem→Texto)**: provedores (Tesseract/Google Vision), pré-processamento, extração de campos (valor, vencimento).
+* **NLP + Regras**: pipeline de extração (valor, moeda, categoria, recorrência, parcela, data, contexto), confiança & heurísticas.
+* **Detecção de Assinaturas**: padrões de recorrência, vendor normalizer, cálculo de próximos ciclos.
+* **Parcelamentos**: esquema (n/total), pré-liquidação, juros, projeção até término.
+* **Roteamento de Contexto**: resolução chat→context_id, permissões, isolamento multi-tenant.
+* **Idempotência & Deduplicação**: mensagens repetidas, reenvios, duplicatas de OCR.
+
+# 6) Integrações & APIs
+
+* **Especificação de Integrações de Mensageria**: Telegram Bot API (MVP), WhatsApp Cloud API (roadmap), limites e políticas.
+* **Bancos/Exchanges (Futuro)**: Plaid/Belvo/etc., limites de escopo, reconciliação, consentimento, armazenamento de tokens.
+* **OpenAPI/Swagger da API Interna/Externa**: endpoints, auth, versionamento, paginação, rate limit.
+* **Esquemas de Evento (Event Contracts)**: pub/sub para transações, alertas, resumos; versionamento e compatibilidade.
+* **Webhooks de Saída**: notificações para apps externos, assinatura/verificação.
+
+# 7) Permissões, Segurança & Privacidade
+
+* **Modelo de Autenticação & Autorização**: papéis (owner, editor, viewer), convites, revogações, MFA.
+* **Multitenancy & Isolamento Lógico**: por context_id, separação de dados e chaves.
+* **Criptografia**: em trânsito (TLS), em repouso (KMS), rotação de segredos.
+* **Política de Privacidade & Termos de Uso**: coleta, uso, retenção, portabilidade, exclusão.
+* **Conformidade & Regulatórios**: LGPD/GDPR (dados pessoais), FIN/PCI-like (se houver pagamentos diretos, hoje não).
+* **Data Processing Addendum (DPA)**: relação com provedores (OCR/ASR/NLP), subprocessors.
+* **Data Residency & Transferência Internacional**: EUA ↔ Brasil, bases legais, SCCs.
+* **Threat Model & Segurança Aplicada**: STRIDE, mitigação, hardening, checklist OWASP.
+* **Plano de Resposta a Incidentes**: classificação, SLAs, comunicação, pós-mortem.
+* **Política de Logs & Observabilidade de PII**: minimização, redaction, acesso.
+
+# 8) Orquestração, Jobs & Notificações
+
+* **Agendamento de Lembretes/Alertas**: vencimentos, renovação de assinaturas, parcelas, quiet hours.
+* **Resumos Periódicos**: diário/semanal/mensal, por contexto e consolidado.
+* **Tabelas de Decisão & Prioridades**: quando notificar, canais, throttling.
+* **Templates de Notificação**: texto do bot, e-mail opcional, links para dashboard.
+
+# 9) Dashboard & BI
+
+* **Requisitos do Dashboard**: KPIs, gráficos, filtros (contexto, período, categoria, pessoa).
+* **Especificação do MVP (Streamlit/Retool/AppSheet)**: páginas, componentes, estados.
+* **Relatórios Compartilháveis**: PDF/links públicos com expiração, níveis de detalhe.
+* **Exportação/Importação**: CSV/OFX/QIF; import de planilhas existentes; política de merges/dedup.
+
+# 10) Qualidade, Testes & Confiabilidade
+
+* **Plano de Testes**: unidade, integração, end-to-end, contratos de API, UI.
+* **Testes de NLP/OCR/ASR**: datasets de validação, métricas (precisão, recall, WER), testes multilingues.
+* **Testes de Carga & Performance**: metas de latência, throughput, custo/req.
+* **Testes de Segurança**: SAST, DAST, pentest, dependências (SBOM).
+* **UAT & Roteiro de Aceite**: scripts por persona, critérios de aprovação de release.
+* **Chaos & Resiliência (opcional v1+)**: simulações de falhas, quedas de provedores.
+
+# 11) DevEx, Processos & Repositório
+
+* **README (raiz do monorepo)**: visão, como rodar, como contribuir.
+* **CONTRIBUTING.md & CODE_OF_CONDUCT.md**.
+* **Guia de Estilo de Código**: formatação, lint, convenções de nomes.
+* **Padrões de Commits & Versionamento**: Conventional Commits, semver, tags.
+* **ADRs** (já citado) e **CHANGELOG**.
+* **Pipelines CI/CD**: build, test, scan, release; promoção entre ambientes.
+* **Infra como Código (IaC)**: Terraform/Pulumi, diagramas, módulos, estados.
+* **Gerência de Segredos**: KMS/Secrets Manager, rotação, acesso just-in-time.
+* **Runbooks & Playbooks**: incidentes, rollback, regeneração de chaves de bot.
+
+# 12) Operação & Suporte
+
+* **SLO/SLI & Matriz de Alerta**: disponibilidade, latência, taxa de erro, canais.
+* **Runbooks de Produção**: quedas de OCR/ASR/NLP, esgotamento de cotas da API, incidentes de mensagens.
+* **On-Call & Escalonamento** (mesmo que simplificado).
+* **Base de Conhecimento & FAQ**: dúvidas comuns, “por que minha conta não foi lida?”, “como corrigir categoria?”.
+* **Política de Backup & DR**: RPO/RTO, testes de restauração, snapshots.
+
+# 13) Ética de IA, Avaliação & Segurança do Modelo
+
+* **Política de Uso de IA**: limites, transparência ao usuário, explainability leve.
+* **Arquitetura de Prompts & Ferramentas**: prompts de system/assistant, ferramentas (OCR/ASR), orquestração.
+* **Avaliação Contínua (Evals)**: suites de testes com exemplos reais de mensagens (texto/voz/foto), regressões.
+* **Mitigação de Alucinações**: validações determinísticas (regex, montantes), thresholds de confiança, fallback “peça confirmação”.
+* **Política de Moderação**: conteúdo sensível em imagens/áudio, abuso, PII de terceiros.
+* **Dataset & Rotulagem**: guia de anotação, privacidade na coleta, armazenamento seguro.
+
+# 14) Funcionalidades Específicas (Specs por Módulo)
+
+* **Contextos & Grupos**: criação, convites, papéis, visibilidade, encerramento de contexto.
+* **Transações**: criação/edição/auditoria, anexos, status, split/rateio entre membros.
+* **Assinaturas**: detecção, ciclo, reajustes, pausa/cancelamento, projeções.
+* **Parcelamentos**: cronograma, quitação antecipada, taxas, fim de contabilização.
+* **Alertas & Lembretes**: regras, prioridade, canais, testes.
+* **Reconciliador (futuro)**: conciliação com extratos/integrações, discrepâncias, matching por heurística.
+* **Multi-moeda**: estratégias de conversão, data-base FX, relatórios em moeda preferida.
+* **Auditoria & Logs Funcionais**: trilha por transação/mensagem, quem alterou o quê/quando.
+
+# 15) Legal & Políticas
+
+* **Termos de Uso** (escopo, limitações de responsabilidade; “não é consultoria financeira”).
+* **Política de Privacidade** (claras consequências de conectar mensageria).
+* **Política de Cookies (se web)**.
+* **Licenças de Terceiros**: bibliotecas, modelos, APIs (cumprimento de termos).
+* **Política de Suporte & SLA** (se abrir para externos).
+* **Documentação de Conformidade de Mensageria**: WhatsApp/Telegram ToS, limites, opt-in, anti-spam.
+
+# 16) Implantação Piloto & Feedback
+
+* **Plano de Beta Fechado (Família/Amigos)**: escopo, objetivos, métricas, duração.
+* **Instrumentação de Feedback In-App**: coleta de bugs, sugestões, prioridade.
+* **Relatório de Resultados do Piloto**: insights, mudanças aprovadas, backlog.
+
+---
+
+## Estrutura sugerida de pastas (apenas para organizar os “docs”, não é obrigatório)
+
+```
+/docs
+  /product
+  /ux
+  /architecture
+  /data
+  /ai
+  /integrations
+  /security
+  /compliance
+  /testing
+  /operations
+  /devex
+  /legal
+  /modules
+  /pilot
+```
