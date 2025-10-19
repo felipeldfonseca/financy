@@ -9,6 +9,7 @@ import {
   BeforeInsert,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { Context } from '../../contexts/entities/context.entity';
 
 export enum TransactionType {
   EXPENSE = 'expense',
@@ -116,6 +117,14 @@ export class Transaction {
 
   @Column()
   userId: string;
+
+  // Context relationship
+  @ManyToOne(() => Context, context => context.transactions)
+  @JoinColumn({ name: 'contextId' })
+  context: Context;
+
+  @Column('uuid', { nullable: true })
+  contextId: string;
 
   @CreateDateColumn()
   createdAt: Date;

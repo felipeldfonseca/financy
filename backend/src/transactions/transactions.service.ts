@@ -8,6 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, Like, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
 import { Transaction, TransactionType, TransactionStatus } from './entities/transaction.entity';
 import { User } from '../users/entities/user.entity';
+import { ContextMember, MemberStatus, MemberRole } from '../contexts/entities/context-member.entity';
+import { Context, ContextType } from '../contexts/entities/context.entity';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { TransactionFiltersDto } from './dto/transaction-filters.dto';
@@ -41,9 +43,13 @@ export class TransactionsService {
     private transactionsRepository: Repository<Transaction>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(ContextMember)
+    private contextMembersRepository: Repository<ContextMember>,
+    @InjectRepository(Context)
+    private contextsRepository: Repository<Context>,
   ) {}
 
-  async create(createTransactionDto: CreateTransactionDto, userId: string): Promise<Transaction> {
+  async create(createTransactionDto: CreateTransactionDto, userId: string, contextId?: string): Promise<Transaction> {
     // Verify user exists and is active
     const user = await this.usersRepository.findOne({
       where: { id: userId, isActive: true },
@@ -51,6 +57,26 @@ export class TransactionsService {
 
     if (!user) {
       throw new NotFoundException('User not found or inactive');
+    }
+
+    // Handle context assignment
+    let assignedContextId = contextId;
+    if (contextId) {
+      // Verify user has access to the specified context
+      const membership = await this.contextMembersRepository.findOne({
+        where: { 
+          contextId, 
+          userId, 
+          status: MemberStatus.ACTIVE 
+        },
+      });
+
+      if (!membership || !membership.canEditTransactions()) {
+        throw new ForbiddenException('You do not have permission to create transactions in this context');
+      }
+    } else {
+      // If no context specified, use user's default personal context
+      assignedContextId = await this.getOrCreateDefaultContext(userId);
     }
 
     // Validate amount is positive
@@ -67,6 +93,7 @@ export class TransactionsService {
     const transaction = this.transactionsRepository.create({
       ...createTransactionDto,
       userId,
+      contextId: assignedContextId,
       status: TransactionStatus.PENDING,
     });
 
@@ -361,5 +388,49 @@ export class TransactionsService {
     this.transactionsRepository.update(transaction.id, { category }).catch(() => {
       // Ignore errors in auto-categorization
     });
+  }
+
+  private async getOrCreateDefaultContext(userId: string): Promise<string> {
+    // First, try to find an existing personal context for the user
+    const existingMembership = await this.contextMembersRepository.findOne({
+      where: { 
+        userId, 
+        status: MemberStatus.ACTIVE 
+      },
+      relations: ['context'],
+    });
+
+    if (existingMembership && existingMembership.context.isActive) {
+      return existingMembership.context.id;
+    }
+
+    // If no context exists, create a default personal context
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Create the context
+    const context = this.contextsRepository.create({
+      name: `${user.firstName}'s Personal Budget`,
+      description: 'Personal financial tracking',
+      type: ContextType.PERSONAL,
+      ownerId: userId,
+    });
+
+    const savedContext = await this.contextsRepository.save(context);
+
+    // Add the user as an active member
+    const membership = this.contextMembersRepository.create({
+      contextId: savedContext.id,
+      userId,
+      role: MemberRole.OWNER,
+      status: MemberStatus.ACTIVE,
+      joinedAt: new Date(),
+    });
+
+    await this.contextMembersRepository.save(membership);
+
+    return savedContext.id;
   }
 }

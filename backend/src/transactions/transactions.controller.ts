@@ -31,8 +31,13 @@ export class TransactionsController {
   @ApiResponse({ status: 201, description: 'Transaction created successfully' })
   @ApiResponse({ status: 400, description: 'Bad request - invalid data' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async create(@Body() createTransactionDto: CreateTransactionDto, @Request() req) {
-    return await this.transactionsService.create(createTransactionDto, req.user.id);
+  @ApiResponse({ status: 403, description: 'Forbidden - no access to context' })
+  async create(
+    @Body() createTransactionDto: CreateTransactionDto, 
+    @Query('contextId') contextId: string,
+    @Request() req
+  ) {
+    return await this.transactionsService.create(createTransactionDto, req.user.id, contextId);
   }
 
   @Get()

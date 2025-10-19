@@ -10,6 +10,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { TransactionsModule } from './transactions/transactions.module';
+import { ContextsModule } from './contexts/contexts.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { typeOrmConfig } from './config/typeorm.config';
 
@@ -53,6 +54,7 @@ import { typeOrmConfig } from './config/typeorm.config';
     AuthModule,
     UsersModule,
     TransactionsModule,
+    ContextsModule,
   ],
   controllers: [AppController],
   providers: [
