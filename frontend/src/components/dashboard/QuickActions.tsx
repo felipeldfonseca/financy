@@ -143,7 +143,12 @@ const QuickActions: React.FC<QuickActionsProps> = ({
                   Pending Actions
                 </Typography>
                 <Chip
-                  label={`${pendingCount} pending transactions`}
+                  label={
+                    <Box component="span">
+                      <Typography component="span" variant="numeric">{pendingCount}</Typography>
+                      {' pending transactions'}
+                    </Box>
+                  }
                   color="warning"
                   variant="outlined"
                   icon={<PendingIcon />}
@@ -193,7 +198,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({
                           }}
                         >
                           {transaction.type === 'income' ? '+' : '-'}
-                          {formatCurrency(transaction.amount)}
+                          <Typography component="span" variant="numeric">{formatCurrency(transaction.amount)}</Typography>
                         </Typography>
                       </Box>
                     }

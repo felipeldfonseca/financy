@@ -17,7 +17,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       {/* Mobile AppBar with Menu Button */}
       {isMobile && (
         <AppBar
@@ -50,16 +50,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         component="main"
         sx={{
           flexGrow: 1,
-          minHeight: '100vh',
           backgroundColor: 'background.default',
-          marginLeft: {
-            xs: 0,
-            md: `${SIDEBAR_WIDTH}px`,
-          },
           paddingTop: {
             xs: '64px', // AppBar height on mobile
             md: 0,
           },
+          p: 3, // Consistent padding on all sides
         }}
       >
         {children}

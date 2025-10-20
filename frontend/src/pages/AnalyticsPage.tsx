@@ -1,9 +1,9 @@
 import React from 'react';
-import { Container, Typography, Paper, Box } from '@mui/material';
+import { Typography, Paper, Box } from '@mui/material';
 
 const AnalyticsPage: React.FC = () => {
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Box sx={{ py: 4 }}>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
           Analytics
@@ -21,7 +21,7 @@ const AnalyticsPage: React.FC = () => {
           This page will include detailed financial reports, trends analysis, budget tracking, and custom date range analytics.
         </Typography>
       </Paper>
-    </Container>
+    </Box>
   );
 };
 

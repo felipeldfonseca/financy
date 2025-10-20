@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Container,
   Typography,
   Box,
   Button,
@@ -89,7 +88,7 @@ const TransactionsPageContent: React.FC = () => {
   const { summary } = state;
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Box sx={{ py: 4 }}>
       {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
         <Typography variant="h4" component="h1" fontWeight="bold">
@@ -170,7 +169,7 @@ const TransactionsPageContent: React.FC = () => {
         transaction={editingTransaction}
         mode={editingTransaction ? 'edit' : 'create'}
       />
-    </Container>
+    </Box>
   );
 };
 

@@ -17,7 +17,7 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
 
   const handleAuthSuccess = () => {
-    navigate('/dashboard');
+    navigate('/');
   };
 
   return (

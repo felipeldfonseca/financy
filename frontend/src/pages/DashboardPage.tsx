@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Container,
   Typography,
   Box,
   Alert,
   LinearProgress,
+  Avatar,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
 } from '@mui/material';
+import {
+  Person as PersonIcon,
+  Logout as LogoutIcon,
+} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import SummaryCards from '../components/dashboard/SummaryCards';
 import ChartSection from '../components/dashboard/ChartSection';
 import QuickActions from '../components/dashboard/QuickActions';
@@ -38,9 +49,12 @@ interface DashboardData {
 }
 
 const DashboardPage: React.FC = () => {
+  const { state, logout } = useAuth();
+  const navigate = useNavigate();
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   useEffect(() => {
     // Simulate API call - replace with actual API call later
@@ -130,16 +144,133 @@ const DashboardPage: React.FC = () => {
     t => t.status === 'pending'
   ).length || 0;
 
+  // Determine if it's user's first visit (within 24 hours of registration)
+  const isFirstVisit = () => {
+    if (!state.user?.createdAt) return false;
+    const createdAt = new Date(state.user.createdAt);
+    const now = new Date();
+    const hoursSinceRegistration = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+    return hoursSinceRegistration <= 24;
+  };
+
+  const getWelcomeMessage = () => {
+    if (!state.user?.firstName) return 'Welcome back!';
+    const capitalizedFirstName = state.user.firstName.charAt(0).toUpperCase() + state.user.firstName.slice(1).toLowerCase();
+    return isFirstVisit() 
+      ? `Welcome, ${capitalizedFirstName}!`
+      : `Hello, ${capitalizedFirstName}!`;
+  };
+
+  const getUserInitial = () => {
+    return state.user?.firstName?.charAt(0).toUpperCase() || '?';
+  };
+
+  const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleProfileClick = () => {
+    handleMenuClose();
+    navigate('/settings'); // Navigate to profile/settings page
+  };
+
+  const handleLogout = async () => {
+    handleMenuClose();
+    await logout();
+    navigate('/');
+  };
+
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Box sx={{ py: 4 }}>
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
-          Dashboard
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Welcome back! Here's your financial overview.
-        </Typography>
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <Box>
+          <Typography 
+            variant="brand" 
+            component="h1" 
+            gutterBottom
+            sx={{ 
+              color: 'text.primary',
+              fontSize: '2.5rem',
+            }}
+          >
+            {getWelcomeMessage()}
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Here's your financial overview.
+          </Typography>
+        </Box>
+        
+        {/* User Avatar */}
+        {state.user && (
+          <>
+            <Avatar
+              sx={{
+                width: 56,
+                height: 56,
+                bgcolor: 'primary.main',
+                fontSize: '1.5rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                '&:hover': {
+                  bgcolor: 'primary.dark',
+                },
+              }}
+              onClick={handleAvatarClick}
+            >
+              {getUserInitial()}
+            </Avatar>
+            
+            {/* User Menu Dropdown */}
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+              onClick={handleMenuClose}
+              PaperProps={{
+                elevation: 3,
+                sx: {
+                  overflow: 'visible',
+                  filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+                  mt: 1.5,
+                  minWidth: 180,
+                  '&:before': {
+                    content: '""',
+                    display: 'block',
+                    position: 'absolute',
+                    top: 0,
+                    right: 14,
+                    width: 10,
+                    height: 10,
+                    bgcolor: 'background.paper',
+                    transform: 'translateY(-50%) rotate(45deg)',
+                    zIndex: 0,
+                  },
+                },
+              }}
+              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            >
+              <MenuItem onClick={handleProfileClick}>
+                <ListItemIcon>
+                  <PersonIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>My profile</ListItemText>
+              </MenuItem>
+              <Divider />
+              <MenuItem onClick={handleLogout}>
+                <ListItemIcon>
+                  <LogoutIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Log out</ListItemText>
+              </MenuItem>
+            </Menu>
+          </>
+        )}
       </Box>
 
       {/* Loading Indicator */}
@@ -180,7 +311,7 @@ const DashboardPage: React.FC = () => {
           isLoading={isLoading}
         />
       </Box>
-    </Container>
+    </Box>
   );
 };
 

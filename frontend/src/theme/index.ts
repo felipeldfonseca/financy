@@ -5,12 +5,14 @@ declare module '@mui/material/styles' {
     brand: React.CSSProperties;
     navigation: React.CSSProperties;
     tagline: React.CSSProperties;
+    numeric: React.CSSProperties;
   }
 
   interface TypographyVariantsOptions {
     brand?: React.CSSProperties;
     navigation?: React.CSSProperties;
     tagline?: React.CSSProperties;
+    numeric?: React.CSSProperties;
   }
 }
 
@@ -19,6 +21,7 @@ declare module '@mui/material/Typography' {
     brand: true;
     navigation: true;
     tagline: true;
+    numeric: true;
   }
 }
 
@@ -54,7 +57,7 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Montaga", serif',
     brand: {
       fontFamily: '"Playwrite DE SAS", cursive',
       fontWeight: 400,
@@ -74,6 +77,11 @@ const theme = createTheme({
       color: '#ffffff',
       opacity: 0.9,
       fontStyle: 'italic',
+    },
+    numeric: {
+      fontFamily: '"Nuosu SIL", sans-serif',
+      fontWeight: 400,
+      fontStyle: 'normal',
     },
     h1: {
       fontWeight: 500,

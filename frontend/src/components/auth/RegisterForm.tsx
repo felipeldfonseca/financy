@@ -47,7 +47,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
       if (onSuccess) {
         onSuccess();
       } else {
-        navigate('/dashboard');
+        navigate('/');
       }
     } catch (error) {
       // Error is handled by the auth context

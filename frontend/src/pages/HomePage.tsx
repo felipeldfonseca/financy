@@ -1,13 +1,13 @@
 import React from 'react';
-import { Container, Typography, Button, Box } from '@mui/material';
+import { Typography, Button, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <Container maxWidth='lg' sx={{ py: 8 }}>
-      <Box textAlign='center'>
+    <Box sx={{ py: 8 }}>
+      <Box textAlign='center' sx={{ maxWidth: 'lg', mx: 'auto' }}>
         <Typography variant='h2' component='h1' gutterBottom>
           Welcome to Financy
         </Typography>
@@ -36,7 +36,7 @@ const HomePage: React.FC = () => {
           </Button>
         </Box>
       </Box>
-    </Container>
+    </Box>
   );
 };
 

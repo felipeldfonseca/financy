@@ -33,7 +33,7 @@ interface NavigationItem {
 const navigationItems: NavigationItem[] = [
   {
     id: 'dashboard',
-    label: 'Dashboard',
+    label: 'Home',
     path: '/',
     icon: null,
   },

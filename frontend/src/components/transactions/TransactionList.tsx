@@ -160,7 +160,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
         sx={{ color: getTypeColor(type) }}
       >
         {type === 'income' ? '+' : type === 'expense' ? '-' : ''}
-        {formattedAmount}
+        <Typography component="span" variant="numeric">{formattedAmount}</Typography>
       </Typography>
     );
   };

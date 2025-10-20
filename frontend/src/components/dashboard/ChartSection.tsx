@@ -122,7 +122,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
               variant="body2"
               sx={{ color: entry.color }}
             >
-              {entry.name}: {formatCurrency(entry.value)}
+              {entry.name}: <Typography component="span" variant="numeric">{formatCurrency(entry.value)}</Typography>
             </Typography>
           ))}
         </Box>
@@ -149,7 +149,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
             {data.name}
           </Typography>
           <Typography variant="body2" sx={{ color: data.payload.color }}>
-            {formatCurrency(data.value)}
+            <Typography component="span" variant="numeric">{formatCurrency(data.value)}</Typography>
           </Typography>
         </Box>
       );
