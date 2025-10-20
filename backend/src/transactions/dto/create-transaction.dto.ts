@@ -104,4 +104,8 @@ export class CreateTransactionDto {
   @IsString()
   @MaxLength(3)
   originalCurrency?: string;
+
+  @IsOptional()
+  @IsUUID()
+  contextId?: string;
 }

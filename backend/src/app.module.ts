@@ -11,6 +11,8 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { ContextsModule } from './contexts/contexts.module';
+import { TelegramModule } from './telegram/telegram.module';
+import { CurrencyModule } from './currency/currency.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { typeOrmConfig } from './config/typeorm.config';
 
@@ -55,6 +57,8 @@ import { typeOrmConfig } from './config/typeorm.config';
     UsersModule,
     TransactionsModule,
     ContextsModule,
+    TelegramModule,
+    CurrencyModule,
   ],
   controllers: [AppController],
   providers: [

@@ -17,6 +17,10 @@ export enum ContextType {
   PERSONAL = 'personal',
   FAMILY = 'family',
   BUSINESS = 'business',
+  SHARED_LIVING = 'shared_living',
+  TRIP = 'trip',
+  PROJECT = 'project',
+  FRIENDS = 'friends',
   SHARED = 'shared',
 }
 
@@ -105,6 +109,10 @@ export class Context {
         [ContextType.PERSONAL]: 'person',
         [ContextType.FAMILY]: 'family_restroom',
         [ContextType.BUSINESS]: 'business',
+        [ContextType.SHARED_LIVING]: 'home',
+        [ContextType.TRIP]: 'flight',
+        [ContextType.PROJECT]: 'engineering',
+        [ContextType.FRIENDS]: 'people',
         [ContextType.SHARED]: 'group',
       };
       this.icon = iconMap[this.type] || 'folder';
