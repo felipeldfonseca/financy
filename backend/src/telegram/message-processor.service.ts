@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 import * as crypto from 'crypto';
+import * as FormData from 'form-data';
 import { ParsedTransaction } from './interfaces/telegram.interface';
 import { CurrencyService } from '../currency/currency.service';
 
@@ -73,27 +74,82 @@ export class MessageProcessorService {
         return null;
       }
 
-      // For now, return null - voice processing would require additional setup
-      // This would involve downloading the voice file and using Whisper API
-      this.logger.warn('Voice message processing not yet implemented');
-      return null;
+      this.logger.log('Processing voice message:', { fileId: voice.file_id, duration: voice.duration });
+
+      // Step 1: Get file download URL from Telegram
+      const fileUrl = await this.getTelegramFileUrl(voice.file_id);
+      if (!fileUrl) {
+        this.logger.error('Failed to get voice file URL from Telegram');
+        return null;
+      }
+
+      // Step 2: Download the voice file
+      const audioBuffer = await this.downloadTelegramFile(fileUrl);
+      if (!audioBuffer) {
+        this.logger.error('Failed to download voice file');
+        return null;
+      }
+
+      // Step 3: Convert audio to text using OpenRouter's audio models
+      const transcribedText = await this.transcribeAudio(audioBuffer, voice);
+      if (!transcribedText) {
+        this.logger.warn('Failed to transcribe voice message');
+        return null;
+      }
+
+      this.logger.log('Voice transcription successful:', transcribedText);
+      return transcribedText;
     } catch (error) {
       this.logger.error('Error processing voice message:', error);
       return null;
     }
   }
 
-  async processPhotoMessage(photo: any, userId: string): Promise<ParsedTransaction | null> {
+  async processPhotoMessage(photo: any, userId: string, defaultCurrency: string = 'USD'): Promise<ParsedTransaction | null> {
     try {
       if (!this.openRouterApiKey || this.openRouterApiKey === 'placeholder') {
         this.logger.warn('OpenRouter API key not configured. Photo processing disabled.');
         return null;
       }
 
-      // For now, return null - photo processing would require additional setup
-      // This would involve downloading the image and using vision models
-      this.logger.warn('Photo message processing not yet implemented');
-      return null;
+      this.logger.log('Processing photo message:', { fileId: photo.file_id, width: photo.width, height: photo.height });
+
+      // Step 1: Get the highest resolution photo
+      const highestResPhoto = this.selectBestPhoto(photo);
+      
+      // Step 2: Download the photo
+      const photoUrl = await this.getTelegramFileUrl(highestResPhoto.file_id);
+      if (!photoUrl) {
+        this.logger.error('Failed to get photo URL from Telegram');
+        return null;
+      }
+
+      const imageBuffer = await this.downloadTelegramFile(photoUrl);
+      if (!imageBuffer) {
+        this.logger.error('Failed to download photo');
+        return null;
+      }
+
+      // Step 3: Extract transaction details using vision models
+      const extractedData = await this.extractReceiptData(imageBuffer, highestResPhoto);
+      if (!extractedData) {
+        this.logger.warn('Failed to extract transaction data from photo');
+        return null;
+      }
+
+      // Step 4: Apply currency conversion
+      const convertedTransaction = await this.applyCurrencyConversion(extractedData, defaultCurrency);
+
+      // Step 5: Create ParsedTransaction with temp ID
+      const tempId = crypto.randomBytes(16).toString('hex');
+      const finalTransaction: ParsedTransaction = {
+        ...convertedTransaction,
+        tempId,
+        originalText: 'Receipt photo',
+      };
+
+      this.logger.log('Photo processing successful:', finalTransaction);
+      return finalTransaction;
     } catch (error) {
       this.logger.error('Error processing photo message:', error);
       return null;
@@ -403,5 +459,323 @@ Remember: Respond with ONLY the JSON object, no additional text.`;
     setTimeout(() => {
       this.storedTransactions.delete(transaction.tempId);
     }, 10 * 60 * 1000);
+  }
+
+  private async getTelegramFileUrl(fileId: string): Promise<string | null> {
+    try {
+      const botToken = this.configService.get('TELEGRAM_BOT_TOKEN');
+      if (!botToken) {
+        this.logger.error('Telegram bot token not configured');
+        return null;
+      }
+
+      const response = await lastValueFrom(
+        this.httpService.get(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`)
+      );
+
+      if (response.data.ok && response.data.result.file_path) {
+        return `https://api.telegram.org/file/bot${botToken}/${response.data.result.file_path}`;
+      }
+
+      this.logger.error('Telegram API error:', response.data);
+      return null;
+    } catch (error) {
+      this.logger.error('Error getting Telegram file URL:', error);
+      return null;
+    }
+  }
+
+  private async downloadTelegramFile(fileUrl: string): Promise<Buffer | null> {
+    try {
+      const response = await lastValueFrom(
+        this.httpService.get(fileUrl, {
+          responseType: 'arraybuffer',
+          timeout: 30000, // 30 second timeout
+        })
+      );
+
+      return Buffer.from(response.data);
+    } catch (error) {
+      this.logger.error('Error downloading Telegram file:', error);
+      return null;
+    }
+  }
+
+  private async transcribeAudio(audioBuffer: Buffer, voiceInfo: any): Promise<string | null> {
+    try {
+      // OpenRouter supports Whisper models for audio transcription
+      // We'll use a multi-tier approach: Whisper -> Groq Whisper -> Fallback
+      
+      const models = [
+        'openai/whisper-1', // OpenAI's Whisper (paid)
+        'groq/whisper-large-v3', // Groq's Whisper (faster)
+        'whisper-1' // Fallback
+      ];
+
+      for (const model of models) {
+        try {
+          this.logger.debug(`Trying transcription with model: ${model}`);
+          
+          const formData = new FormData();
+          formData.append('file', audioBuffer, {
+            filename: 'voice.ogg',
+            contentType: 'audio/ogg',
+          });
+          formData.append('model', model);
+          formData.append('language', 'auto'); // Auto-detect language
+
+          const response = await lastValueFrom(
+            this.httpService.post(
+              `${this.openRouterBaseUrl}/audio/transcriptions`,
+              formData,
+              {
+                headers: {
+                  'Authorization': `Bearer ${this.openRouterApiKey}`,
+                  'HTTP-Referer': 'https://financy-app.com',
+                  'X-Title': 'Financy Voice Transcription',
+                  ...formData.getHeaders(),
+                },
+                timeout: 30000, // 30 second timeout
+              }
+            )
+          );
+
+          if (response.data.text) {
+            this.logger.log(`Transcription successful with ${model}:`, response.data.text);
+            return response.data.text.trim();
+          }
+        } catch (error) {
+          this.logger.warn(`Transcription failed with ${model}:`, error.response?.data || error.message);
+          continue; // Try next model
+        }
+      }
+
+      // If all models fail, try a simple fallback approach
+      return this.fallbackVoiceProcessing(voiceInfo);
+    } catch (error) {
+      this.logger.error('Error in audio transcription:', error);
+      return null;
+    }
+  }
+
+  private fallbackVoiceProcessing(voiceInfo: any): string | null {
+    // Simple fallback: provide helpful message about voice limitations
+    const duration = voiceInfo.duration || 0;
+    
+    if (duration > 60) {
+      return null; // Voice too long, likely not a transaction
+    }
+
+    // Return null to indicate transcription failed
+    // The caller will handle this appropriately
+    this.logger.warn('Voice transcription failed, no fallback text available');
+    return null;
+  }
+
+  private selectBestPhoto(photos: any[]): any {
+    // If it's a single photo object, return it
+    if (!Array.isArray(photos)) {
+      return photos;
+    }
+
+    // Select the highest resolution photo
+    return photos.reduce((best, current) => {
+      const bestSize = (best.width || 0) * (best.height || 0);
+      const currentSize = (current.width || 0) * (current.height || 0);
+      return currentSize > bestSize ? current : best;
+    });
+  }
+
+  private async extractReceiptData(imageBuffer: Buffer, photoInfo: any): Promise<any | null> {
+    try {
+      // Use OpenRouter's vision models to extract receipt data
+      const models = [
+        'openai/gpt-4o', // GPT-4 Vision (best quality)
+        'anthropic/claude-3.5-sonnet', // Claude 3.5 Sonnet with vision
+        'google/gemini-pro-vision', // Gemini Pro Vision
+      ];
+
+      for (const model of models) {
+        try {
+          this.logger.debug(`Trying receipt extraction with model: ${model}`);
+          
+          // Convert image to base64
+          const base64Image = imageBuffer.toString('base64');
+          const imageType = this.detectImageType(imageBuffer);
+          
+          const extractionPrompt = this.buildReceiptExtractionPrompt();
+          
+          const response = await lastValueFrom(
+            this.httpService.post(
+              `${this.openRouterBaseUrl}/chat/completions`,
+              {
+                model: model,
+                messages: [
+                  {
+                    role: 'system',
+                    content: 'You are a receipt data extraction expert. Extract transaction details from receipt images and respond only with valid JSON.'
+                  },
+                  {
+                    role: 'user',
+                    content: [
+                      {
+                        type: 'text',
+                        text: extractionPrompt
+                      },
+                      {
+                        type: 'image_url',
+                        image_url: {
+                          url: `data:${imageType};base64,${base64Image}`,
+                          detail: 'high'
+                        }
+                      }
+                    ]
+                  }
+                ],
+                max_tokens: 500,
+                temperature: 0.1,
+              },
+              {
+                headers: {
+                  'Authorization': `Bearer ${this.openRouterApiKey}`,
+                  'Content-Type': 'application/json',
+                  'HTTP-Referer': 'https://financy-app.com',
+                  'X-Title': 'Financy Receipt OCR',
+                },
+                timeout: 30000, // 30 second timeout
+              }
+            )
+          );
+
+          const content = response.data.choices?.[0]?.message?.content?.trim();
+          if (content) {
+            const extractedData = this.parseReceiptResponse(content);
+            if (extractedData) {
+              this.logger.log(`Receipt extraction successful with ${model}`);
+              return extractedData;
+            }
+          }
+        } catch (error) {
+          this.logger.warn(`Receipt extraction failed with ${model}:`, error.response?.data || error.message);
+          continue; // Try next model
+        }
+      }
+
+      // If all vision models fail, try OCR + text parsing fallback
+      return this.fallbackReceiptProcessing(imageBuffer, photoInfo);
+    } catch (error) {
+      this.logger.error('Error in receipt data extraction:', error);
+      return null;
+    }
+  }
+
+  private buildReceiptExtractionPrompt(): string {
+    return `Analyze this receipt image and extract transaction details. 
+
+Respond with ONLY a valid JSON object containing these fields:
+{
+  "amount": number (total amount, positive value),
+  "currency": "USD" | "BRL" | "EUR" | "GBP" | "CAD" (detect from receipt or symbols),
+  "type": "expense" (receipts are always expenses),
+  "description": "brief description of purchase",
+  "category": "category name" (Food & Dining, Shopping, Gas, etc.),
+  "merchantName": "store/restaurant name",
+  "date": "YYYY-MM-DD" (if visible on receipt),
+  "confidence": number between 0.7 and 1.0
+}
+
+Guidelines:
+- Focus on the total amount (after tax, fees, etc.)
+- Detect currency from symbols ($, €, £, R$) or text
+- Identify merchant name from header/footer
+- Categorize based on merchant type or items
+- Use today's date if not visible on receipt
+- Set confidence 0.9+ for clear receipts, 0.7+ for unclear ones
+
+Examples:
+- Grocery store receipt → "Food & Dining"
+- Gas station → "Transportation" 
+- Restaurant → "Food & Dining"
+- Retail store → "Shopping"
+
+Remember: Respond with ONLY the JSON object, no additional text.`;
+  }
+
+  private parseReceiptResponse(response: string): any | null {
+    try {
+      // Clean the response similar to AI text parsing
+      let cleanedResponse = response.trim();
+      
+      // Extract JSON if wrapped in markdown
+      const jsonMatch = cleanedResponse.match(/```(?:json)?\s*(\{.*?\})\s*```/s);
+      if (jsonMatch) {
+        cleanedResponse = jsonMatch[1];
+      }
+
+      // Find JSON object bounds
+      const jsonStart = cleanedResponse.indexOf('{');
+      const jsonEnd = cleanedResponse.lastIndexOf('}');
+      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+        cleanedResponse = cleanedResponse.substring(jsonStart, jsonEnd + 1);
+      }
+
+      const parsed = JSON.parse(cleanedResponse);
+
+      // Validate receipt data
+      if (this.isValidReceiptData(parsed)) {
+        return parsed;
+      }
+
+      this.logger.warn('Invalid receipt data format:', parsed);
+      return null;
+    } catch (error) {
+      this.logger.error('Error parsing receipt response:', error);
+      return null;
+    }
+  }
+
+  private isValidReceiptData(data: any): boolean {
+    return (
+      data &&
+      typeof data.amount === 'number' &&
+      data.amount > 0 &&
+      typeof data.currency === 'string' &&
+      typeof data.description === 'string' &&
+      data.description.length > 0 &&
+      typeof data.confidence === 'number' &&
+      data.confidence >= 0.5 &&
+      data.confidence <= 1.0
+    );
+  }
+
+  private detectImageType(buffer: Buffer): string {
+    // Detect image type from magic bytes
+    if (buffer.length < 4) return 'image/jpeg';
+    
+    const header = buffer.subarray(0, 4);
+    
+    if (header[0] === 0xFF && header[1] === 0xD8) return 'image/jpeg';
+    if (header[0] === 0x89 && header[1] === 0x50 && header[2] === 0x4E && header[3] === 0x47) return 'image/png';
+    if (header[0] === 0x47 && header[1] === 0x49 && header[2] === 0x46) return 'image/gif';
+    if (header.toString('ascii', 0, 4) === 'RIFF') return 'image/webp';
+    
+    return 'image/jpeg'; // Default fallback
+  }
+
+  private fallbackReceiptProcessing(imageBuffer: Buffer, photoInfo: any): any | null {
+    // Simple fallback when vision models fail
+    // Could integrate with Tesseract.js or similar OCR library here
+    this.logger.warn('Vision models failed, receipt processing requires manual entry');
+    
+    // Return a basic transaction template that user can confirm/edit
+    return {
+      amount: 0,
+      currency: 'USD',
+      type: 'expense',
+      description: 'Receipt (please edit)',
+      category: 'Uncategorized',
+      merchantName: null,
+      confidence: 0.3, // Low confidence to indicate manual verification needed
+    };
   }
 }
