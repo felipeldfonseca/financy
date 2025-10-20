@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import TransactionsPage from './pages/TransactionsPage';
 import ContextsPage from './pages/ContextsPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 import SettingsPage from './pages/SettingsPage';
 
 function App() {
@@ -19,7 +20,7 @@ function App() {
         <Routes>
           {/* Public routes */}
           <Route
-            path="/"
+            path="/welcome"
             element={
               <PublicRoute>
                 <HomePage />
@@ -36,6 +37,16 @@ function App() {
           />
           
           {/* Protected routes */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <DashboardPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/dashboard"
             element={
@@ -67,6 +78,16 @@ function App() {
             }
           />
           <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <AnalyticsPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/settings"
             element={
               <ProtectedRoute>
@@ -79,7 +100,7 @@ function App() {
           
           {/* Fallback routes */}
           <Route path="/register" element={<Navigate to="/login" replace />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Box>
     </AuthProvider>

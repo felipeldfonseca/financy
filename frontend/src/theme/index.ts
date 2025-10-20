@@ -1,29 +1,49 @@
 import { createTheme } from '@mui/material/styles';
 
+declare module '@mui/material/styles' {
+  interface TypographyVariants {
+    brand: React.CSSProperties;
+    navigation: React.CSSProperties;
+  }
+
+  interface TypographyVariantsOptions {
+    brand?: React.CSSProperties;
+    navigation?: React.CSSProperties;
+  }
+}
+
+declare module '@mui/material/Typography' {
+  interface TypographyPropsVariantOverrides {
+    brand: true;
+    navigation: true;
+  }
+}
+
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#2E7D32', // Green for financial growth
-      light: '#4CAF50',
-      dark: '#1B5E20',
+      main: '#45b8d7', // Brand blue
+      light: '#7dd3e8',
+      dark: '#2e7a94',
+      contrastText: '#ffffff',
     },
     secondary: {
-      main: '#1976D2', // Blue for trust and stability
-      light: '#42A5F5',
-      dark: '#0D47A1',
+      main: '#f50057',
+      light: '#ff5983',
+      dark: '#bb002f',
     },
     error: {
-      main: '#D32F2F',
+      main: '#f44336',
     },
     warning: {
-      main: '#F57C00',
+      main: '#ff9800',
     },
     success: {
-      main: '#2E7D32',
+      main: '#4caf50',
     },
     background: {
-      default: '#F5F5F5',
-      paper: '#FFFFFF',
+      default: '#fafafa',
+      paper: '#ffffff',
     },
     text: {
       primary: '#212121',
@@ -32,6 +52,18 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    brand: {
+      fontFamily: '"Playwrite DE SAS", cursive',
+      fontWeight: 400,
+      fontSize: '1.8rem',
+      color: '#ffffff',
+    },
+    navigation: {
+      fontFamily: '"Montaga", serif',
+      fontWeight: 400,
+      fontSize: '1rem',
+      color: '#ffffff',
+    },
     h1: {
       fontWeight: 500,
     },
