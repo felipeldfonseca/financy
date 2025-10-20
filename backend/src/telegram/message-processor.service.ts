@@ -28,14 +28,14 @@ export class MessageProcessorService {
     this.tertiaryModel = this.configService.get('TERTIARY_MODEL', 'google/gemini-2.5-flash-lite');
   }
 
-  async processTextMessage(text: string, userId: string, defaultCurrency: string = 'USD'): Promise<ParsedTransaction | null> {
+  async processTextMessage(text: string, userId: string, defaultCurrency: string = 'USD'): Promise<ParsedTransaction[]> {
     try {
       if (!this.openRouterApiKey || this.openRouterApiKey === 'placeholder') {
         this.logger.warn('OpenRouter API key not configured. Using regex fallback.');
-        return this.parseTransactionWithRegex(text, defaultCurrency);
+        return this.parseTransactionsWithRegex(text, defaultCurrency);
       }
 
-      const extractionPrompt = this.buildExtractionPrompt(text);
+      const extractionPrompt = this.buildMultiTransactionExtractionPrompt(text);
       
       // Try AI models in sequence: Primary -> Secondary -> Tertiary -> Regex
       let aiResponse = await this.tryAIModel(this.primaryModel, extractionPrompt, 'Primary');
@@ -49,21 +49,21 @@ export class MessageProcessorService {
       }
       
       if (aiResponse) {
-        const parsedTransaction = await this.parseAIResponse(aiResponse, text, defaultCurrency);
-        if (parsedTransaction) {
-          // Store temporarily for confirmation
-          this.storeTransaction(parsedTransaction);
-          return parsedTransaction;
+        const parsedTransactions = await this.parseMultiAIResponse(aiResponse, text, defaultCurrency);
+        if (parsedTransactions && parsedTransactions.length > 0) {
+          // Store all transactions temporarily for confirmation
+          parsedTransactions.forEach(transaction => this.storeTransaction(transaction));
+          return parsedTransactions;
         }
       }
 
       // Final fallback to regex
       this.logger.warn('All AI models failed, using regex fallback');
-      return this.parseTransactionWithRegex(text, defaultCurrency);
+      return this.parseTransactionsWithRegex(text, defaultCurrency);
     } catch (error) {
       this.logger.error('Error processing text message:', error);
       // Fallback to regex parsing
-      return this.parseTransactionWithRegex(text, defaultCurrency);
+      return this.parseTransactionsWithRegex(text, defaultCurrency);
     }
   }
 
@@ -105,54 +105,76 @@ export class MessageProcessorService {
     }
   }
 
-  async processPhotoMessage(photo: any, userId: string, defaultCurrency: string = 'USD'): Promise<ParsedTransaction | null> {
+  async processPhotoMessage(photos: any[], userId: string, defaultCurrency: string = 'USD'): Promise<ParsedTransaction[]> {
     try {
       if (!this.openRouterApiKey || this.openRouterApiKey === 'placeholder') {
         this.logger.warn('OpenRouter API key not configured. Photo processing disabled.');
-        return null;
+        return [];
       }
 
-      this.logger.log('Processing photo message:', { fileId: photo.file_id, width: photo.width, height: photo.height });
-
-      // Step 1: Get the highest resolution photo
-      const highestResPhoto = this.selectBestPhoto(photo);
-      
-      // Step 2: Download the photo
-      const photoUrl = await this.getTelegramFileUrl(highestResPhoto.file_id);
-      if (!photoUrl) {
-        this.logger.error('Failed to get photo URL from Telegram');
-        return null;
+      if (!photos || photos.length === 0) {
+        this.logger.warn('No photos provided for processing');
+        return [];
       }
 
-      const imageBuffer = await this.downloadTelegramFile(photoUrl);
-      if (!imageBuffer) {
-        this.logger.error('Failed to download photo');
-        return null;
+      this.logger.log('Processing multiple photo messages:', { photoCount: photos.length });
+
+      const processedTransactions: ParsedTransaction[] = [];
+
+      // Process each photo separately
+      for (let i = 0; i < photos.length; i++) {
+        const photo = photos[i];
+        
+        try {
+          this.logger.log(`Processing photo ${i + 1}/${photos.length}:`, { fileId: photo.file_id, width: photo.width, height: photo.height });
+
+          // Step 1: Get the highest resolution photo (if it's an array of sizes)
+          const highestResPhoto = this.selectBestPhoto(photo);
+          
+          // Step 2: Download the photo
+          const photoUrl = await this.getTelegramFileUrl(highestResPhoto.file_id);
+          if (!photoUrl) {
+            this.logger.error(`Failed to get photo URL from Telegram for photo ${i + 1}`);
+            continue;
+          }
+
+          const imageBuffer = await this.downloadTelegramFile(photoUrl);
+          if (!imageBuffer) {
+            this.logger.error(`Failed to download photo ${i + 1}`);
+            continue;
+          }
+
+          // Step 3: Extract transaction details using vision models
+          const extractedData = await this.extractReceiptData(imageBuffer, highestResPhoto);
+          if (!extractedData) {
+            this.logger.warn(`Failed to extract transaction data from photo ${i + 1}`);
+            continue;
+          }
+
+          // Step 4: Apply currency conversion
+          const convertedTransaction = await this.applyCurrencyConversion(extractedData, defaultCurrency);
+
+          // Step 5: Create ParsedTransaction with temp ID
+          const tempId = crypto.randomBytes(16).toString('hex');
+          const finalTransaction: ParsedTransaction = {
+            ...convertedTransaction,
+            tempId,
+            originalText: `Receipt photo ${i + 1}`,
+          };
+
+          processedTransactions.push(finalTransaction);
+          this.logger.log(`Photo ${i + 1} processing successful:`, finalTransaction);
+        } catch (error) {
+          this.logger.error(`Error processing photo ${i + 1}:`, error);
+          continue;
+        }
       }
 
-      // Step 3: Extract transaction details using vision models
-      const extractedData = await this.extractReceiptData(imageBuffer, highestResPhoto);
-      if (!extractedData) {
-        this.logger.warn('Failed to extract transaction data from photo');
-        return null;
-      }
-
-      // Step 4: Apply currency conversion
-      const convertedTransaction = await this.applyCurrencyConversion(extractedData, defaultCurrency);
-
-      // Step 5: Create ParsedTransaction with temp ID
-      const tempId = crypto.randomBytes(16).toString('hex');
-      const finalTransaction: ParsedTransaction = {
-        ...convertedTransaction,
-        tempId,
-        originalText: 'Receipt photo',
-      };
-
-      this.logger.log('Photo processing successful:', finalTransaction);
-      return finalTransaction;
+      this.logger.log(`Batch photo processing completed: ${processedTransactions.length}/${photos.length} successful`);
+      return processedTransactions;
     } catch (error) {
-      this.logger.error('Error processing photo message:', error);
-      return null;
+      this.logger.error('Error processing photo messages:', error);
+      return [];
     }
   }
 
@@ -193,6 +215,40 @@ Examples:
 "Spent R$25 on lunch" → {"amount": 25, "currency": "BRL", "type": "expense", "description": "lunch", "category": "Food & Dining", "merchantName": null, "confidence": 0.85}
 
 Remember: Respond with ONLY the JSON object, no additional text.`;
+  }
+
+  private buildMultiTransactionExtractionPrompt(text: string): string {
+    return `Extract ALL transaction details from this natural language text: "${text}"
+
+Respond with ONLY a valid JSON array containing transaction objects. Each transaction should have these exact fields:
+{
+  "amount": number (positive value),
+  "currency": "USD" | "BRL" | "EUR" | "GBP" | "CAD" (detect from context or default to USD),
+  "type": "income" | "expense" | "transfer",
+  "description": "brief description",
+  "category": "category name or null",
+  "merchantName": "merchant name or null",
+  "confidence": number between 0.0 and 1.0
+}
+
+Guidelines:
+- Extract ALL transactions mentioned in the text
+- For each transaction: extract amount, detect currency, determine type
+- Create concise descriptions without redundant words
+- Suggest appropriate categories if obvious from context
+- Extract merchant names if mentioned
+- Set confidence based on clarity (0.9+ for clear, 0.7+ for good, 0.5+ for unclear)
+- If only one transaction is found, still return it as an array with one element
+- If no clear transactions are found, return an empty array []
+
+Examples:
+"Bought coffee for $5 and gas for $40" → [{"amount": 5, "currency": "USD", "type": "expense", "description": "coffee", "category": "Food & Dining", "merchantName": null, "confidence": 0.95}, {"amount": 40, "currency": "USD", "type": "expense", "description": "gas", "category": "Transportation", "merchantName": null, "confidence": 0.95}]
+
+"Paid $50 for groceries at Walmart" → [{"amount": 50, "currency": "USD", "type": "expense", "description": "groceries", "category": "Food & Dining", "merchantName": "Walmart", "confidence": 0.95}]
+
+"Spent €15 on lunch, then €8 on parking, and received €200 freelance payment" → [{"amount": 15, "currency": "EUR", "type": "expense", "description": "lunch", "category": "Food & Dining", "merchantName": null, "confidence": 0.9}, {"amount": 8, "currency": "EUR", "type": "expense", "description": "parking", "category": "Transportation", "merchantName": null, "confidence": 0.9}, {"amount": 200, "currency": "EUR", "type": "income", "description": "freelance payment", "category": "Income", "merchantName": null, "confidence": 0.9}]
+
+Remember: Respond with ONLY the JSON array, no additional text.`;
   }
 
   private async tryAIModel(model: string, prompt: string, tier: string): Promise<string | null> {
@@ -244,6 +300,61 @@ Remember: Respond with ONLY the JSON object, no additional text.`;
     }
   }
 
+  private async parseMultiAIResponse(aiResponse: string, originalText: string, defaultCurrency: string): Promise<ParsedTransaction[]> {
+    try {
+      // Clean the response in case there's extra text
+      let cleanedResponse = aiResponse.trim();
+      
+      // Extract JSON if it's wrapped in markdown code blocks
+      const jsonMatch = cleanedResponse.match(/```(?:json)?\s*(\[.*?\])\s*```/s);
+      if (jsonMatch) {
+        cleanedResponse = jsonMatch[1];
+      }
+
+      // Try to find JSON array in the response
+      const jsonStart = cleanedResponse.indexOf('[');
+      const jsonEnd = cleanedResponse.lastIndexOf(']');
+      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+        cleanedResponse = cleanedResponse.substring(jsonStart, jsonEnd + 1);
+      }
+
+      const parsed = JSON.parse(cleanedResponse);
+      
+      // Ensure we have an array
+      const transactionArray = Array.isArray(parsed) ? parsed : [parsed];
+      
+      const validTransactions: ParsedTransaction[] = [];
+
+      for (let i = 0; i < transactionArray.length; i++) {
+        const transaction = transactionArray[i];
+        
+        // Validate each transaction
+        if (!this.isValidParsedTransaction(transaction)) {
+          this.logger.warn(`Invalid AI response format for transaction ${i + 1}:`, transaction);
+          continue;
+        }
+
+        const tempId = crypto.randomBytes(16).toString('hex');
+
+        // Apply currency conversion if needed
+        const convertedTransaction = await this.applyCurrencyConversion(transaction, defaultCurrency);
+
+        const finalTransaction: ParsedTransaction = {
+          ...convertedTransaction,
+          tempId,
+          originalText,
+        };
+
+        validTransactions.push(finalTransaction);
+      }
+
+      return validTransactions;
+    } catch (error) {
+      this.logger.error('Error parsing multi AI response:', error, 'Response:', aiResponse);
+      return [];
+    }
+  }
+
   private async parseAIResponse(aiResponse: string, originalText: string, defaultCurrency: string): Promise<ParsedTransaction | null> {
     try {
       // Clean the response in case there's extra text
@@ -283,6 +394,36 @@ Remember: Respond with ONLY the JSON object, no additional text.`;
     } catch (error) {
       this.logger.error('Error parsing AI response:', error, 'Response:', aiResponse);
       return null;
+    }
+  }
+
+  private async parseTransactionsWithRegex(text: string, defaultCurrency: string): Promise<ParsedTransaction[]> {
+    try {
+      // Split text by common separators to find multiple transactions
+      const separators = /\s+(?:and|then|also|after that|next|,)\s+/i;
+      const segments = text.split(separators);
+      
+      const transactions: ParsedTransaction[] = [];
+      
+      for (const segment of segments) {
+        const transaction = await this.parseTransactionWithRegex(segment.trim(), defaultCurrency);
+        if (transaction) {
+          transactions.push(transaction);
+        }
+      }
+      
+      // If no transactions found through splitting, try the whole text as one
+      if (transactions.length === 0) {
+        const singleTransaction = await this.parseTransactionWithRegex(text, defaultCurrency);
+        if (singleTransaction) {
+          transactions.push(singleTransaction);
+        }
+      }
+      
+      return transactions;
+    } catch (error) {
+      this.logger.error('Error in multi-regex parsing:', error);
+      return [];
     }
   }
 

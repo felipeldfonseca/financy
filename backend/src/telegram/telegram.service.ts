@@ -4,6 +4,7 @@ import { HttpService } from '@nestjs/axios';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { lastValueFrom } from 'rxjs';
+import * as crypto from 'crypto';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { TransactionsService } from '../transactions/transactions.service';
@@ -27,6 +28,7 @@ export class TelegramService implements OnModuleInit {
   private readonly botToken: string;
   private readonly webhookUrl: string;
   private readonly baseUrl: string;
+  private readonly batchTransactions = new Map<string, ParsedTransaction[]>();
 
   constructor(
     private configService: ConfigService,
@@ -152,6 +154,12 @@ export class TelegramService implements OnModuleInit {
         return;
       }
 
+      // Handle batch transaction callbacks
+      if (data.startsWith('confirm_batch_') || data.startsWith('review_batch_') || data.startsWith('cancel_batch_')) {
+        await this.handleBatchCallback(chatId, data, userId);
+        return;
+      }
+
       // Handle transaction-related callbacks
       const [action, transactionId] = data.split('_');
 
@@ -217,7 +225,7 @@ export class TelegramService implements OnModuleInit {
         }
       }
 
-      await this.sendMessage(chatId, '🤔 Processing your transaction...');
+      await this.sendMessage(chatId, '🤔 Processing your transactions...');
 
       // Determine context for this message
       let contextId: string | null = null;
@@ -237,31 +245,66 @@ export class TelegramService implements OnModuleInit {
         }
       }
 
-      const parsedTransaction = await this.messageProcessor.processTextMessage(text, userId, defaultCurrency);
+      const parsedTransactions = await this.messageProcessor.processTextMessage(text, userId, defaultCurrency);
 
-      if (parsedTransaction && parsedTransaction.confidence > 0.6) {
-        // Store context info with the transaction
-        if (contextId) {
-          parsedTransaction.contextId = contextId;
+      if (parsedTransactions && parsedTransactions.length > 0) {
+        // Filter transactions with sufficient confidence
+        const validTransactions = parsedTransactions.filter(transaction => transaction.confidence > 0.6);
+        
+        if (validTransactions.length > 0) {
+          // Add context info to all transactions
+          validTransactions.forEach(transaction => {
+            if (contextId) {
+              transaction.contextId = contextId;
+            }
+          });
+
+          if (validTransactions.length === 1) {
+            // Single transaction - use existing format
+            const confirmationMessage = await this.formatTransactionConfirmation(validTransactions[0], userId);
+            await this.sendMessage(chatId, confirmationMessage, {
+              reply_markup: {
+                inline_keyboard: [[
+                  { text: '✅ Confirm', callback_data: `confirm_${validTransactions[0].tempId}` },
+                  { text: '✏️ Edit', callback_data: `edit_${validTransactions[0].tempId}` },
+                  { text: '❌ Cancel', callback_data: `cancel_${validTransactions[0].tempId}` },
+                ]],
+              },
+            });
+          } else {
+            // Multiple transactions - use batch format
+            const confirmationMessage = await this.formatMultiTransactionConfirmation(validTransactions, userId);
+            const batchId = crypto.randomBytes(16).toString('hex');
+            
+            // Store batch for processing
+            this.storeBatchTransactions(batchId, validTransactions);
+            
+            await this.sendMessage(chatId, confirmationMessage, {
+              reply_markup: {
+                inline_keyboard: [[
+                  { text: '✅ Confirm All', callback_data: `confirm_batch_${batchId}` },
+                  { text: '✏️ Review', callback_data: `review_batch_${batchId}` },
+                  { text: '❌ Cancel All', callback_data: `cancel_batch_${batchId}` },
+                ]],
+              },
+            });
+          }
+        } else {
+          await this.sendMessage(chatId, 
+            '🤷‍♀️ I found some transactions but they seem unclear. Please try a clearer format like:\n\n' +
+            '• "Spent $50 on groceries"\n' +
+            '• "Coffee $5 and gas $40"\n' +
+            '• "Paid R$25 for lunch at McDonald\'s"\n' +
+            '• "Got €200 from freelance work"'
+          );
         }
-
-        const confirmationMessage = await this.formatTransactionConfirmation(parsedTransaction, userId);
-        await this.sendMessage(chatId, confirmationMessage, {
-          reply_markup: {
-            inline_keyboard: [[
-              { text: '✅ Confirm', callback_data: `confirm_${parsedTransaction.tempId}` },
-              { text: '✏️ Edit', callback_data: `edit_${parsedTransaction.tempId}` },
-              { text: '❌ Cancel', callback_data: `cancel_${parsedTransaction.tempId}` },
-            ]],
-          },
-        });
       } else {
         await this.sendMessage(chatId, 
-          '🤷‍♀️ I couldn\'t understand that transaction. Please try a format like:\n\n' +
+          '🤷‍♀️ I couldn\'t understand any transactions in that message. Please try a format like:\n\n' +
           '• "Spent $50 on groceries"\n' +
+          '• "Coffee $5 and gas $40"\n' +
           '• "Received $1000 salary"\n' +
-          '• "Paid R$25 for lunch at McDonald\'s"\n' +
-          '• "Got €200 from freelance work"'
+          '• "Paid R$25 for lunch, then $40 for gas"'
         );
       }
     } catch (error) {
@@ -290,29 +333,56 @@ export class TelegramService implements OnModuleInit {
 
   private async handlePhotoMessage(chatId: number, photos: any[], userId: string): Promise<void> {
     try {
-      await this.sendMessage(chatId, '📷 Processing your receipt...');
+      const photoCount = photos.length;
+      await this.sendMessage(chatId, `📷 Processing ${photoCount} receipt${photoCount > 1 ? 's' : ''}...`);
 
-      // Get the highest resolution photo
-      const photo = photos[photos.length - 1];
-      const extractedData = await this.messageProcessor.processPhotoMessage(photo, userId);
+      // Process all photos
+      const extractedTransactions = await this.messageProcessor.processPhotoMessage(photos, userId);
 
-      if (extractedData && extractedData.confidence > 0.6) {
-        const confirmationMessage = await this.formatTransactionConfirmation(extractedData, userId);
-        await this.sendMessage(chatId, confirmationMessage, {
-          reply_markup: {
-            inline_keyboard: [[
-              { text: '✅ Confirm', callback_data: `confirm_${extractedData.tempId}` },
-              { text: '✏️ Edit', callback_data: `edit_${extractedData.tempId}` },
-              { text: '❌ Cancel', callback_data: `cancel_${extractedData.tempId}` },
-            ]],
-          },
-        });
+      if (extractedTransactions && extractedTransactions.length > 0) {
+        // Filter transactions with sufficient confidence
+        const validTransactions = extractedTransactions.filter(transaction => transaction.confidence > 0.6);
+        
+        if (validTransactions.length > 0) {
+          if (validTransactions.length === 1) {
+            // Single transaction - use existing format
+            const confirmationMessage = await this.formatTransactionConfirmation(validTransactions[0], userId);
+            await this.sendMessage(chatId, confirmationMessage, {
+              reply_markup: {
+                inline_keyboard: [[
+                  { text: '✅ Confirm', callback_data: `confirm_${validTransactions[0].tempId}` },
+                  { text: '✏️ Edit', callback_data: `edit_${validTransactions[0].tempId}` },
+                  { text: '❌ Cancel', callback_data: `cancel_${validTransactions[0].tempId}` },
+                ]],
+              },
+            });
+          } else {
+            // Multiple transactions - use batch format
+            const confirmationMessage = await this.formatMultiTransactionConfirmation(validTransactions, userId);
+            const batchId = crypto.randomBytes(16).toString('hex');
+            
+            // Store batch for processing
+            this.storeBatchTransactions(batchId, validTransactions);
+            
+            await this.sendMessage(chatId, confirmationMessage, {
+              reply_markup: {
+                inline_keyboard: [[
+                  { text: '✅ Confirm All', callback_data: `confirm_batch_${batchId}` },
+                  { text: '✏️ Review', callback_data: `review_batch_${batchId}` },
+                  { text: '❌ Cancel All', callback_data: `cancel_batch_${batchId}` },
+                ]],
+              },
+            });
+          }
+        } else {
+          await this.sendMessage(chatId, `I processed ${extractedTransactions.length} receipt${extractedTransactions.length > 1 ? 's' : ''} but the confidence was too low. Please try clearer images or enter the transactions manually.`);
+        }
       } else {
-        await this.sendMessage(chatId, 'Sorry, I couldn\'t extract transaction details from this image. Please try again or enter the transaction manually.');
+        await this.sendMessage(chatId, 'Sorry, I couldn\'t extract transaction details from the image(s). Please try again with clearer photos or enter the transaction manually.');
       }
     } catch (error) {
       this.logger.error('Error processing photo message:', error);
-      await this.sendMessage(chatId, 'Sorry, I couldn\'t process that image.');
+      await this.sendMessage(chatId, 'Sorry, I couldn\'t process those images.');
     }
   }
 
@@ -660,6 +730,191 @@ ${transaction.category ? `📂 <b>Category:</b> ${transaction.category}\n` : ''}
 
 Please confirm this transaction:
     `;
+  }
+
+  private async formatMultiTransactionConfirmation(transactions: ParsedTransaction[], userId: string): Promise<string> {
+    let message = `📊 <b>Multiple Transactions Detected (${transactions.length})</b>\n\n`;
+    
+    let totalAmount = 0;
+    const currencyMap = new Map<string, number>();
+    
+    for (let i = 0; i < transactions.length; i++) {
+      const transaction = transactions[i];
+      const typeEmoji = transaction.type === 'income' ? '💰' : '💸';
+      
+      // Track totals by currency
+      const existing = currencyMap.get(transaction.currency) || 0;
+      currencyMap.set(transaction.currency, existing + transaction.amount);
+      
+      // Format amount display with currency conversion info
+      let amountDisplay = `${transaction.amount} ${transaction.currency}`;
+      if (transaction.originalAmount && transaction.originalCurrency && 
+          transaction.originalCurrency !== transaction.currency) {
+        amountDisplay = `${transaction.amount} ${transaction.currency} (from ${transaction.originalAmount} ${transaction.originalCurrency})`;
+      }
+      
+      message += `${i + 1}. ${typeEmoji} <b>${amountDisplay}</b> - ${transaction.description}`;
+      if (transaction.category) {
+        message += ` (${transaction.category})`;
+      }
+      if (transaction.merchantName) {
+        message += ` at ${transaction.merchantName}`;
+      }
+      message += `\n`;
+    }
+    
+    // Add summary by currency
+    message += `\n<b>Summary:</b>\n`;
+    for (const [currency, amount] of currencyMap.entries()) {
+      message += `💵 Total ${currency}: ${amount.toFixed(2)}\n`;
+    }
+    
+    // Add context info if available
+    const firstTransactionWithContext = transactions.find(t => t.contextId);
+    if (firstTransactionWithContext?.contextId) {
+      try {
+        const context = await this.contextDetection.getContextInfo(firstTransactionWithContext.contextId, userId);
+        const contextEmoji = this.getContextIcon(context.type);
+        message += `\n${contextEmoji} <b>Context:</b> ${context.name}\n`;
+      } catch (error) {
+        this.logger.warn('Could not get context info:', error.message);
+      }
+    }
+    
+    message += `\nPlease confirm all ${transactions.length} transactions:`;
+    return message;
+  }
+
+  private storeBatchTransactions(batchId: string, transactions: ParsedTransaction[]): void {
+    // Store batch for 10 minutes
+    this.batchTransactions.set(batchId, transactions);
+    
+    // Auto-cleanup after 10 minutes
+    setTimeout(() => {
+      this.batchTransactions.delete(batchId);
+    }, 10 * 60 * 1000);
+  }
+
+  private async handleBatchCallback(chatId: number, data: string, userId: string): Promise<void> {
+    const [action, , batchId] = data.split('_'); // confirm_batch_abc123 -> ["confirm", "batch", "abc123"]
+    const transactions = this.batchTransactions.get(batchId);
+    
+    if (!transactions) {
+      await this.sendMessage(chatId, 'Batch data expired. Please try again.');
+      return;
+    }
+    
+    switch (action) {
+      case 'confirm':
+        await this.confirmBatchTransactions(chatId, batchId, transactions, userId);
+        break;
+      case 'review':
+        await this.reviewBatchTransactions(chatId, batchId, transactions, userId);
+        break;
+      case 'cancel':
+        await this.cancelBatchTransactions(chatId, batchId);
+        break;
+    }
+  }
+
+  private async confirmBatchTransactions(chatId: number, batchId: string, transactions: ParsedTransaction[], userId: string): Promise<void> {
+    try {
+      const savedTransactions = [];
+      const errors = [];
+      
+      for (let i = 0; i < transactions.length; i++) {
+        const transactionData = transactions[i];
+        
+        try {
+          // Create the transaction
+          const transaction = await this.transactionsService.create({
+            amount: transactionData.amount,
+            description: transactionData.description,
+            type: transactionData.type as any,
+            currency: transactionData.currency,
+            category: transactionData.category,
+            merchantName: transactionData.merchantName,
+            date: new Date().toISOString(),
+            contextId: transactionData.contextId,
+          }, userId);
+          
+          savedTransactions.push(transaction);
+        } catch (error) {
+          this.logger.error(`Error saving transaction ${i + 1}:`, error);
+          errors.push(`Transaction ${i + 1}: ${transactionData.description}`);
+        }
+      }
+      
+      // Send confirmation message
+      let message = `✅ <b>Batch Confirmation Complete!</b>\n\n`;
+      message += `💾 Successfully saved: ${savedTransactions.length}/${transactions.length} transactions\n`;
+      
+      if (errors.length > 0) {
+        message += `\n❌ <b>Failed to save:</b>\n`;
+        errors.forEach(error => {
+          message += `• ${error}\n`;
+        });
+      }
+      
+      // Show summary by currency
+      const currencyTotals = new Map<string, number>();
+      savedTransactions.forEach(t => {
+        const existing = currencyTotals.get(t.currency) || 0;
+        currencyTotals.set(t.currency, existing + Number(t.amount));
+      });
+      
+      if (currencyTotals.size > 0) {
+        message += `\n💰 <b>Totals:</b>\n`;
+        for (const [currency, amount] of currencyTotals.entries()) {
+          message += `${currency}: ${amount.toFixed(2)}\n`;
+        }
+      }
+      
+      await this.sendMessage(chatId, message);
+      
+      // Clean up batch data
+      this.batchTransactions.delete(batchId);
+    } catch (error) {
+      this.logger.error('Error confirming batch transactions:', error);
+      await this.sendMessage(chatId, 'Error saving batch transactions. Please try again.');
+    }
+  }
+
+  private async reviewBatchTransactions(chatId: number, batchId: string, transactions: ParsedTransaction[], userId: string): Promise<void> {
+    let message = `🔍 <b>Review Batch Transactions</b>\n\n`;
+    
+    for (let i = 0; i < transactions.length; i++) {
+      const transaction = transactions[i];
+      const typeEmoji = transaction.type === 'income' ? '💰' : '💸';
+      
+      message += `<b>Transaction ${i + 1}/${transactions.length}</b>\n`;
+      message += `${typeEmoji} ${transaction.amount} ${transaction.currency} - ${transaction.description}\n`;
+      
+      if (transaction.category) {
+        message += `📂 Category: ${transaction.category}\n`;
+      }
+      if (transaction.merchantName) {
+        message += `🏪 Merchant: ${transaction.merchantName}\n`;
+      }
+      
+      message += `🎯 Confidence: ${Math.round(transaction.confidence * 100)}%\n\n`;
+    }
+    
+    message += `You can edit individual transactions by typing them again, or proceed with confirmation.`;
+    
+    await this.sendMessage(chatId, message, {
+      reply_markup: {
+        inline_keyboard: [[
+          { text: '✅ Confirm All', callback_data: `confirm_batch_${batchId}` },
+          { text: '❌ Cancel All', callback_data: `cancel_batch_${batchId}` },
+        ]],
+      },
+    });
+  }
+
+  private async cancelBatchTransactions(chatId: number, batchId: string): Promise<void> {
+    this.batchTransactions.delete(batchId);
+    await this.sendMessage(chatId, '❌ All transactions cancelled.');
   }
 
   private getContextIcon(type: string): string {
