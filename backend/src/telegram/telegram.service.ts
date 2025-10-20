@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { lastValueFrom } from 'rxjs';
 import { User } from '../users/entities/user.entity';
+import { UsersService } from '../users/users.service';
 import { TransactionsService } from '../transactions/transactions.service';
 import { ContextsService } from '../contexts/contexts.service';
 import { 
@@ -32,6 +33,7 @@ export class TelegramService implements OnModuleInit {
     private httpService: HttpService,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private usersService: UsersService,
     private transactionsService: TransactionsService,
     private contextsService: ContextsService,
     private messageProcessor: MessageProcessorService,
@@ -433,21 +435,83 @@ Need more help? Visit our web app for detailed features!
   }
 
   private async handleLinkCommand(chatId: number, userId: string, args: string[]): Promise<void> {
-    // This would be used to link a Telegram account to a web account
-    // For now, we'll provide instructions
-    const message = `
+    // If user is already linked, show status
+    if (userId) {
+      await this.sendMessage(chatId, '✅ Your Telegram account is already linked to Financy!\n\nYou can now track your transactions here.');
+      return;
+    }
+
+    // If no token provided, show instructions
+    if (args.length === 0) {
+      const message = `
 🔗 <b>Link Your Account</b>
 
 To link your Telegram account with the web app:
-1. Log in to the Financy web app
-2. Go to Settings → Telegram Integration  
-3. Copy the linking token
-4. Send: /link YOUR_TOKEN_HERE
 
-This will sync your transactions between Telegram and the web app.
-    `;
+<b>Step 1:</b> Create an account
+• Visit: ${this.configService.get('FRONTEND_URL', 'https://financy.app')}
+• Register or log in to your account
 
-    await this.sendMessage(chatId, message);
+<b>Step 2:</b> Generate linking token
+• Go to Settings → Telegram Integration
+• Click "Generate Linking Token"
+• Copy the token
+
+<b>Step 3:</b> Use the token
+• Send: <code>/link YOUR_TOKEN_HERE</code>
+
+<b>Example:</b>
+<code>/link abc123def456...</code>
+
+This will securely link your accounts and sync your transaction data! 🚀
+      `;
+
+      await this.sendMessage(chatId, message);
+      return;
+    }
+
+    // Process the linking token
+    const token = args[0];
+    const telegramUserId = chatId.toString(); // For DMs, chatId is the user ID
+    const telegramUsername = await this.getTelegramUsername(chatId);
+
+    try {
+      await this.usersService.linkTelegramWithToken(token, telegramUserId, telegramUsername);
+      
+      const successMessage = `
+✅ <b>Account Linked Successfully!</b>
+
+Your Telegram account is now connected to Financy! 🎉
+
+<b>What you can do now:</b>
+• Send text messages with transactions
+• Send voice messages describing expenses
+• Take photos of receipts for automatic processing
+• View summaries with /summary
+• Manage contexts with /contexts
+
+Start tracking your finances by sending me a message like:
+"Spent $20 on lunch at Subway"
+
+Type /help for more information!
+      `;
+
+      await this.sendMessage(chatId, successMessage);
+    } catch (error) {
+      this.logger.error('Error linking Telegram account:', error);
+      
+      let errorMessage = '❌ <b>Linking Failed</b>\n\n';
+      
+      if (error.message.includes('Invalid or expired')) {
+        errorMessage += 'The linking token is invalid or has expired. Please generate a new token in the web app.';
+      } else if (error.message.includes('already linked')) {
+        errorMessage += 'This Telegram account is already linked to another Financy account.';
+      } else {
+        errorMessage += 'An error occurred while linking your account. Please try again or contact support.';
+      }
+
+      await this.sendMessage(chatId, errorMessage);
+    }
   }
 
   private async handleUnregisteredUser(chatId: number, user: any): Promise<void> {
@@ -797,6 +861,16 @@ Once you're registered and linked, you'll be able to set up expense tracking for
     } catch (error) {
       this.logger.warn('Could not get chat info:', error.message);
       return null;
+    }
+  }
+
+  private async getTelegramUsername(chatId: number): Promise<string | undefined> {
+    try {
+      const chatInfo = await this.getChatInfo(chatId);
+      return chatInfo?.['username'];
+    } catch (error) {
+      this.logger.warn('Could not get telegram username:', error.message);
+      return undefined;
     }
   }
 

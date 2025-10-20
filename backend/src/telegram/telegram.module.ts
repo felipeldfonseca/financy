@@ -12,6 +12,7 @@ import { ContextMember } from '../contexts/entities/context-member.entity';
 import { TransactionsModule } from '../transactions/transactions.module';
 import { ContextsModule } from '../contexts/contexts.module';
 import { CurrencyModule } from '../currency/currency.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { CurrencyModule } from '../currency/currency.module';
     TransactionsModule,
     ContextsModule,
     CurrencyModule,
+    UsersModule,
   ],
   controllers: [TelegramController],
   providers: [TelegramService, MessageProcessorService, ContextDetectionService, ContextSetupService],

@@ -44,6 +44,19 @@ export class UsersController {
     return { message: 'Password changed successfully' };
   }
 
+  @Post('generate-telegram-link-token')
+  @ApiOperation({ summary: 'Generate Telegram linking token' })
+  @ApiResponse({ status: 200, description: 'Telegram linking token generated successfully' })
+  async generateTelegramLinkToken(
+    @Request() req,
+  ): Promise<{ token: string; expiresAt: Date; instructions: string }> {
+    const result = await this.usersService.generateTelegramLinkingToken(req.user.id);
+    return {
+      ...result,
+      instructions: `Use this token with the Telegram bot: /link ${result.token}`,
+    };
+  }
+
   @Post('link-telegram')
   @ApiOperation({ summary: 'Link Telegram account' })
   @ApiResponse({ status: 200, description: 'Telegram account linked successfully' })
@@ -56,6 +69,13 @@ export class UsersController {
       linkTelegramDto.telegramUserId,
       linkTelegramDto.telegramUsername,
     );
+  }
+
+  @Post('unlink-telegram')
+  @ApiOperation({ summary: 'Unlink Telegram account' })
+  @ApiResponse({ status: 200, description: 'Telegram account unlinked successfully' })
+  async unlinkTelegram(@Request() req): Promise<UserResponseDto> {
+    return await this.usersService.unlinkTelegramAccount(req.user.id);
   }
 
   @Get(':id')

@@ -2,6 +2,7 @@ import { Injectable, ConflictException, NotFoundException, BadRequestException }
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,6 +11,8 @@ import { plainToClass } from 'class-transformer';
 
 @Injectable()
 export class UsersService {
+  private readonly linkingTokens = new Map<string, { userId: string; expiresAt: Date }>();
+
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
@@ -158,6 +161,81 @@ export class UsersService {
     });
   }
 
+  async generateTelegramLinkingToken(userId: string): Promise<{ token: string; expiresAt: Date }> {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId, isActive: true }
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Check if user already has Telegram linked
+    if (user.telegramUserId) {
+      throw new ConflictException('Telegram account is already linked to this user');
+    }
+
+    // Generate secure token
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    // Store token with user ID and expiration
+    this.linkingTokens.set(token, { userId, expiresAt });
+
+    // Clean up expired tokens
+    this.cleanupExpiredTokens();
+
+    return { token, expiresAt };
+  }
+
+  async linkTelegramWithToken(token: string, telegramUserId: string, telegramUsername?: string): Promise<UserResponseDto> {
+    // Get token info
+    const tokenInfo = this.linkingTokens.get(token);
+    
+    if (!tokenInfo) {
+      throw new BadRequestException('Invalid or expired linking token');
+    }
+
+    // Check if token is expired
+    if (new Date() > tokenInfo.expiresAt) {
+      this.linkingTokens.delete(token);
+      throw new BadRequestException('Linking token has expired');
+    }
+
+    // Check if telegram account is already linked to another user
+    const existingUser = await this.usersRepository.findOne({
+      where: { telegramUserId }
+    });
+
+    if (existingUser) {
+      throw new ConflictException('Telegram account is already linked to another user');
+    }
+
+    // Get the user
+    const user = await this.usersRepository.findOne({
+      where: { id: tokenInfo.userId, isActive: true }
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Link Telegram account
+    user.telegramUserId = telegramUserId;
+    if (telegramUsername) {
+      user.telegramUsername = telegramUsername;
+    }
+
+    const updatedUser = await this.usersRepository.save(user);
+
+    // Remove used token
+    this.linkingTokens.delete(token);
+
+    return plainToClass(UserResponseDto, updatedUser, {
+      excludeExtraneousValues: true,
+    });
+  }
+
   async linkTelegramAccount(id: string, telegramUserId: string, telegramUsername?: string): Promise<UserResponseDto> {
     // Check if telegram account is already linked to another user
     const existingUser = await this.usersRepository.findOne({
@@ -186,5 +264,34 @@ export class UsersService {
     return plainToClass(UserResponseDto, updatedUser, {
       excludeExtraneousValues: true,
     });
+  }
+
+  async unlinkTelegramAccount(userId: string): Promise<UserResponseDto> {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId, isActive: true }
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.telegramUserId = null;
+    user.telegramUsername = null;
+
+    const updatedUser = await this.usersRepository.save(user);
+
+    return plainToClass(UserResponseDto, updatedUser, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  private cleanupExpiredTokens(): void {
+    const now = new Date();
+    
+    for (const [token, tokenInfo] of this.linkingTokens.entries()) {
+      if (now > tokenInfo.expiresAt) {
+        this.linkingTokens.delete(token);
+      }
+    }
   }
 }
