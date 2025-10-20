@@ -35,25 +35,25 @@ const navigationItems: NavigationItem[] = [
     id: 'dashboard',
     label: 'Dashboard',
     path: '/',
-    icon: <DashboardIcon />,
+    icon: null,
   },
   {
     id: 'transactions',
     label: 'Transactions',
     path: '/transactions',
-    icon: <TransactionsIcon />,
+    icon: null,
   },
   {
     id: 'groups',
     label: 'Groups',
     path: '/contexts',
-    icon: <GroupsIcon />,
+    icon: null,
   },
   {
     id: 'analytics',
     label: 'Analytics',
     path: '/analytics',
-    icon: <AnalyticsIcon />,
+    icon: null,
   },
 ];
 
@@ -61,7 +61,7 @@ const settingsItem: NavigationItem = {
   id: 'settings',
   label: 'Settings',
   path: '/settings',
-  icon: <SettingsIcon />,
+  icon: null,
 };
 
 interface SidebarProps {
@@ -103,13 +103,16 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) => {
         sx={{
           p: 3,
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          borderBottom: `1px solid ${theme.palette.primary.dark}`,
         }}
       >
         <Typography variant="brand" component="h1">
           financy
+        </Typography>
+        <Typography variant="tagline" component="p" sx={{ mt: 0.5 }}>
+          you talk. your money listens.
         </Typography>
       </Box>
 
@@ -121,33 +124,54 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) => {
               <ListItemButton
                 onClick={() => handleNavigation(item.path)}
                 sx={{
-                  mx: 1,
+                  mx: 2,
                   mb: 0.5,
-                  borderRadius: 1,
                   color: 'inherit',
-                  '&:hover': {
-                    bgcolor: 'primary.dark',
+                  position: 'relative',
+                  backgroundColor: 'transparent !important',
+                  '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    bottom: 0,
+                    left: '16px',
+                    width: isActive(item.path) ? '80%' : '0%',
+                    height: '2px',
+                    backgroundColor: 'white',
+                    transition: 'width 0.3s ease-in-out',
+                    transformOrigin: 'left',
                   },
-                  '&.active': {
-                    bgcolor: 'primary.dark',
-                    '&:hover': {
-                      bgcolor: 'primary.dark',
-                    },
+                  '&:hover::after': {
+                    width: '80%',
+                    transformOrigin: 'left',
+                  },
+                  '&:not(:hover)::after': {
+                    transformOrigin: 'right',
+                  },
+                  '& .MuiTouchRipple-root': {
+                    display: 'none',
                   },
                 }}
-                className={isActive(item.path) ? 'active' : ''}
               >
-                <ListItemIcon
-                  sx={{
-                    color: 'inherit',
-                    minWidth: 40,
-                  }}
-                >
-                  {item.icon}
-                </ListItemIcon>
+                {item.icon && (
+                  <ListItemIcon
+                    sx={{
+                      color: 'inherit',
+                      minWidth: 40,
+                    }}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
+                )}
                 <ListItemText
                   primary={
-                    <Typography variant="navigation">{item.label}</Typography>
+                    <Typography 
+                      variant="navigation" 
+                      sx={{ 
+                        fontWeight: isActive(item.path) ? 700 : 400 
+                      }}
+                    >
+                      {item.label}
+                    </Typography>
                   }
                 />
               </ListItemButton>
@@ -158,39 +182,59 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) => {
 
       {/* Settings at Bottom */}
       <Box>
-        <Divider sx={{ bgcolor: 'primary.dark', mx: 2 }} />
         <List>
           <ListItem disablePadding>
             <ListItemButton
               onClick={() => handleNavigation(settingsItem.path)}
               sx={{
-                mx: 1,
+                mx: 2,
                 my: 1,
-                borderRadius: 1,
                 color: 'inherit',
-                '&:hover': {
-                  bgcolor: 'primary.dark',
+                position: 'relative',
+                backgroundColor: 'transparent !important',
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  bottom: 0,
+                  left: '16px',
+                  width: isActive(settingsItem.path) ? '80%' : '0%',
+                  height: '2px',
+                  backgroundColor: 'white',
+                  transition: 'width 0.3s ease-in-out',
+                  transformOrigin: 'left',
                 },
-                '&.active': {
-                  bgcolor: 'primary.dark',
-                  '&:hover': {
-                    bgcolor: 'primary.dark',
-                  },
+                '&:hover::after': {
+                  width: '80%',
+                  transformOrigin: 'left',
+                },
+                '&:not(:hover)::after': {
+                  transformOrigin: 'right',
+                },
+                '& .MuiTouchRipple-root': {
+                  display: 'none',
                 },
               }}
-              className={isActive(settingsItem.path) ? 'active' : ''}
             >
-              <ListItemIcon
-                sx={{
-                  color: 'inherit',
-                  minWidth: 40,
-                }}
-              >
-                {settingsItem.icon}
-              </ListItemIcon>
+              {settingsItem.icon && (
+                <ListItemIcon
+                  sx={{
+                    color: 'inherit',
+                    minWidth: 40,
+                  }}
+                >
+                  {settingsItem.icon}
+                </ListItemIcon>
+              )}
               <ListItemText
                 primary={
-                  <Typography variant="navigation">{settingsItem.label}</Typography>
+                  <Typography 
+                    variant="navigation"
+                    sx={{ 
+                      fontWeight: isActive(settingsItem.path) ? 700 : 400 
+                    }}
+                  >
+                    {settingsItem.label}
+                  </Typography>
                 }
               />
             </ListItemButton>

@@ -4,11 +4,13 @@ declare module '@mui/material/styles' {
   interface TypographyVariants {
     brand: React.CSSProperties;
     navigation: React.CSSProperties;
+    tagline: React.CSSProperties;
   }
 
   interface TypographyVariantsOptions {
     brand?: React.CSSProperties;
     navigation?: React.CSSProperties;
+    tagline?: React.CSSProperties;
   }
 }
 
@@ -16,6 +18,7 @@ declare module '@mui/material/Typography' {
   interface TypographyPropsVariantOverrides {
     brand: true;
     navigation: true;
+    tagline: true;
   }
 }
 
@@ -55,14 +58,22 @@ const theme = createTheme({
     brand: {
       fontFamily: '"Playwrite DE SAS", cursive',
       fontWeight: 400,
-      fontSize: '1.8rem',
+      fontSize: '2.2rem',
       color: '#ffffff',
     },
     navigation: {
       fontFamily: '"Montaga", serif',
       fontWeight: 400,
-      fontSize: '1rem',
+      fontSize: '1.125rem',
       color: '#ffffff',
+    },
+    tagline: {
+      fontFamily: '"Montaga", serif',
+      fontWeight: 700,
+      fontSize: '0.875rem',
+      color: '#ffffff',
+      opacity: 0.9,
+      fontStyle: 'italic',
     },
     h1: {
       fontWeight: 500,
