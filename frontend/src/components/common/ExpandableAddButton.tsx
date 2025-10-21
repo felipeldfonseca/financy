@@ -71,8 +71,8 @@ const ExpandableAddButton: React.FC<ExpandableAddButtonProps> = ({
         width: isHovered ? 'auto' : '56px',
         height: '56px',
         borderRadius: '28px',
-        background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-        boxShadow: '0 8px 32px rgba(99, 102, 241, 0.3)',
+        bgcolor: 'primary.main',
+        boxShadow: 'none',
         transition: `all ${isHovered ? '0.5s' : '0.3s'} cubic-bezier(0.4, 0, 0.2, 1)`,
         mr: 2,
         '& .MuiButton-startIcon': {
@@ -81,9 +81,8 @@ const ExpandableAddButton: React.FC<ExpandableAddButtonProps> = ({
           transition: `margin ${isHovered ? '0.5s' : '0.3s'} cubic-bezier(0.4, 0, 0.2, 1)`,
         },
         '&:hover': {
-          background: 'linear-gradient(135deg, #5b5cd6 0%, #7c3aed 100%)',
-          transform: 'translateY(-2px)',
-          boxShadow: '0 12px 40px rgba(99, 102, 241, 0.4)',
+          bgcolor: 'primary.dark',
+          boxShadow: 'none',
         },
       }}
     >

@@ -26,6 +26,8 @@ interface MonthlyData {
   month: string;
   income: number;
   expenses: number;
+  netAmount: number;
+  savingsRate: number; // percentage
 }
 
 interface CategoryData {
@@ -87,12 +89,12 @@ const ChartSection: React.FC<ChartSectionProps> = ({
 }) => {
   // Generate mock data if none provided
   const defaultMonthlyData = [
-    { month: 'Jan', income: 3000, expenses: 2200 },
-    { month: 'Feb', income: 3200, expenses: 2400 },
-    { month: 'Mar', income: 2800, expenses: 2100 },
-    { month: 'Apr', income: 3400, expenses: 2600 },
-    { month: 'May', income: 3100, expenses: 2300 },
-    { month: 'Jun', income: 3300, expenses: 2500 },
+    { month: 'Jan', income: 3000, expenses: 2200, netAmount: 800, savingsRate: 26.7 },
+    { month: 'Feb', income: 3200, expenses: 2400, netAmount: 800, savingsRate: 25.0 },
+    { month: 'Mar', income: 2800, expenses: 2100, netAmount: 700, savingsRate: 25.0 },
+    { month: 'Apr', income: 3400, expenses: 2600, netAmount: 800, savingsRate: 23.5 },
+    { month: 'May', income: 3100, expenses: 2300, netAmount: 800, savingsRate: 25.8 },
+    { month: 'Jun', income: 3300, expenses: 2500, netAmount: 800, savingsRate: 24.2 },
   ];
 
   const defaultCategoryData = [
@@ -146,6 +148,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
     return null;
   };
 
+
   const PieTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0];
@@ -172,56 +175,70 @@ const ChartSection: React.FC<ChartSectionProps> = ({
     return null;
   };
 
+  // Custom tooltips
+  const CashFlowTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <Box
+          sx={{
+            bgcolor: 'background.paper',
+            p: 1.5,
+            border: 1,
+            borderColor: 'divider',
+            borderRadius: 1,
+            boxShadow: 2,
+          }}
+        >
+          <Typography variant="body2" fontWeight="bold">
+            {label}
+          </Typography>
+          <Typography variant="body2" sx={{ color: payload[0].color }}>
+            Cash Flow: <Typography component="span" variant="numeric">{formatCurrency(payload[0].value)}</Typography>
+          </Typography>
+        </Box>
+      );
+    }
+    return null;
+  };
+
+  const SavingsTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <Box
+          sx={{
+            bgcolor: 'background.paper',
+            p: 1.5,
+            border: 1,
+            borderColor: 'divider',
+            borderRadius: 1,
+            boxShadow: 2,
+          }}
+        >
+          <Typography variant="body2" fontWeight="bold">
+            {label}
+          </Typography>
+          <Typography variant="body2" sx={{ color: payload[0].color }}>
+            Savings Rate: <Typography component="span" variant="numeric">{payload[0].value.toFixed(1)}%</Typography>
+          </Typography>
+        </Box>
+      );
+    }
+    return null;
+  };
+
+  // Generate budget data for budget vs actual chart
+  const budgetData = [
+    { category: 'Food & Dining', actual: 850, budget: 900 },
+    { category: 'Transportation', actual: 420, budget: 400 },
+    { category: 'Shopping', actual: 380, budget: 300 },
+    { category: 'Bills & Utilities', actual: 650, budget: 700 },
+    { category: 'Entertainment', actual: 280, budget: 250 },
+  ];
+
   return (
     <Grid container spacing={3}>
-      {/* Monthly Trend Chart */}
-      <Grid item xs={12} lg={8}>
-        <ChartCard title="Monthly Spending Trends" isLoading={isLoading}>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartMonthlyData}>
-              <CartesianGrid strokeDasharray="5 5" stroke="rgba(255,255,255,0.1)" />
-              <XAxis
-                dataKey="month"
-                tick={{ fontSize: 12, fill: '#8b8b8b' }}
-                stroke="rgba(255,255,255,0.2)"
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 12, fill: '#8b8b8b' }}
-                stroke="rgba(255,255,255,0.2)"
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={formatCurrency}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Line
-                type="monotone"
-                dataKey="income"
-                stroke="#10b981"
-                strokeWidth={3}
-                dot={{ fill: '#10b981', strokeWidth: 0, r: 5 }}
-                activeDot={{ r: 8, stroke: '#10b981', strokeWidth: 2, fill: '#ffffff' }}
-                name="Income"
-                strokeDasharray="0"
-              />
-              <Line
-                type="monotone"
-                dataKey="expenses"
-                stroke="#ef4444"
-                strokeWidth={3}
-                dot={{ fill: '#ef4444', strokeWidth: 0, r: 5 }}
-                activeDot={{ r: 8, stroke: '#ef4444', strokeWidth: 2, fill: '#ffffff' }}
-                name="Expenses"
-                strokeDasharray="0"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartCard>
-      </Grid>
-
-      {/* Category Breakdown Chart */}
-      <Grid item xs={12} lg={4}>
+      {/* Spending by Category */}
+      <Grid item xs={12} lg={6}>
         <ChartCard title="Spending by Category" isLoading={isLoading}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -229,8 +246,8 @@ const ChartSection: React.FC<ChartSectionProps> = ({
                 data={chartCategoryData}
                 cx="50%"
                 cy="50%"
-                outerRadius={90}
-                innerRadius={30}
+                outerRadius={100}
+                innerRadius={40}
                 fill="#8884d8"
                 dataKey="value"
                 label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
@@ -248,11 +265,11 @@ const ChartSection: React.FC<ChartSectionProps> = ({
         </ChartCard>
       </Grid>
 
-      {/* Income vs Expenses Bar Chart */}
-      <Grid item xs={12}>
-        <ChartCard title="Income vs Expenses Comparison" isLoading={isLoading}>
+      {/* Cash Flow Trend */}
+      <Grid item xs={12} lg={6}>
+        <ChartCard title="Cash Flow Trend" isLoading={isLoading}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartMonthlyData}>
+            <LineChart data={chartMonthlyData}>
               <CartesianGrid strokeDasharray="5 5" stroke="rgba(255,255,255,0.1)" />
               <XAxis
                 dataKey="month"
@@ -267,10 +284,98 @@ const ChartSection: React.FC<ChartSectionProps> = ({
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={formatCurrency}
+                domain={['dataMin - 200', 'dataMax + 200']}
+              />
+              <Tooltip content={<CashFlowTooltip />} />
+              <Line
+                type="monotone"
+                dataKey="netAmount"
+                stroke="#4657D8"
+                strokeWidth={3}
+                dot={{ fill: '#4657D8', strokeWidth: 0, r: 5 }}
+                activeDot={{ r: 8, stroke: '#4657D8', strokeWidth: 2, fill: '#ffffff' }}
+                name="Net Amount"
+                strokeDasharray="0"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      </Grid>
+
+      {/* Savings Rate Over Time */}
+      <Grid item xs={12} lg={6}>
+        <ChartCard title="Savings Rate Over Time" isLoading={isLoading}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartMonthlyData}>
+              <CartesianGrid strokeDasharray="5 5" stroke="rgba(255,255,255,0.1)" />
+              <XAxis
+                dataKey="month"
+                tick={{ fontSize: 12, fill: '#8b8b8b' }}
+                stroke="rgba(255,255,255,0.2)"
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 12, fill: '#8b8b8b' }}
+                stroke="rgba(255,255,255,0.2)"
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(value) => `${value}%`}
+                domain={['dataMin - 2', 'dataMax + 2']}
+              />
+              <Tooltip content={<SavingsTooltip />} />
+              <Line
+                type="monotone"
+                dataKey="savingsRate"
+                stroke="#10b981"
+                strokeWidth={3}
+                dot={{ fill: '#10b981', strokeWidth: 0, r: 5 }}
+                activeDot={{ r: 8, stroke: '#10b981', strokeWidth: 2, fill: '#ffffff' }}
+                name="Savings Rate"
+                strokeDasharray="0"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      </Grid>
+
+      {/* Budget vs Actual */}
+      <Grid item xs={12} lg={6}>
+        <ChartCard title="Budget vs Actual Spending" isLoading={isLoading}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={budgetData}>
+              <CartesianGrid strokeDasharray="5 5" stroke="rgba(255,255,255,0.1)" />
+              <XAxis
+                dataKey="category"
+                tick={{ fontSize: 12, fill: '#8b8b8b' }}
+                stroke="rgba(255,255,255,0.2)"
+                axisLine={false}
+                tickLine={false}
+                angle={-45}
+                textAnchor="end"
+                height={80}
+              />
+              <YAxis
+                tick={{ fontSize: 12, fill: '#8b8b8b' }}
+                stroke="rgba(255,255,255,0.2)"
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={formatCurrency}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="income" fill="#10b981" name="Income" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="expenses" fill="#ef4444" name="Expenses" radius={[8, 8, 0, 0]} />
+              <Bar 
+                dataKey="budget" 
+                fill="#10b981" 
+                name="Budget" 
+                radius={[4, 4, 0, 0]}
+                opacity={0.7}
+              />
+              <Bar 
+                dataKey="actual" 
+                fill="#4657D8" 
+                name="Actual" 
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>

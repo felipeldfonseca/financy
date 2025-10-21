@@ -10,10 +10,33 @@ import {
   Typography,
   Chip,
 } from '@mui/material';
-import {
-  Groups as GroupIcon,
-  PersonOutline as PersonIcon,
-} from '@mui/icons-material';
+import { SvgIcon } from '@mui/material';
+
+// Clean minimal SVG icons
+const PersonIcon: React.FC<{ sx?: any }> = ({ sx }) => (
+  <SvgIcon sx={sx} viewBox="0 0 24 24">
+    <circle cx="12" cy="8" r="3" fill="currentColor" />
+    <path
+      d="M12 14c-4 0-7 2-7 4.5V20h14v-1.5c0-2.5-3-4.5-7-4.5z"
+      fill="currentColor"
+    />
+  </SvgIcon>
+);
+
+const GroupIcon: React.FC<{ sx?: any }> = ({ sx }) => (
+  <SvgIcon sx={sx} viewBox="0 0 24 24">
+    <circle cx="9" cy="7" r="2.5" fill="currentColor" />
+    <circle cx="15" cy="7" r="2.5" fill="currentColor" />
+    <path
+      d="M9 12c-2.5 0-4.5 1.5-4.5 3.5V17h9v-1.5c0-2-2-3.5-4.5-3.5z"
+      fill="currentColor"
+    />
+    <path
+      d="M15 12c-2.5 0-4.5 1.5-4.5 3.5V17h9v-1.5c0-2-2-3.5-4.5-3.5z"
+      fill="currentColor"
+    />
+  </SvgIcon>
+);
 
 interface Group {
   id: string;
@@ -114,12 +137,12 @@ const ContextSwitcher: React.FC<ContextSwitcherProps> = ({
           }}
         >
           <ToggleButton value="personal">
-            <PersonIcon sx={{ mr: 1, fontSize: 18 }} />
-            Personal
+            <PersonIcon sx={{ mr: 1, fontSize: 22 }} />
+            PERSONAL
           </ToggleButton>
           <ToggleButton value="groups">
-            <GroupIcon sx={{ mr: 1, fontSize: 18 }} />
-            Groups
+            <GroupIcon sx={{ mr: 1, fontSize: 22 }} />
+            GROUPS
           </ToggleButton>
         </ToggleButtonGroup>
 

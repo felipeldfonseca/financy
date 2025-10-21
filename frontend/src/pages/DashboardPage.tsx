@@ -34,6 +34,8 @@ interface DashboardData {
     month: string;
     income: number;
     expenses: number;
+    netAmount: number;
+    savingsRate: number;
   }>;
   categoryData: Array<{
     name: string;
@@ -86,12 +88,12 @@ const DashboardPage: React.FC = () => {
             transactionCount: 47,
           },
           monthlyData: [
-            { month: 'Jan', income: 3000, expenses: 2200 },
-            { month: 'Feb', income: 3200, expenses: 2400 },
-            { month: 'Mar', income: 2800, expenses: 2100 },
-            { month: 'Apr', income: 3400, expenses: 2600 },
-            { month: 'May', income: 3100, expenses: 2300 },
-            { month: 'Jun', income: 3300, expenses: 2500 },
+            { month: 'Jan', income: 3000, expenses: 2200, netAmount: 800, savingsRate: 26.7 },
+            { month: 'Feb', income: 3200, expenses: 2400, netAmount: 800, savingsRate: 25.0 },
+            { month: 'Mar', income: 2800, expenses: 2100, netAmount: 700, savingsRate: 25.0 },
+            { month: 'Apr', income: 3400, expenses: 2600, netAmount: 800, savingsRate: 23.5 },
+            { month: 'May', income: 3100, expenses: 2300, netAmount: 800, savingsRate: 25.8 },
+            { month: 'Jun', income: 3300, expenses: 2500, netAmount: 800, savingsRate: 24.2 },
           ],
           categoryData: [
             { name: 'Food & Dining', value: 850, color: '#45b8d7' },
