@@ -85,7 +85,13 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
   const activeFiltersCount = getActiveFiltersCount();
 
   return (
-    <Card>
+    <Card sx={{
+      background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+      backdropFilter: 'blur(10px)',
+      border: '1px solid rgba(255,255,255,0.1)',
+      borderRadius: '20px',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    }}>
       <CardContent>
         <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
           <Box display="flex" alignItems="center" gap={1}>
@@ -95,8 +101,13 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
               <Chip
                 label={`${activeFiltersCount} active`}
                 size="small"
-                color="primary"
-                variant="outlined"
+                sx={{
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  borderRadius: '12px',
+                  fontWeight: 500,
+                }}
               />
             )}
           </Box>
@@ -106,11 +117,38 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
                 size="small"
                 onClick={handleClearFilters}
                 startIcon={<ClearIcon />}
+                sx={{
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  px: 2,
+                  py: 1,
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  color: '#ef4444',
+                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    background: 'rgba(239, 68, 68, 0.15)',
+                    transform: 'translateY(-1px)',
+                  },
+                }}
               >
                 Clear All
               </Button>
             )}
-            <IconButton onClick={() => setExpanded(!expanded)}>
+            <IconButton 
+              onClick={() => setExpanded(!expanded)}
+              sx={{
+                borderRadius: '12px',
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  background: 'rgba(255,255,255,0.15)',
+                  transform: 'scale(1.05)',
+                },
+              }}
+            >
               {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
             </IconButton>
           </Box>
