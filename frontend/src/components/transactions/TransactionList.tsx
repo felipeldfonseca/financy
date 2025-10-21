@@ -23,14 +23,14 @@ import {
 } from '@mui/material';
 import {
   MoreVert as MoreVertIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Check as CheckIcon,
-  Cancel as CancelIcon,
-  Receipt as ReceiptIcon,
-  TrendingUp as IncomeIcon,
-  TrendingDown as ExpenseIcon,
-  SwapHoriz as TransferIcon,
+  EditOutlined as EditIcon,
+  DeleteOutline as DeleteIcon,
+  CheckCircleOutline as CheckIcon,
+  CancelOutlined as CancelIcon,
+  ReceiptLong as ReceiptIcon,
+  ArrowUpward as IncomeIcon,
+  ArrowDownward as ExpenseIcon,
+  SwapHorizontalCircle as TransferIcon,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { Transaction } from '../../services/transactionApi';
@@ -185,7 +185,12 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
 
   if (state.transactions.length === 0 && !state.isLoading) {
     return (
-      <Card>
+      <Card sx={{
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: '20px',
+      }}>
         <CardContent>
           <Box
             display="flex"
@@ -208,19 +213,65 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
   }
 
   return (
-    <Card>
+    <Card sx={{
+      background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+      backdropFilter: 'blur(10px)',
+      border: '1px solid rgba(255,255,255,0.1)',
+      borderRadius: '20px',
+      overflow: 'hidden',
+    }}>
       <TableContainer>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Type</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell>Category</TableCell>
-              <TableCell>Amount</TableCell>
-              <TableCell>Date</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Merchant</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell sx={{ 
+                fontWeight: 600, 
+                color: 'text.primary',
+                borderBottom: '1px solid rgba(255,255,255,0.1)',
+                backgroundColor: 'rgba(255,255,255,0.05)',
+              }}>Type</TableCell>
+              <TableCell sx={{ 
+                fontWeight: 600, 
+                color: 'text.primary',
+                borderBottom: '1px solid rgba(255,255,255,0.1)',
+                backgroundColor: 'rgba(255,255,255,0.05)',
+              }}>Description</TableCell>
+              <TableCell sx={{ 
+                fontWeight: 600, 
+                color: 'text.primary',
+                borderBottom: '1px solid rgba(255,255,255,0.1)',
+                backgroundColor: 'rgba(255,255,255,0.05)',
+              }}>Category</TableCell>
+              <TableCell sx={{ 
+                fontWeight: 600, 
+                color: 'text.primary',
+                borderBottom: '1px solid rgba(255,255,255,0.1)',
+                backgroundColor: 'rgba(255,255,255,0.05)',
+              }}>Amount</TableCell>
+              <TableCell sx={{ 
+                fontWeight: 600, 
+                color: 'text.primary',
+                borderBottom: '1px solid rgba(255,255,255,0.1)',
+                backgroundColor: 'rgba(255,255,255,0.05)',
+              }}>Date</TableCell>
+              <TableCell sx={{ 
+                fontWeight: 600, 
+                color: 'text.primary',
+                borderBottom: '1px solid rgba(255,255,255,0.1)',
+                backgroundColor: 'rgba(255,255,255,0.05)',
+              }}>Status</TableCell>
+              <TableCell sx={{ 
+                fontWeight: 600, 
+                color: 'text.primary',
+                borderBottom: '1px solid rgba(255,255,255,0.1)',
+                backgroundColor: 'rgba(255,255,255,0.05)',
+              }}>Merchant</TableCell>
+              <TableCell align="right" sx={{ 
+                fontWeight: 600, 
+                color: 'text.primary',
+                borderBottom: '1px solid rgba(255,255,255,0.1)',
+                backgroundColor: 'rgba(255,255,255,0.05)',
+              }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -229,12 +280,18 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
                 key={transaction.id}
                 hover
                 sx={{
+                  borderBottom: '1px solid rgba(255,255,255,0.08)',
+                  transition: 'all 0.2s ease',
                   '&:hover': {
-                    backgroundColor: alpha(getTypeColor(transaction.type), 0.05),
+                    backgroundColor: alpha(getTypeColor(transaction.type), 0.08),
+                    transform: 'scale(1.005)',
+                  },
+                  '&:last-child td': {
+                    borderBottom: 'none',
                   },
                 }}
               >
-                <TableCell>
+                <TableCell sx={{ borderBottom: 'none' }}>
                   <Box display="flex" alignItems="center" gap={1}>
                     {getTypeIcon(transaction.type)}
                     <Typography variant="body2" textTransform="capitalize">
@@ -243,7 +300,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
                   </Box>
                 </TableCell>
                 
-                <TableCell>
+                <TableCell sx={{ borderBottom: 'none' }}>
                   <Box>
                     <Typography variant="body2" fontWeight="medium">
                       {transaction.description}
@@ -256,7 +313,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
                   </Box>
                 </TableCell>
                 
-                <TableCell>
+                <TableCell sx={{ borderBottom: 'none' }}>
                   {transaction.category && (
                     <Chip
                       label={transaction.category}
@@ -270,15 +327,15 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
                   )}
                 </TableCell>
                 
-                <TableCell>
+                <TableCell sx={{ borderBottom: 'none' }}>
                   {formatAmount(Number(transaction.amount), transaction.currency, transaction.type)}
                 </TableCell>
                 
-                <TableCell>
+                <TableCell sx={{ borderBottom: 'none' }}>
                   {formatDate(transaction.date, transaction.time)}
                 </TableCell>
                 
-                <TableCell>
+                <TableCell sx={{ borderBottom: 'none' }}>
                   <Chip
                     label={transaction.status}
                     size="small"
@@ -287,7 +344,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
                   />
                 </TableCell>
                 
-                <TableCell>
+                <TableCell sx={{ borderBottom: 'none' }}>
                   <Typography variant="body2" color="text.secondary">
                     {transaction.merchantName || '-'}
                   </Typography>
@@ -298,7 +355,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
                   )}
                 </TableCell>
                 
-                <TableCell align="right">
+                <TableCell align="right" sx={{ borderBottom: 'none' }}>
                   <Tooltip title="More actions">
                     <IconButton
                       size="small"

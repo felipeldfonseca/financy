@@ -8,10 +8,10 @@ import {
   Skeleton,
 } from '@mui/material';
 import {
-  TrendingUp as IncomeIcon,
-  TrendingDown as ExpenseIcon,
-  AccountBalance as BalanceIcon,
-  Receipt as TransactionIcon,
+  ArrowUpward as IncomeIcon,
+  ArrowDownward as ExpenseIcon,
+  AccountBalanceWallet as BalanceIcon,
+  SwapVerticalCircle as TransactionIcon,
 } from '@mui/icons-material';
 
 interface SummaryData {

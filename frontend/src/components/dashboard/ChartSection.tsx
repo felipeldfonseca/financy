@@ -40,21 +40,36 @@ interface ChartSectionProps {
   isLoading?: boolean;
 }
 
-const COLORS = ['#45b8d7', '#4caf50', '#ff9800', '#f44336', '#9c27b0', '#00bcd4'];
+const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
 const ChartCard: React.FC<{
   title: string;
   children: React.ReactNode;
   isLoading?: boolean;
 }> = ({ title, children, isLoading = false }) => (
-  <Card sx={{ height: '400px' }}>
-    <CardContent sx={{ height: '100%' }}>
-      <Typography variant="h6" gutterBottom>
+  <Card sx={{ 
+    height: '400px',
+    background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: '20px',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      transform: 'translateY(-4px)',
+      boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+    },
+  }}>
+    <CardContent sx={{ height: '100%', p: 3 }}>
+      <Typography variant="h6" gutterBottom sx={{ 
+        fontWeight: 600,
+        mb: 3,
+        color: 'text.primary'
+      }}>
         {title}
       </Typography>
       {isLoading ? (
         <Box sx={{ height: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Skeleton variant="rectangular" width="100%" height="100%" />
+          <Skeleton variant="rectangular" width="100%" height="100%" sx={{ borderRadius: '12px' }} />
         </Box>
       ) : (
         <Box sx={{ height: '320px' }}>
@@ -164,35 +179,41 @@ const ChartSection: React.FC<ChartSectionProps> = ({
         <ChartCard title="Monthly Spending Trends" isLoading={isLoading}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartMonthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <CartesianGrid strokeDasharray="5 5" stroke="rgba(255,255,255,0.1)" />
               <XAxis
                 dataKey="month"
-                tick={{ fontSize: 12 }}
-                stroke="#666"
+                tick={{ fontSize: 12, fill: '#8b8b8b' }}
+                stroke="rgba(255,255,255,0.2)"
+                axisLine={false}
+                tickLine={false}
               />
               <YAxis
-                tick={{ fontSize: 12 }}
-                stroke="#666"
+                tick={{ fontSize: 12, fill: '#8b8b8b' }}
+                stroke="rgba(255,255,255,0.2)"
+                axisLine={false}
+                tickLine={false}
                 tickFormatter={formatCurrency}
               />
               <Tooltip content={<CustomTooltip />} />
               <Line
                 type="monotone"
                 dataKey="income"
-                stroke="#4caf50"
-                strokeWidth={2}
-                dot={{ fill: '#4caf50', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6 }}
+                stroke="#10b981"
+                strokeWidth={3}
+                dot={{ fill: '#10b981', strokeWidth: 0, r: 5 }}
+                activeDot={{ r: 8, stroke: '#10b981', strokeWidth: 2, fill: '#ffffff' }}
                 name="Income"
+                strokeDasharray="0"
               />
               <Line
                 type="monotone"
                 dataKey="expenses"
-                stroke="#f44336"
-                strokeWidth={2}
-                dot={{ fill: '#f44336', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6 }}
+                stroke="#ef4444"
+                strokeWidth={3}
+                dot={{ fill: '#ef4444', strokeWidth: 0, r: 5 }}
+                activeDot={{ r: 8, stroke: '#ef4444', strokeWidth: 2, fill: '#ffffff' }}
                 name="Expenses"
+                strokeDasharray="0"
               />
             </LineChart>
           </ResponsiveContainer>
@@ -208,11 +229,14 @@ const ChartSection: React.FC<ChartSectionProps> = ({
                 data={chartCategoryData}
                 cx="50%"
                 cy="50%"
-                outerRadius={80}
+                outerRadius={90}
+                innerRadius={30}
                 fill="#8884d8"
                 dataKey="value"
                 label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                 labelLine={false}
+                stroke="rgba(255,255,255,0.1)"
+                strokeWidth={2}
               >
                 {chartCategoryData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
@@ -229,20 +253,24 @@ const ChartSection: React.FC<ChartSectionProps> = ({
         <ChartCard title="Income vs Expenses Comparison" isLoading={isLoading}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartMonthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <CartesianGrid strokeDasharray="5 5" stroke="rgba(255,255,255,0.1)" />
               <XAxis
                 dataKey="month"
-                tick={{ fontSize: 12 }}
-                stroke="#666"
+                tick={{ fontSize: 12, fill: '#8b8b8b' }}
+                stroke="rgba(255,255,255,0.2)"
+                axisLine={false}
+                tickLine={false}
               />
               <YAxis
-                tick={{ fontSize: 12 }}
-                stroke="#666"
+                tick={{ fontSize: 12, fill: '#8b8b8b' }}
+                stroke="rgba(255,255,255,0.2)"
+                axisLine={false}
+                tickLine={false}
                 tickFormatter={formatCurrency}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="income" fill="#4caf50" name="Income" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="expenses" fill="#f44336" name="Expenses" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="income" fill="#10b981" name="Income" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="expenses" fill="#ef4444" name="Expenses" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>

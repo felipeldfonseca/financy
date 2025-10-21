@@ -20,6 +20,8 @@ import { useAuth } from '../contexts/AuthContext';
 import SummaryCards from '../components/dashboard/SummaryCards';
 import ChartSection from '../components/dashboard/ChartSection';
 import QuickActions from '../components/dashboard/QuickActions';
+import ContextSwitcher from '../components/dashboard/ContextSwitcher';
+import ExpandableAddButton from '../components/common/ExpandableAddButton';
 
 interface DashboardData {
   summary: {
@@ -48,6 +50,14 @@ interface DashboardData {
   }>;
 }
 
+interface Group {
+  id: string;
+  name: string;
+  memberCount: number;
+  type: 'family' | 'friends' | 'business' | 'shared';
+  color: string;
+}
+
 const DashboardPage: React.FC = () => {
   const { state, logout } = useAuth();
   const navigate = useNavigate();
@@ -55,6 +65,8 @@ const DashboardPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [contextType, setContextType] = useState<'personal' | 'groups'>('personal');
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
 
   useEffect(() => {
     // Simulate API call - replace with actual API call later
@@ -132,17 +144,28 @@ const DashboardPage: React.FC = () => {
 
   const handleAddTransaction = () => {
     // Navigate to transaction form or open modal
-    console.log('Add transaction clicked');
+    if (contextType === 'groups' && selectedGroup) {
+      console.log(`Add transaction clicked for group: ${selectedGroup.name}`);
+    } else {
+      console.log('Add personal transaction clicked');
+    }
   };
 
-  const handleSwitchContext = () => {
-    // Open context switcher
-    console.log('Switch context clicked');
+  const handleContextTypeChange = (type: 'personal' | 'groups') => {
+    setContextType(type);
+    if (type === 'personal') {
+      setSelectedGroup(null);
+    }
+    // Here you would typically reload data based on the context
+    console.log(`Context changed to: ${type}`);
   };
 
-  const pendingTransactionsCount = data?.recentTransactions.filter(
-    t => t.status === 'pending'
-  ).length || 0;
+  const handleGroupSelect = (group: Group) => {
+    setSelectedGroup(group);
+    // Here you would typically reload data for the selected group
+    console.log(`Group selected: ${group.name}`);
+  };
+
 
   // Determine if it's user's first visit (within 24 hours of registration)
   const isFirstVisit = () => {
@@ -205,9 +228,14 @@ const DashboardPage: React.FC = () => {
           </Typography>
         </Box>
         
-        {/* User Avatar */}
+        {/* Action Buttons and User Avatar */}
         {state.user && (
-          <>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+            <ExpandableAddButton
+              onAddTransaction={handleAddTransaction}
+              contextType={contextType}
+              selectedGroupName={selectedGroup?.name}
+            />
             <Avatar
               sx={{
                 width: 56,
@@ -269,7 +297,7 @@ const DashboardPage: React.FC = () => {
                 <ListItemText>Log out</ListItemText>
               </MenuItem>
             </Menu>
-          </>
+          </Box>
         )}
       </Box>
 
@@ -287,19 +315,27 @@ const DashboardPage: React.FC = () => {
         </Alert>
       )}
 
+      {/* Context Switcher */}
+      <Box sx={{ mb: 4 }}>
+        <ContextSwitcher
+          contextType={contextType}
+          selectedGroup={selectedGroup}
+          onContextTypeChange={handleContextTypeChange}
+          onGroupSelect={handleGroupSelect}
+        />
+      </Box>
+
       {/* Summary Cards */}
       <Box sx={{ mb: 4 }}>
         <SummaryCards data={data?.summary} isLoading={isLoading} />
       </Box>
 
-      {/* Quick Actions */}
+
+      {/* Smart Insights */}
       <Box sx={{ mb: 4 }}>
         <QuickActions
-          recentTransactions={data?.recentTransactions}
-          pendingCount={pendingTransactionsCount}
-          onAddTransaction={handleAddTransaction}
-          onSwitchContext={handleSwitchContext}
-          activeContext="Personal"
+          contextType={contextType}
+          selectedGroupName={selectedGroup?.name}
         />
       </Box>
 
