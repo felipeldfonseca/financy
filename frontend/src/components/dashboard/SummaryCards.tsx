@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   Grid,
   Card,
@@ -35,34 +35,6 @@ interface SummaryCardProps {
   isLoading?: boolean;
 }
 
-const AnimatedCounter: React.FC<{ value: number; duration?: number }> = ({ 
-  value, 
-  duration = 1000 
-}) => {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    let startTime: number;
-    let animationFrame: number;
-
-    const updateCount = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      
-      setCount(Math.floor(progress * value));
-      
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(updateCount);
-      }
-    };
-
-    animationFrame = requestAnimationFrame(updateCount);
-    
-    return () => cancelAnimationFrame(animationFrame);
-  }, [value, duration]);
-
-  return <span>{count}</span>;
-};
 
 const SummaryCard: React.FC<SummaryCardProps> = ({
   title,
@@ -159,11 +131,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
               gap: 0.5,
             }}
           >
-            {title === 'Transactions' ? (
-              <AnimatedCounter value={numericValue} duration={1500} />
-            ) : (
-              value
-            )}
+            {value}
           </Typography>
         )}
       </Box>

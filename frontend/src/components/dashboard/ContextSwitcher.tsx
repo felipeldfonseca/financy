@@ -96,14 +96,15 @@ const ContextSwitcher: React.FC<ContextSwitcherProps> = ({
               borderRadius: '12px',
               textTransform: 'none',
               fontWeight: 500,
+              fontSize: '1rem',
               py: 1.5,
               border: '1px solid rgba(255,255,255,0.2)',
               color: 'text.secondary',
               '&.Mui-selected': {
-                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                background: 'linear-gradient(135deg, #4657D8 0%, #3b47c4 100%)',
                 color: 'white',
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #5b5cd6 0%, #7c3aed 100%)',
+                  background: 'linear-gradient(135deg, #3b47c4 0%, #3238b0 100%)',
                 },
               },
               '&:hover': {
@@ -133,15 +134,31 @@ const ContextSwitcher: React.FC<ContextSwitcherProps> = ({
                   p: 2,
                   mb: 1,
                   borderRadius: '12px',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  border: selectedGroup?.id === group.id 
+                    ? '1px solid rgba(70, 87, 216, 0.3)'
+                    : '1px solid rgba(255,255,255,0.1)',
                   background: selectedGroup?.id === group.id 
-                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)'
+                    ? 'linear-gradient(135deg, rgba(70, 87, 216, 0.15) 0%, rgba(59, 71, 196, 0.1) 100%)'
                     : 'rgba(255,255,255,0.02)',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease',
+                  position: 'relative',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  transform: selectedGroup?.id === group.id ? 'translateY(-2px)' : 'translateY(0)',
+                  boxShadow: selectedGroup?.id === group.id 
+                    ? '0 8px 25px rgba(70, 87, 216, 0.2)'
+                    : '0 2px 8px rgba(0, 0, 0, 0.1)',
                   '&:hover': {
-                    background: 'rgba(255,255,255,0.05)',
+                    background: selectedGroup?.id === group.id 
+                      ? 'linear-gradient(135deg, rgba(70, 87, 216, 0.2) 0%, rgba(59, 71, 196, 0.15) 100%)'
+                      : 'rgba(255,255,255,0.08)',
+                    transform: 'translateY(-4px)',
+                    boxShadow: selectedGroup?.id === group.id 
+                      ? '0 12px 35px rgba(70, 87, 216, 0.25)'
+                      : '0 8px 25px rgba(0, 0, 0, 0.15)',
+                  },
+                  '&:active': {
                     transform: 'translateY(-1px)',
+                    transition: 'all 0.1s ease',
                   },
                 }}
               >
