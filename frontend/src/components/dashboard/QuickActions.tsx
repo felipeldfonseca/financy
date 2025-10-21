@@ -87,12 +87,6 @@ const QuickActions: React.FC<QuickActionsProps> = ({
   const displayGoals = goals.length > 0 ? goals : defaultGoals;
   const displayBudgets = budgets.length > 0 ? budgets : defaultBudgets;
 
-  const getSectionTitle = () => {
-    if (contextType === 'groups' && selectedGroupName) {
-      return `${selectedGroupName} - Smart Insights`;
-    }
-    return contextType === 'groups' ? 'Group Smart Insights' : 'Smart Insights';
-  };
 
   return (
     <Grid container spacing={4}>
@@ -105,17 +99,14 @@ const QuickActions: React.FC<QuickActionsProps> = ({
           borderRadius: '20px',
         }}>
           <CardContent sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
-              {getSectionTitle()}
-            </Typography>
             
             <Grid container spacing={3}>
               {/* Upcoming Bills */}
               <Grid item xs={12} md={4}>
                 <Box>
                   <Box display="flex" alignItems="center" gap={1} mb={2}>
-                    <CalendarIcon sx={{ fontSize: 18, color: '#f59e0b' }} />
-                    <Typography variant="body2" fontWeight={500}>Upcoming Bills</Typography>
+                    <CalendarIcon sx={{ fontSize: 24, color: '#f59e0b' }} />
+                    <Typography variant="h6" fontWeight={600}>Upcoming Bills</Typography>
                   </Box>
                   {displayUpcomingBills.slice(0, 2).map((bill) => (
                     <Box key={bill.id} sx={{ 
@@ -143,8 +134,8 @@ const QuickActions: React.FC<QuickActionsProps> = ({
               <Grid item xs={12} md={4}>
                 <Box>
                   <Box display="flex" alignItems="center" gap={1} mb={2}>
-                    <GoalIcon sx={{ fontSize: 18, color: '#10b981' }} />
-                    <Typography variant="body2" fontWeight={500}>Goal Progress</Typography>
+                    <GoalIcon sx={{ fontSize: 24, color: '#10b981' }} />
+                    <Typography variant="h6" fontWeight={600}>Goal Progress</Typography>
                   </Box>
                   {displayGoals.slice(0, 1).map((goal) => {
                     const progress = (goal.currentAmount / goal.targetAmount) * 100;
@@ -187,8 +178,8 @@ const QuickActions: React.FC<QuickActionsProps> = ({
               <Grid item xs={12} md={4}>
                 <Box>
                   <Box display="flex" alignItems="center" gap={1} mb={2}>
-                    <BudgetIcon sx={{ fontSize: 18, color: '#6366f1' }} />
-                    <Typography variant="body2" fontWeight={500}>Budget Status</Typography>
+                    <BudgetIcon sx={{ fontSize: 24, color: '#6366f1' }} />
+                    <Typography variant="h6" fontWeight={600}>Budget Status</Typography>
                   </Box>
                   {displayBudgets.slice(0, 2).map((budget) => {
                     const percentage = (budget.spent / budget.budget) * 100;
