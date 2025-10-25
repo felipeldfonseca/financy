@@ -17,7 +17,7 @@ export const typeOrmConfig = (
       url: databaseUrl,
       entities: [User, Transaction, Context, ContextMember],
       migrations: [__dirname + '/../migrations/*{.ts,.js}'],
-      synchronize: configService.get('NODE_ENV') === 'development',
+      synchronize: configService.get('NODE_ENV') === 'development' || configService.get('TYPEORM_SYNCHRONIZE') === 'true',
       logging: configService.get('NODE_ENV') === 'development',
       ssl: configService.get('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
     };
