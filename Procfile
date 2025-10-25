@@ -1,0 +1,1 @@
+web: cd backend && npm ci --omit=dev && npm run build && npm run start:prod
