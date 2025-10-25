@@ -8,19 +8,35 @@ import { ContextMember } from '../contexts/entities/context-member.entity';
 
 export const typeOrmConfig = (
   configService: ConfigService,
-): TypeOrmModuleOptions => ({
-  type: 'postgres',
-  host: configService.get('DATABASE_HOST', 'localhost'),
-  port: configService.get('DATABASE_PORT', 5432),
-  username: configService.get('DATABASE_USER', 'financy_user'),
-  password: configService.get('DATABASE_PASSWORD', 'financy_pass'),
-  database: configService.get('DATABASE_NAME', 'financy_dev'),
-  entities: [User, Transaction, Context, ContextMember],
-  migrations: [__dirname + '/../migrations/*{.ts,.js}'],
-  synchronize: configService.get('NODE_ENV') === 'development',
-  logging: configService.get('NODE_ENV') === 'development',
-  ssl: configService.get('NODE_ENV') === 'production',
-});
+): TypeOrmModuleOptions => {
+  const databaseUrl = configService.get('DATABASE_URL');
+  
+  if (databaseUrl) {
+    return {
+      type: 'postgres',
+      url: databaseUrl,
+      entities: [User, Transaction, Context, ContextMember],
+      migrations: [__dirname + '/../migrations/*{.ts,.js}'],
+      synchronize: configService.get('NODE_ENV') === 'development',
+      logging: configService.get('NODE_ENV') === 'development',
+      ssl: configService.get('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
+    };
+  }
+  
+  return {
+    type: 'postgres',
+    host: configService.get('DATABASE_HOST', 'localhost'),
+    port: configService.get('DATABASE_PORT', 5432),
+    username: configService.get('DATABASE_USER', 'financy_user'),
+    password: configService.get('DATABASE_PASSWORD', 'financy_pass'),
+    database: configService.get('DATABASE_NAME', 'financy_dev'),
+    entities: [User, Transaction, Context, ContextMember],
+    migrations: [__dirname + '/../migrations/*{.ts,.js}'],
+    synchronize: configService.get('NODE_ENV') === 'development',
+    logging: configService.get('NODE_ENV') === 'development',
+    ssl: configService.get('NODE_ENV') === 'production',
+  };
+};
 
 export const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
