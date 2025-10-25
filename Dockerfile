@@ -23,4 +23,4 @@ RUN npm prune --production
 EXPOSE 3000
 
 # Start the application
-CMD ["npm", "run", "start:prod"]
+CMD ["node", "dist/src/main.js"]
