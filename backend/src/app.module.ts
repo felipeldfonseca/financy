@@ -31,16 +31,30 @@ import { typeOrmConfig } from './config/typeorm.config';
       inject: [ConfigService],
     }),
 
-    // Redis Cache
+    // Redis Cache (conditional - only if Redis is available)
     CacheModule.registerAsync({
       isGlobal: true,
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        store: redisStore as any,
-        host: configService.get('REDIS_HOST', 'localhost'),
-        port: configService.get('REDIS_PORT', 6379),
-        ttl: 300, // 5 minutes default TTL
-      }),
+      useFactory: async (configService: ConfigService) => {
+        const redisUrl = configService.get('REDIS_URL');
+        const redisHost = configService.get('REDIS_HOST');
+        
+        // If no Redis configuration, use in-memory cache
+        if (!redisUrl && !redisHost) {
+          return {
+            ttl: 300, // 5 minutes default TTL
+          };
+        }
+        
+        // Use Redis if available
+        return {
+          store: redisStore as any,
+          url: redisUrl,
+          host: redisHost || 'localhost',
+          port: configService.get('REDIS_PORT', 6379),
+          ttl: 300, // 5 minutes default TTL
+        };
+      },
       inject: [ConfigService],
     }),
 
