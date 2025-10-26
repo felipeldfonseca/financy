@@ -53,7 +53,16 @@ const transactionSchema = yup.object({
   notes: yup.string().max(1000, 'Notes must be less than 1000 characters'),
 }).shape({}) as yup.ObjectSchema<CreateTransactionData>;
 
-const defaultCurrencies = ['USD', 'EUR', 'GBP', 'BRL', 'JPY', 'CNY'];
+const currencyConfig = {
+  USD: { symbol: '$', decimal: '.' },
+  EUR: { symbol: '€', decimal: '.' },
+  GBP: { symbol: '£', decimal: '.' },
+  BRL: { symbol: 'R$', decimal: ',' },
+  JPY: { symbol: '¥', decimal: '.' },
+  CNY: { symbol: '¥', decimal: '.' },
+};
+
+const defaultCurrencies = Object.keys(currencyConfig);
 
 export const TransactionForm: React.FC<TransactionFormProps> = ({
   open,
@@ -89,12 +98,19 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   });
 
   const selectedType = watch('type');
+  const selectedCurrency = watch('currency') || 'USD';
+  const currencySymbol = currencyConfig[selectedCurrency as keyof typeof currencyConfig]?.symbol || '$';
+  const decimalSeparator = currencyConfig[selectedCurrency as keyof typeof currencyConfig]?.decimal || '.';
 
   useEffect(() => {
     if (open) {
       loadCategories();
       loadMerchants();
+    }
+  }, [open, loadCategories, loadMerchants]);
 
+  useEffect(() => {
+    if (open) {
       if (mode === 'edit' && transaction) {
         reset({
           amount: Number(transaction.amount),
@@ -109,7 +125,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           location: transaction.location || '',
           notes: transaction.notes || '',
         });
-      } else {
+      } else if (mode === 'create') {
         reset({
           amount: 0,
           description: '',
@@ -125,7 +141,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
         });
       }
     }
-  }, [open, mode, transaction, reset, loadCategories, loadMerchants]);
+  }, [open, mode, transaction, reset]);
 
   const onSubmit = async (data: CreateTransactionData) => {
     try {
@@ -178,21 +194,73 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
               <Controller
                 name="amount"
                 control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Amount"
-                    type="number"
-                    fullWidth
-                    required
-                    error={!!errors.amount}
-                    helperText={errors.amount?.message}
-                    InputProps={{
-                      startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                    }}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                  />
-                )}
+                render={({ field }) => {
+                  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                    const value = e.target.value;
+
+                    // Allow empty string
+                    if (value === '') {
+                      field.onChange('');
+                      return;
+                    }
+
+                    // Define the correct decimal separator for this currency
+                    const correctSeparator = decimalSeparator;
+                    const wrongSeparator = correctSeparator === '.' ? ',' : '.';
+
+                    // Block wrong separator entirely
+                    if (value.includes(wrongSeparator)) {
+                      return; // Don't update field
+                    }
+
+                    // Only allow digits and the correct decimal separator
+                    const validCharPattern = new RegExp(`^[0-9${correctSeparator.replace('.', '\\.')}]*$`);
+                    if (!validCharPattern.test(value)) {
+                      return; // Don't update field
+                    }
+
+                    // Ensure only one decimal separator
+                    const separatorCount = (value.match(new RegExp(`\\${correctSeparator}`, 'g')) || []).length;
+                    if (separatorCount > 1) {
+                      return; // Don't update field
+                    }
+
+                    // If there's a decimal separator, ensure max 2 decimal places
+                    if (value.includes(correctSeparator)) {
+                      const parts = value.split(correctSeparator);
+                      if (parts[1] && parts[1].length > 2) {
+                        return; // Don't update field
+                      }
+                    }
+
+                    // Remove leading zeros (except if it's just "0" or "0." or "0,")
+                    let cleanValue = value;
+                    if (value.length > 1 && value.startsWith('0') && !value.startsWith(`0${correctSeparator}`)) {
+                      cleanValue = value.replace(/^0+/, '');
+                    }
+
+                    // Update field with the clean value
+                    field.onChange(cleanValue);
+                  };
+
+                  return (
+                    <TextField
+                      {...field}
+                      label="Amount"
+                      type="text"
+                      fullWidth
+                      required
+                      error={!!errors.amount}
+                      helperText={errors.amount?.message}
+                      InputProps={{
+                        startAdornment: <InputAdornment position="start">{currencySymbol}</InputAdornment>,
+                      }}
+                      placeholder={`0${decimalSeparator}00`}
+                      onChange={handleAmountChange}
+                      value={field.value === 0 ? '' : field.value}
+                    />
+                  );
+                }}
               />
             </Grid>
 
@@ -250,7 +318,6 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 control={control}
                 render={({ field }) => (
                   <Autocomplete
-                    {...field}
                     options={state.categories}
                     freeSolo
                     value={field.value || ''}
@@ -330,7 +397,6 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 control={control}
                 render={({ field }) => (
                   <Autocomplete
-                    {...field}
                     options={state.merchants}
                     freeSolo
                     value={field.value || ''}
@@ -371,22 +437,25 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 name="currency"
                 control={control}
                 render={({ field }) => (
-                  <Autocomplete
-                    {...field}
-                    options={defaultCurrencies}
-                    freeSolo
-                    value={field.value || 'USD'}
-                    onChange={(_, value) => field.onChange(value || 'USD')}
-                    onInputChange={(_, value) => field.onChange(value)}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Currency"
-                        error={!!errors.currency}
-                        helperText={errors.currency?.message}
-                      />
-                    )}
-                  />
+                  <FormControl fullWidth>
+                    <InputLabel>Currency</InputLabel>
+                    <Select
+                      {...field}
+                      label="Currency"
+                      value={field.value || 'USD'}
+                      error={!!errors.currency}
+                    >
+                      {defaultCurrencies.map((currency) => (
+                        <MenuItem key={currency} value={currency}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography>
+                              {currencyConfig[currency as keyof typeof currencyConfig]?.symbol} {currency}
+                            </Typography>
+                          </Box>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 )}
               />
             </Grid>
