@@ -329,7 +329,7 @@ const DashboardPage: React.FC = () => {
 
       {/* Summary Cards */}
       <Box sx={{ mb: 4 }}>
-        <SummaryCards data={data?.summary} isLoading={isLoading} />
+        <SummaryCards data={data?.summary} isLoading={isLoading} userCurrency={state.user?.defaultCurrency} />
       </Box>
 
 
@@ -347,6 +347,7 @@ const DashboardPage: React.FC = () => {
           monthlyData={data?.monthlyData}
           categoryData={data?.categoryData}
           isLoading={isLoading}
+          userCurrency={state.user?.defaultCurrency}
         />
       </Box>
     </Box>

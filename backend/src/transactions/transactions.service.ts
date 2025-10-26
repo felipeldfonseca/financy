@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, Like, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
@@ -13,6 +14,7 @@ import { Context, ContextType } from '../contexts/entities/context.entity';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { TransactionFiltersDto } from './dto/transaction-filters.dto';
+import { CurrencyService } from '../currency/currency.service';
 
 export interface TransactionSummary {
   totalIncome: number;
@@ -38,6 +40,8 @@ export interface PaginatedTransactions {
 
 @Injectable()
 export class TransactionsService {
+  private readonly logger = new Logger(TransactionsService.name);
+
   constructor(
     @InjectRepository(Transaction)
     private transactionsRepository: Repository<Transaction>,
@@ -47,6 +51,7 @@ export class TransactionsService {
     private contextMembersRepository: Repository<ContextMember>,
     @InjectRepository(Context)
     private contextsRepository: Repository<Context>,
+    private currencyService: CurrencyService,
   ) {}
 
   async create(createTransactionDto: CreateTransactionDto, userId: string, contextId?: string): Promise<Transaction> {
@@ -85,19 +90,53 @@ export class TransactionsService {
     }
 
     // Set default currency if not provided
-    if (!createTransactionDto.currency) {
-      createTransactionDto.currency = user.defaultCurrency || 'USD';
-    }
+    const transactionCurrency = createTransactionDto.currency || user.defaultCurrency || 'USD';
+    const userPreferredCurrency = user.defaultCurrency || 'USD';
 
-    // Create transaction
-    const transaction = this.transactionsRepository.create({
+    // Prepare transaction data
+    const transactionData: any = {
       ...createTransactionDto,
       userId,
       contextId: assignedContextId,
       status: TransactionStatus.PENDING,
-    });
+      currency: userPreferredCurrency, // Always store in user's preferred currency
+    };
 
-    const savedTransaction = await this.transactionsRepository.save(transaction);
+    // Perform currency conversion if needed
+    if (transactionCurrency !== userPreferredCurrency) {
+      try {
+        const conversion = await this.currencyService.convertCurrency(
+          createTransactionDto.amount,
+          transactionCurrency,
+          userPreferredCurrency
+        );
+
+        // Store original currency info
+        transactionData.originalCurrency = transactionCurrency;
+        transactionData.originalAmount = createTransactionDto.amount;
+        transactionData.exchangeRate = conversion.exchangeRate;
+        transactionData.amount = conversion.convertedAmount;
+
+        this.logger.log(
+          `Converted ${createTransactionDto.amount} ${transactionCurrency} to ${conversion.convertedAmount} ${userPreferredCurrency} @ rate ${conversion.exchangeRate}`
+        );
+      } catch (error) {
+        this.logger.error(`Currency conversion failed: ${error.message}`);
+        throw new BadRequestException(
+          `Failed to convert from ${transactionCurrency} to ${userPreferredCurrency}. Please try again later.`
+        );
+      }
+    } else {
+      // Same currency - no conversion needed
+      transactionData.amount = createTransactionDto.amount;
+      transactionData.originalCurrency = transactionCurrency;
+      transactionData.originalAmount = createTransactionDto.amount;
+      transactionData.exchangeRate = 1.0;
+    }
+
+    // Create transaction
+    const transaction = this.transactionsRepository.create(transactionData);
+    const savedTransaction = await this.transactionsRepository.save(transaction) as unknown as Transaction;
 
     // Auto-categorize if no category provided
     if (!createTransactionDto.category) {
@@ -388,6 +427,53 @@ export class TransactionsService {
     this.transactionsRepository.update(transaction.id, { category }).catch(() => {
       // Ignore errors in auto-categorization
     });
+  }
+
+  async reconvertUserTransactions(userId: string, newCurrency: string): Promise<void> {
+    this.logger.log(`Reconverting all transactions for user ${userId} to ${newCurrency}`);
+
+    // Get all user transactions
+    const transactions = await this.transactionsRepository.find({
+      where: { userId },
+    });
+
+    this.logger.log(`Found ${transactions.length} transactions to reconvert`);
+
+    // Process each transaction
+    for (const transaction of transactions) {
+      try {
+        // Skip if transaction is already in the new currency
+        if (transaction.currency === newCurrency) {
+          continue;
+        }
+
+        const originalAmount = transaction.originalAmount || Number(transaction.amount);
+        const originalCurrency = transaction.originalCurrency || transaction.currency;
+
+        // Convert from original currency to new currency
+        const conversion = await this.currencyService.convertCurrency(
+          originalAmount,
+          originalCurrency,
+          newCurrency
+        );
+
+        // Update transaction
+        transaction.currency = newCurrency;
+        transaction.amount = conversion.convertedAmount;
+        transaction.exchangeRate = conversion.exchangeRate;
+
+        await this.transactionsRepository.save(transaction);
+
+        this.logger.log(
+          `Reconverted transaction ${transaction.id}: ${originalAmount} ${originalCurrency} -> ${conversion.convertedAmount} ${newCurrency} @ rate ${conversion.exchangeRate}`
+        );
+      } catch (error) {
+        this.logger.error(`Failed to reconvert transaction ${transaction.id}: ${error.message}`);
+        // Continue with other transactions even if one fails
+      }
+    }
+
+    this.logger.log(`Completed reconversion for user ${userId}`);
   }
 
   private async getOrCreateDefaultContext(userId: string): Promise<string> {

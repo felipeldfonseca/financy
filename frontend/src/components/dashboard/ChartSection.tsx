@@ -40,6 +40,7 @@ interface ChartSectionProps {
   monthlyData?: MonthlyData[];
   categoryData?: CategoryData[];
   isLoading?: boolean;
+  userCurrency?: string;
 }
 
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
@@ -86,6 +87,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
   monthlyData = [],
   categoryData = [],
   isLoading = false,
+  userCurrency = 'USD',
 }) => {
   // Generate mock data if none provided
   const defaultMonthlyData = [
@@ -112,7 +114,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: userCurrency,
       minimumFractionDigits: 0,
     }).format(value);
   };

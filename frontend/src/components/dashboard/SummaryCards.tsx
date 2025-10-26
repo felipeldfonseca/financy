@@ -24,6 +24,7 @@ interface SummaryData {
 interface SummaryCardsProps {
   data?: SummaryData;
   isLoading?: boolean;
+  userCurrency?: string;
 }
 
 interface SummaryCardProps {
@@ -139,11 +140,11 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
   </Card>
 );
 
-const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isLoading = false }) => {
+const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isLoading = false, userCurrency = 'USD' }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: userCurrency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);

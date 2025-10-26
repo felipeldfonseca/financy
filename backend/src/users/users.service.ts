@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -8,6 +8,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { plainToClass } from 'class-transformer';
+import { TransactionsService } from '../transactions/transactions.service';
 
 @Injectable()
 export class UsersService {
@@ -16,6 +17,8 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @Inject(forwardRef(() => TransactionsService))
+    private transactionsService: TransactionsService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
@@ -82,9 +85,22 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
+    // Check if defaultCurrency is changing
+    const isChangingCurrency = updateUserDto.defaultCurrency && updateUserDto.defaultCurrency !== user.defaultCurrency;
+    const newCurrency = updateUserDto.defaultCurrency;
+
     // Update user properties
     Object.assign(user, updateUserDto);
     const updatedUser = await this.usersRepository.save(user);
+
+    // If currency changed, reconvert all user transactions
+    if (isChangingCurrency && newCurrency) {
+      // Run in background to not block the response
+      this.transactionsService.reconvertUserTransactions(id, newCurrency)
+        .catch(error => {
+          console.error(`Failed to reconvert transactions for user ${id}:`, error);
+        });
+    }
 
     return plainToClass(UserResponseDto, updatedUser, {
       excludeExtraneousValues: true,
