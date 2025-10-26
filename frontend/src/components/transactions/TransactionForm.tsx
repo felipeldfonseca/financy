@@ -64,6 +64,22 @@ const currencyConfig = {
 
 const defaultCurrencies = Object.keys(currencyConfig);
 
+// Category/Subcategory configuration (test data: 2 categories × 2 subcategories per type)
+const categoryConfig = {
+  expense: {
+    'Housing': ['Rent', 'Mortgage'],
+    'Transportation': ['Fuel/Gas', 'Public Transport'],
+  },
+  income: {
+    'Employment Income': ['Salary', 'Hourly Wages'],
+    'Self-Employment': ['Freelance Income', 'Consulting Fees'],
+  },
+  transfer: {
+    'Account Transfers': ['Checking to Savings', 'Savings to Checking'],
+    'Debt Payments': ['Credit Card Payment', 'Loan Payment'],
+  },
+};
+
 export const TransactionForm: React.FC<TransactionFormProps> = ({
   open,
   onClose,
@@ -80,14 +96,15 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
     reset,
     formState: { errors },
     watch,
+    setValue,
   } = useForm<CreateTransactionData>({
     resolver: yupResolver(transactionSchema),
     defaultValues: {
       amount: 0,
       description: '',
       type: 'expense',
-      category: '',
-      subcategory: '',
+      category: 'Housing',
+      subcategory: 'Rent',
       currency: 'USD',
       date: new Date().toISOString().split('T')[0],
       time: new Date().toTimeString().slice(0, 5),
@@ -98,9 +115,17 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   });
 
   const selectedType = watch('type');
+  const selectedCategory = watch('category');
   const selectedCurrency = watch('currency') || 'USD';
   const currencySymbol = currencyConfig[selectedCurrency as keyof typeof currencyConfig]?.symbol || '$';
   const decimalSeparator = currencyConfig[selectedCurrency as keyof typeof currencyConfig]?.decimal || '.';
+
+  // Get available categories based on transaction type
+  const availableCategories = categoryConfig[selectedType as keyof typeof categoryConfig] || {};
+  const categoryList = Object.keys(availableCategories);
+
+  // Get available subcategories based on selected category
+  const availableSubcategories = (selectedCategory && availableCategories[selectedCategory as keyof typeof availableCategories]) || [];
 
   useEffect(() => {
     if (open) {
@@ -126,12 +151,15 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           notes: transaction.notes || '',
         });
       } else if (mode === 'create') {
+        const firstCategory = categoryList[0] || '';
+        const firstSubcategory = firstCategory ? (availableCategories as Record<string, string[]>)[firstCategory]?.[0] || '' : '';
+
         reset({
           amount: 0,
           description: '',
           type: 'expense',
-          category: '',
-          subcategory: '',
+          category: firstCategory,
+          subcategory: firstSubcategory,
           currency: 'USD',
           date: new Date().toISOString().split('T')[0],
           time: new Date().toTimeString().slice(0, 5),
@@ -142,6 +170,29 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
       }
     }
   }, [open, mode, transaction, reset]);
+
+  // Auto-select first category and subcategory when type changes
+  useEffect(() => {
+    if (open && mode === 'create') {
+      const categories = categoryConfig[selectedType as keyof typeof categoryConfig] || {};
+      const firstCategory = Object.keys(categories)[0] || '';
+      const firstSubcategory = firstCategory ? (categories as Record<string, string[]>)[firstCategory]?.[0] || '' : '';
+
+      setValue('category', firstCategory);
+      setValue('subcategory', firstSubcategory);
+    }
+  }, [selectedType, open, mode, setValue]);
+
+  // Auto-select first subcategory when category changes
+  useEffect(() => {
+    if (open && mode === 'create' && selectedCategory) {
+      const categories = categoryConfig[selectedType as keyof typeof categoryConfig] || {};
+      const subcategories = categories[selectedCategory as keyof typeof categories] || [];
+      const firstSubcategory = subcategories[0] || '';
+
+      setValue('subcategory', firstSubcategory);
+    }
+  }, [selectedCategory, selectedType, open, mode, setValue]);
 
   const onSubmit = async (data: CreateTransactionData) => {
     try {
@@ -317,21 +368,21 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 name="category"
                 control={control}
                 render={({ field }) => (
-                  <Autocomplete
-                    options={state.categories}
-                    freeSolo
-                    value={field.value || ''}
-                    onChange={(_, value) => field.onChange(value || '')}
-                    onInputChange={(_, value) => field.onChange(value)}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Category"
-                        error={!!errors.category}
-                        helperText={errors.category?.message}
-                      />
-                    )}
-                  />
+                  <FormControl fullWidth>
+                    <InputLabel>Category</InputLabel>
+                    <Select
+                      {...field}
+                      label="Category"
+                      value={field.value || ''}
+                      error={!!errors.category}
+                    >
+                      {categoryList.map((category) => (
+                        <MenuItem key={category} value={category}>
+                          {category}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 )}
               />
             </Grid>
@@ -341,13 +392,21 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 name="subcategory"
                 control={control}
                 render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Subcategory"
-                    fullWidth
-                    error={!!errors.subcategory}
-                    helperText={errors.subcategory?.message}
-                  />
+                  <FormControl fullWidth>
+                    <InputLabel>Subcategory</InputLabel>
+                    <Select
+                      {...field}
+                      label="Subcategory"
+                      value={field.value || ''}
+                      error={!!errors.subcategory}
+                    >
+                      {availableSubcategories.map((subcategory) => (
+                        <MenuItem key={subcategory} value={subcategory}>
+                          {subcategory}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 )}
               />
             </Grid>
