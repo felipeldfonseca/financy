@@ -64,19 +64,41 @@ const currencyConfig = {
 
 const defaultCurrencies = Object.keys(currencyConfig);
 
-// Category/Subcategory configuration (test data: 2 categories × 2 subcategories per type)
+// Category/Subcategory configuration (complete list)
 const categoryConfig = {
   expense: {
-    'Housing': ['Rent', 'Mortgage'],
-    'Transportation': ['Fuel/Gas', 'Public Transport'],
+    'Housing': ['Rent', 'Mortgage', 'Property Tax', 'Home Insurance', 'HOA Fees', 'Maintenance & Repairs', 'Home Improvement', 'Furniture & Appliances'],
+    'Transportation': ['Fuel/Gas', 'Public Transport', 'Taxi/Ride Share', 'Car Payment', 'Car Insurance', 'Car Maintenance & Repairs', 'Parking', 'Tolls', 'Vehicle Registration'],
+    'Food & Dining': ['Groceries', 'Restaurants', 'Fast Food', 'Coffee Shops', 'Bars & Nightlife', 'Food Delivery'],
+    'Shopping': ['Clothing & Shoes', 'Electronics & Gadgets', 'Books & Magazines', 'Sporting Goods', 'Home Goods & Decor', 'Online Shopping', 'Other Shopping'],
+    'Health & Fitness': ['Doctor Visits', 'Dentist', 'Pharmacy & Medications', 'Health Insurance', 'Gym & Fitness', 'Sports & Activities', 'Medical Devices'],
+    'Entertainment': ['Streaming Services', 'Movies & Cinema', 'Concerts & Events', 'Hobbies', 'Games & Gaming', 'Sports Events', 'Music'],
+    'Bills & Utilities': ['Electricity', 'Water', 'Gas', 'Internet', 'Mobile Phone', 'Landline', 'Cable/TV', 'Trash/Recycling'],
+    'Education': ['Tuition', 'Books & Supplies', 'Courses & Training', 'Student Loan Payment', 'School Supplies'],
+    'Personal Care': ['Haircuts & Salon', 'Spa & Massage', 'Cosmetics & Skincare', 'Personal Hygiene', 'Laundry & Dry Cleaning'],
+    'Insurance': ['Life Insurance', 'Health Insurance', 'Car Insurance', 'Home Insurance', 'Other Insurance'],
+    'Financial': ['Bank Fees', 'ATM Fees', 'Credit Card Fees', 'Investment Fees', 'Accounting & Legal', 'Taxes'],
+    'Travel & Vacation': ['Flights', 'Hotels & Accommodation', 'Car Rental', 'Travel Insurance', 'Activities & Tours', 'Souvenirs'],
+    'Gifts & Donations': ['Charity & Donations', 'Gifts for Others', 'Religious Donations'],
+    'Pets': ['Pet Food', 'Veterinary Care', 'Pet Supplies', 'Pet Insurance', 'Grooming'],
+    'Kids & Family': ['Childcare & Babysitting', 'Child Support', 'Kids Activities', 'Toys', 'School Fees', 'Allowance'],
+    'Business Expenses': ['Office Supplies', 'Business Travel', 'Client Meetings', 'Software & Tools', 'Professional Services'],
+    'Other Expenses': ['Miscellaneous', 'Uncategorized'],
   },
   income: {
-    'Employment Income': ['Salary', 'Hourly Wages'],
-    'Self-Employment': ['Freelance Income', 'Consulting Fees'],
+    'Employment Income': ['Salary', 'Hourly Wages', 'Overtime Pay', 'Bonus', 'Commission', 'Tips', 'Severance Pay'],
+    'Self-Employment': ['Freelance Income', 'Consulting Fees', 'Contract Work', 'Business Revenue', 'Royalties'],
+    'Investment Income': ['Dividends', 'Interest Income', 'Capital Gains', 'Rental Income', 'Cryptocurrency Gains'],
+    'Other Income': ['Gifts Received', 'Tax Refund', 'Reimbursement', 'Cashback & Rewards', 'Lottery & Gambling Winnings', 'Inheritance'],
+    'Government & Benefits': ['Unemployment Benefits', 'Social Security', 'Pension', 'Disability Benefits', 'Child Support Received', 'Government Grants'],
+    'Refunds & Returns': ['Purchase Refund', 'Insurance Claim', 'Expense Reimbursement'],
   },
   transfer: {
-    'Account Transfers': ['Checking to Savings', 'Savings to Checking'],
-    'Debt Payments': ['Credit Card Payment', 'Loan Payment'],
+    'Account Transfers': ['Checking to Savings', 'Savings to Checking', 'Between Bank Accounts', 'Cash Deposit', 'Cash Withdrawal'],
+    'Debt Payments': ['Credit Card Payment', 'Loan Payment', 'Mortgage Payment', 'Student Loan Payment'],
+    'Savings & Investments': ['Investment Contribution', 'Retirement Account (401k, IRA)', 'Emergency Fund', 'Savings Goal'],
+    'Personal Transfers': ['Money to Family/Friends', 'Money from Family/Friends', 'Split Bill Payment'],
+    'Other Transfers': ['Currency Exchange', 'Wire Transfer', 'Other Transfer'],
   },
 };
 
