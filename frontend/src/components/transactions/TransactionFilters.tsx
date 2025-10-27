@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -16,12 +16,14 @@ import {
   Collapse,
   IconButton,
   InputAdornment,
+  Divider,
 } from '@mui/material';
 import {
   FilterList as FilterIcon,
   Clear as ClearIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
+  CalendarToday as CalendarIcon,
 } from '@mui/icons-material';
 import { TransactionFilters } from '../../services/transactionApi';
 import { useTransactions } from '../../contexts/TransactionContext';
@@ -30,11 +32,14 @@ interface TransactionFiltersProps {
   onFiltersChange: (filters: TransactionFilters) => void;
 }
 
+type DateFilterPeriod = 'today' | 'yesterday' | 'last7days' | 'last30days' | 'thisMonth' | 'lastMonth' | 'thisYear' | 'lastYear' | 'allTime' | 'custom';
+
 export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
   onFiltersChange,
 }) => {
   const { state, loadCategories, loadMerchants } = useTransactions();
   const [expanded, setExpanded] = useState(false);
+  const [dateFilterPeriod, setDateFilterPeriod] = useState<DateFilterPeriod>('thisMonth');
   const [filters, setFilters] = useState<TransactionFilters>({
     page: 1,
     limit: 20,
@@ -47,6 +52,95 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
     loadMerchants();
   }, [loadCategories, loadMerchants]);
 
+  const formatDateForApi = (date: Date): string => {
+    return date.toISOString().split('T')[0];
+  };
+
+  const applyDateFilter = useCallback((period: DateFilterPeriod) => {
+    setDateFilterPeriod(period);
+    const now = new Date();
+    let startDate: string | undefined;
+    let endDate: string | undefined;
+
+    switch (period) {
+      case 'today':
+        startDate = formatDateForApi(now);
+        endDate = formatDateForApi(now);
+        break;
+
+      case 'yesterday':
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        startDate = formatDateForApi(yesterday);
+        endDate = formatDateForApi(yesterday);
+        break;
+
+      case 'last7days':
+        const last7 = new Date(now);
+        last7.setDate(last7.getDate() - 7);
+        startDate = formatDateForApi(last7);
+        endDate = formatDateForApi(now);
+        break;
+
+      case 'last30days':
+        const last30 = new Date(now);
+        last30.setDate(last30.getDate() - 30);
+        startDate = formatDateForApi(last30);
+        endDate = formatDateForApi(now);
+        break;
+
+      case 'thisMonth':
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        startDate = formatDateForApi(monthStart);
+        endDate = formatDateForApi(now);
+        break;
+
+      case 'lastMonth':
+        const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+        startDate = formatDateForApi(lastMonthStart);
+        endDate = formatDateForApi(lastMonthEnd);
+        break;
+
+      case 'thisYear':
+        const yearStart = new Date(now.getFullYear(), 0, 1);
+        startDate = formatDateForApi(yearStart);
+        endDate = formatDateForApi(now);
+        break;
+
+      case 'lastYear':
+        const lastYearStart = new Date(now.getFullYear() - 1, 0, 1);
+        const lastYearEnd = new Date(now.getFullYear() - 1, 11, 31);
+        startDate = formatDateForApi(lastYearStart);
+        endDate = formatDateForApi(lastYearEnd);
+        break;
+
+      case 'allTime':
+        startDate = undefined;
+        endDate = undefined;
+        break;
+
+      case 'custom':
+        // Keep existing dates or clear them
+        return;
+    }
+
+    const newFilters = {
+      ...filters,
+      startDate,
+      endDate,
+      page: 1,
+    };
+    setFilters(newFilters);
+    onFiltersChange(newFilters);
+  }, [filters, onFiltersChange]);
+
+  // Initialize with "This Month" filter on mount
+  useEffect(() => {
+    applyDateFilter('thisMonth');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
+
   const handleFilterChange = (key: keyof TransactionFilters, value: any) => {
     const newFilters = {
       ...filters,
@@ -54,6 +148,12 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
       page: 1, // Reset to first page when filters change
     };
     setFilters(newFilters);
+
+    // If manually changing date fields, switch to custom mode
+    if (key === 'startDate' || key === 'endDate') {
+      setDateFilterPeriod('custom');
+    }
+
     onFiltersChange(newFilters);
   };
 
@@ -65,7 +165,8 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
       sortOrder: 'DESC',
     };
     setFilters(clearedFilters);
-    onFiltersChange(clearedFilters);
+    setDateFilterPeriod('thisMonth');
+    applyDateFilter('thisMonth');
   };
 
   const getActiveFiltersCount = () => {
@@ -153,6 +254,111 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
             </IconButton>
           </Box>
         </Box>
+
+        {/* Date Filter Quick Buttons */}
+        <Box sx={{ mb: 3 }}>
+          <Box display="flex" alignItems="center" gap={1} mb={2}>
+            <CalendarIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
+            <Typography variant="body2" color="text.secondary" fontWeight={500}>
+              Time Period
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 1,
+            }}
+          >
+            {[
+              { value: 'today', label: 'Today' },
+              { value: 'yesterday', label: 'Yesterday' },
+              { value: 'last7days', label: 'Last 7 Days' },
+              { value: 'last30days', label: 'Last 30 Days' },
+              { value: 'thisMonth', label: 'This Month' },
+              { value: 'lastMonth', label: 'Last Month' },
+              { value: 'thisYear', label: 'This Year' },
+              { value: 'allTime', label: 'All Time' },
+            ].map((period) => (
+              <Button
+                key={period.value}
+                variant={dateFilterPeriod === period.value ? 'contained' : 'outlined'}
+                size="small"
+                onClick={() => applyDateFilter(period.value as DateFilterPeriod)}
+                sx={{
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  px: 2,
+                  py: 0.75,
+                  minWidth: 'auto',
+                  ...(dateFilterPeriod === period.value ? {
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%)',
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 6px 16px rgba(102, 126, 234, 0.4)',
+                    },
+                  } : {
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: 'text.secondary',
+                    '&:hover': {
+                      background: 'rgba(255,255,255,0.1)',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      transform: 'translateY(-1px)',
+                    },
+                  }),
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+              >
+                {period.label}
+              </Button>
+            ))}
+            <Button
+              variant={dateFilterPeriod === 'custom' ? 'contained' : 'outlined'}
+              size="small"
+              onClick={() => {
+                setDateFilterPeriod('custom');
+                setExpanded(true);
+              }}
+              sx={{
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 500,
+                px: 2,
+                py: 0.75,
+                minWidth: 'auto',
+                ...(dateFilterPeriod === 'custom' ? {
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%)',
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 6px 16px rgba(102, 126, 234, 0.4)',
+                  },
+                } : {
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: 'text.secondary',
+                  '&:hover': {
+                    background: 'rgba(255,255,255,0.1)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    transform: 'translateY(-1px)',
+                  },
+                }),
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              }}
+            >
+              Custom Range
+            </Button>
+          </Box>
+        </Box>
+
+        <Divider sx={{ mb: 3, borderColor: 'rgba(255,255,255,0.1)' }} />
 
         {/* Always visible filters */}
         <Grid container spacing={2} sx={{ mb: 2 }}>
