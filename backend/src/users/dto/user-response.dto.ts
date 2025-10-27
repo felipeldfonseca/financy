@@ -29,6 +29,9 @@ export class UserResponseDto {
   isActive: boolean;
 
   @Expose()
+  onboardingCompleted: boolean;
+
+  @Expose()
   lastLoginAt: Date;
 
   @Expose()

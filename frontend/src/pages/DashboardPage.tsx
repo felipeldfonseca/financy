@@ -22,6 +22,9 @@ import ChartSection from '../components/dashboard/ChartSection';
 import QuickActions from '../components/dashboard/QuickActions';
 import ContextSwitcher from '../components/dashboard/ContextSwitcher';
 import ExpandableAddButton from '../components/common/ExpandableAddButton';
+import DashboardEmptyState from '../components/dashboard/DashboardEmptyState';
+import { OnboardingWizard } from '../components/onboarding';
+import { transactionApi } from '../services/transactionApi';
 
 interface DashboardData {
   summary: {
@@ -48,7 +51,7 @@ interface DashboardData {
     amount: number;
     date: string;
     type: 'income' | 'expense';
-    status: 'pending' | 'confirmed';
+    status: 'pending' | 'confirmed' | 'cancelled';
   }>;
 }
 
@@ -69,88 +72,95 @@ const DashboardPage: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [contextType, setContextType] = useState<'personal' | 'groups'>('personal');
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [hasTransactions, setHasTransactions] = useState(true);
 
   useEffect(() => {
-    // Simulate API call - replace with actual API call later
+    // Check if user needs onboarding
+    if (state.user && !state.user.onboardingCompleted) {
+      setShowOnboarding(true);
+    }
+  }, [state.user]);
+
+  useEffect(() => {
     const loadDashboardData = async () => {
       try {
         setIsLoading(true);
-        
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Mock data - replace with actual API call
-        const mockData: DashboardData = {
-          summary: {
-            totalIncome: 8500,
-            totalExpenses: 6200,
-            netAmount: 2300,
-            transactionCount: 47,
-          },
-          monthlyData: [
-            { month: 'Jan', income: 3000, expenses: 2200, netAmount: 800, savingsRate: 26.7 },
-            { month: 'Feb', income: 3200, expenses: 2400, netAmount: 800, savingsRate: 25.0 },
-            { month: 'Mar', income: 2800, expenses: 2100, netAmount: 700, savingsRate: 25.0 },
-            { month: 'Apr', income: 3400, expenses: 2600, netAmount: 800, savingsRate: 23.5 },
-            { month: 'May', income: 3100, expenses: 2300, netAmount: 800, savingsRate: 25.8 },
-            { month: 'Jun', income: 3300, expenses: 2500, netAmount: 800, savingsRate: 24.2 },
-          ],
-          categoryData: [
-            { name: 'Food & Dining', value: 850, color: '#45b8d7' },
-            { name: 'Transportation', value: 420, color: '#4caf50' },
-            { name: 'Shopping', value: 380, color: '#ff9800' },
-            { name: 'Bills & Utilities', value: 650, color: '#f44336' },
-            { name: 'Entertainment', value: 280, color: '#9c27b0' },
-            { name: 'Others', value: 320, color: '#00bcd4' },
-          ],
-          recentTransactions: [
-            {
-              id: '1',
-              description: 'Coffee at Starbucks',
-              amount: -5.50,
-              date: new Date().toISOString(),
-              type: 'expense',
-              status: 'confirmed',
+
+        // Fetch real transaction data with current month filter
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const monthStartStr = monthStart.toISOString().split('T')[0];
+        const todayStr = now.toISOString().split('T')[0];
+
+        const response = await transactionApi.getTransactions({
+          startDate: monthStartStr,
+          endDate: todayStr,
+          page: 1,
+          limit: 100,
+          sortBy: 'date',
+          sortOrder: 'DESC',
+        });
+
+        // Check if user has any transactions
+        const hasData = response.transactions.length > 0;
+        setHasTransactions(hasData);
+
+        if (hasData) {
+          // Transform API data to dashboard format
+          const categoryColors = ['#45b8d7', '#4caf50', '#ff9800', '#f44336', '#9c27b0', '#00bcd4'];
+
+          const dashboardData: DashboardData = {
+            summary: {
+              totalIncome: response.summary.totalIncome,
+              totalExpenses: Math.abs(response.summary.totalExpenses),
+              netAmount: response.summary.netAmount,
+              transactionCount: response.summary.transactionCount,
             },
-            {
-              id: '2',
-              description: 'Freelance Payment',
-              amount: 500,
-              date: new Date(Date.now() - 86400000).toISOString(),
-              type: 'income',
-              status: 'confirmed',
-            },
-            {
-              id: '3',
-              description: 'Grocery Shopping',
-              amount: -45.30,
-              date: new Date(Date.now() - 172800000).toISOString(),
-              type: 'expense',
-              status: 'pending',
-            },
-          ],
-        };
-        
-        setData(mockData);
+            monthlyData: [], // TODO: Implement monthly aggregation endpoint
+            categoryData: response.summary.categories.map((cat, index) => ({
+              name: cat.category || 'Uncategorized',
+              value: Math.abs(cat.amount),
+              color: categoryColors[index % categoryColors.length],
+            })),
+            recentTransactions: response.transactions.slice(0, 5).map(t => ({
+              id: t.id,
+              description: t.description,
+              amount: t.amount,
+              date: t.date,
+              type: t.type === 'income' ? 'income' : 'expense',
+              status: t.status,
+            })),
+          };
+
+          setData(dashboardData);
+        }
+
         setError(null);
-      } catch (err) {
-        setError('Failed to load dashboard data');
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to load dashboard data');
         console.error('Dashboard data loading error:', err);
+        setHasTransactions(false);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadDashboardData();
-  }, []);
+    if (state.isAuthenticated) {
+      loadDashboardData();
+    }
+  }, [state.isAuthenticated]);
 
   const handleAddTransaction = () => {
-    // Navigate to transaction form or open modal
-    if (contextType === 'groups' && selectedGroup) {
-      console.log(`Add transaction clicked for group: ${selectedGroup.name}`);
-    } else {
-      console.log('Add personal transaction clicked');
-    }
+    navigate('/transactions');
+  };
+
+  const handleConnectTelegram = () => {
+    navigate('/settings/telegram');
+  };
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
   };
 
   const handleContextTypeChange = (type: 'personal' | 'groups') => {
@@ -211,14 +221,22 @@ const DashboardPage: React.FC = () => {
 
   return (
     <Box sx={{ py: 4 }}>
+      {/* Onboarding Wizard */}
+      {showOnboarding && (
+        <OnboardingWizard
+          open={showOnboarding}
+          onComplete={handleOnboardingComplete}
+        />
+      )}
+
       {/* Header */}
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <Box>
-          <Typography 
-            variant="brand" 
-            component="h1" 
+          <Typography
+            variant="brand"
+            component="h1"
             gutterBottom
-            sx={{ 
+            sx={{
               color: 'text.primary',
               fontSize: '2.5rem',
             }}
@@ -226,7 +244,7 @@ const DashboardPage: React.FC = () => {
             {getWelcomeMessage()}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Here's your financial overview.
+            {hasTransactions ? "Here's your financial overview." : "Let's get started!"}
           </Typography>
         </Box>
         
@@ -317,39 +335,49 @@ const DashboardPage: React.FC = () => {
         </Alert>
       )}
 
-      {/* Context Switcher */}
-      <Box sx={{ mb: 4 }}>
-        <ContextSwitcher
-          contextType={contextType}
-          selectedGroup={selectedGroup}
-          onContextTypeChange={handleContextTypeChange}
-          onGroupSelect={handleGroupSelect}
+      {/* Empty State or Dashboard Content */}
+      {!isLoading && !hasTransactions ? (
+        <DashboardEmptyState
+          onAddTransaction={handleAddTransaction}
+          onConnectTelegram={handleConnectTelegram}
+          isTelegramLinked={!!state.user?.telegramUsername}
         />
-      </Box>
+      ) : (
+        <>
+          {/* Context Switcher */}
+          <Box sx={{ mb: 4 }}>
+            <ContextSwitcher
+              contextType={contextType}
+              selectedGroup={selectedGroup}
+              onContextTypeChange={handleContextTypeChange}
+              onGroupSelect={handleGroupSelect}
+            />
+          </Box>
 
-      {/* Summary Cards */}
-      <Box sx={{ mb: 4 }}>
-        <SummaryCards data={data?.summary} isLoading={isLoading} userCurrency={state.user?.defaultCurrency} />
-      </Box>
+          {/* Summary Cards */}
+          <Box sx={{ mb: 4 }}>
+            <SummaryCards data={data?.summary} isLoading={isLoading} userCurrency={state.user?.defaultCurrency} />
+          </Box>
 
+          {/* Smart Insights */}
+          <Box sx={{ mb: 4 }}>
+            <QuickActions
+              contextType={contextType}
+              selectedGroupName={selectedGroup?.name}
+            />
+          </Box>
 
-      {/* Smart Insights */}
-      <Box sx={{ mb: 4 }}>
-        <QuickActions
-          contextType={contextType}
-          selectedGroupName={selectedGroup?.name}
-        />
-      </Box>
-
-      {/* Charts Section */}
-      <Box>
-        <ChartSection
-          monthlyData={data?.monthlyData}
-          categoryData={data?.categoryData}
-          isLoading={isLoading}
-          userCurrency={state.user?.defaultCurrency}
-        />
-      </Box>
+          {/* Charts Section */}
+          <Box>
+            <ChartSection
+              monthlyData={data?.monthlyData}
+              categoryData={data?.categoryData}
+              isLoading={isLoading}
+              userCurrency={state.user?.defaultCurrency}
+            />
+          </Box>
+        </>
+      )}
     </Box>
   );
 };

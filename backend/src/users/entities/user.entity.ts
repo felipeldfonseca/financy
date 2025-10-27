@@ -38,6 +38,9 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ default: false })
+  onboardingCompleted: boolean;
+
   @Column({ type: 'timestamp', nullable: true })
   lastLoginAt: Date;
 

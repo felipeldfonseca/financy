@@ -10,6 +10,8 @@ export interface User {
   timezone: string;
   defaultCurrency: string;
   isActive: boolean;
+  onboardingCompleted: boolean;
+  telegramUsername?: string;
   lastLoginAt: string;
   emailVerifiedAt: string;
   createdAt: string;

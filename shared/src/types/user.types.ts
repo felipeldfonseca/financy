@@ -6,6 +6,7 @@ export interface User {
   telegramUserId?: string;
   telegramUsername?: string;
   isActive: boolean;
+  onboardingCompleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,6 +25,10 @@ export interface UpdateUserDto {
   lastName?: string;
   telegramUsername?: string;
   isActive?: boolean;
+  onboardingCompleted?: boolean;
+  language?: string;
+  timezone?: string;
+  defaultCurrency?: string;
 }
 
 export interface UserResponse {
@@ -33,6 +38,10 @@ export interface UserResponse {
   lastName: string;
   telegramUsername?: string;
   isActive: boolean;
+  onboardingCompleted: boolean;
+  language: string;
+  timezone: string;
+  defaultCurrency: string;
   createdAt: Date;
   updatedAt: Date;
 }
