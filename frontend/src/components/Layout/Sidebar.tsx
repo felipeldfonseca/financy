@@ -8,17 +8,9 @@ import {
   ListItemButton,
   Typography,
   Box,
-  Divider,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import {
-  Dashboard as DashboardIcon,
-  Receipt as TransactionsIcon,
-  Group as GroupsIcon,
-  Analytics as AnalyticsIcon,
-  Settings as SettingsIcon,
-} from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const SIDEBAR_WIDTH = 250;

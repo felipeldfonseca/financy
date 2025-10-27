@@ -173,8 +173,11 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           notes: transaction.notes || '',
         });
       } else if (mode === 'create') {
-        const firstCategory = categoryList[0] || '';
-        const firstSubcategory = firstCategory ? (availableCategories as Record<string, string[]>)[firstCategory]?.[0] || '' : '';
+        // Calculate categories for the default type ('expense')
+        const defaultCategories = categoryConfig['expense'] || {};
+        const defaultCategoryList = Object.keys(defaultCategories);
+        const firstCategory = defaultCategoryList[0] || '';
+        const firstSubcategory = firstCategory ? (defaultCategories as Record<string, string[]>)[firstCategory]?.[0] || '' : '';
 
         reset({
           amount: 0,

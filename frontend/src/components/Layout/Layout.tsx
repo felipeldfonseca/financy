@@ -1,7 +1,7 @@
 import React, { ReactNode, useState } from 'react';
 import { Box, useTheme, useMediaQuery, IconButton, AppBar, Toolbar } from '@mui/material';
 import { Menu as MenuIcon } from '@mui/icons-material';
-import Sidebar, { SIDEBAR_WIDTH } from './Sidebar';
+import Sidebar from './Sidebar';
 
 interface LayoutProps {
   children: ReactNode;

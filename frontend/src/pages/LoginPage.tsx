@@ -7,7 +7,6 @@ import {
   Tabs,
   Tab,
   Link,
-  Typography,
 } from '@mui/material';
 import { LoginForm } from '../components/auth/LoginForm';
 import { RegisterForm } from '../components/auth/RegisterForm';

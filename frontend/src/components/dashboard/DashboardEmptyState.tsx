@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Box,
   Card,
-  CardContent,
   Typography,
   Button,
   Grid,
@@ -85,8 +84,8 @@ const DashboardEmptyState: React.FC<DashboardEmptyStateProps> = ({
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                   {isTelegramLinked
-                    ? 'Send messages, voice notes, or photos directly to the bot to track expenses.'
-                    : 'Connect your Telegram account and track expenses on the go with just a message.'
+                    ? 'Send messages, voice notes, or photos directly to the bot to track your finances.'
+                    : 'Connect your Telegram account and track your finances on the go with just a message.'
                   }
                 </Typography>
                 {isTelegramLinked && (
@@ -96,7 +95,7 @@ const DashboardEmptyState: React.FC<DashboardEmptyStateProps> = ({
                         <EditIcon fontSize="small" color="action" />
                       </ListItemIcon>
                       <ListItemText
-                        primary={<Typography variant="caption">Text: "Spent $50 on groceries"</Typography>}
+                        primary={<Typography variant="caption">Text: "Spent $50 on groceries" or "Got paid $2k"</Typography>}
                       />
                     </ListItem>
                     <ListItem disablePadding sx={{ mb: 1 }}>
@@ -104,7 +103,7 @@ const DashboardEmptyState: React.FC<DashboardEmptyStateProps> = ({
                         <VoiceIcon fontSize="small" color="action" />
                       </ListItemIcon>
                       <ListItemText
-                        primary={<Typography variant="caption">Voice: Record your expense</Typography>}
+                        primary={<Typography variant="caption">Voice: Record income or expenses</Typography>}
                       />
                     </ListItem>
                     <ListItem disablePadding>
@@ -112,7 +111,7 @@ const DashboardEmptyState: React.FC<DashboardEmptyStateProps> = ({
                         <PhotoIcon fontSize="small" color="action" />
                       </ListItemIcon>
                       <ListItemText
-                        primary={<Typography variant="caption">Photo: Send a receipt</Typography>}
+                        primary={<Typography variant="caption">Photo: Send a receipt or invoice</Typography>}
                       />
                     </ListItem>
                   </List>
@@ -132,10 +131,10 @@ const DashboardEmptyState: React.FC<DashboardEmptyStateProps> = ({
           </Grid>
         </Grid>
 
-        <Box sx={{ mt: 4, p: 3, bgcolor: 'info.light', borderRadius: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            <strong>Tip:</strong> After adding some transactions, you'll see insights like spending trends,
-            category breakdowns, and cash flow projections right here on your dashboard.
+        <Box sx={{ mt: 4, p: 3, bgcolor: 'primary.main', borderRadius: 2 }}>
+          <Typography variant="body2" sx={{ color: 'white' }}>
+            <strong>Tip:</strong> After adding some transactions, you'll see insights like income vs expense trends,
+            category breakdowns, budget tracking, and cash flow projections right here on your dashboard.
           </Typography>
         </Box>
       </Card>

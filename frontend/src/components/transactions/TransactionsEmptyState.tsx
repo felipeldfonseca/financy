@@ -92,9 +92,9 @@ const TransactionsEmptyState: React.FC<TransactionsEmptyStateProps> = ({
             Quick Tips
           </Typography>
           <Typography variant="body2" color="text.secondary" align="left">
-            • Add transactions manually with the button above
+            • Add income, expenses, or transfers manually with the button above
             <br />
-            • Connect Telegram to add expenses via chat, voice, or photos
+            • Connect Telegram to track finances via chat, voice, or photos
             <br />
             • Each transaction is automatically categorized and can be edited
             <br />

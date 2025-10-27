@@ -33,7 +33,7 @@ const TelegramStep: React.FC = () => {
         Connect Telegram Bot
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Add transactions on the go with just a message, voice note, or photo.
+        Track your finances on the go with just a message, voice note, or photo.
       </Typography>
 
       {isLinked ? (
@@ -47,7 +47,7 @@ const TelegramStep: React.FC = () => {
         </Alert>
       ) : (
         <Alert severity="info" sx={{ mb: 3 }}>
-          Connect your Telegram account to start tracking expenses via chat
+          Connect your Telegram account to start tracking your finances via chat
         </Alert>
       )}
 
@@ -67,7 +67,7 @@ const TelegramStep: React.FC = () => {
             </ListItemIcon>
             <ListItemText
               primary="Send text messages"
-              secondary="e.g., 'Spent $50 on groceries at Whole Foods'"
+              secondary="e.g., 'Spent $50 on groceries' or 'Got paid $2000 salary'"
             />
           </ListItem>
           <ListItem>
@@ -76,7 +76,7 @@ const TelegramStep: React.FC = () => {
             </ListItemIcon>
             <ListItemText
               primary="Send voice messages"
-              secondary="Just speak naturally about your expenses"
+              secondary="Just speak naturally about income or expenses"
             />
           </ListItem>
           <ListItem>
@@ -85,7 +85,7 @@ const TelegramStep: React.FC = () => {
             </ListItemIcon>
             <ListItemText
               primary="Send receipt photos"
-              secondary="AI will extract the amount and merchant"
+              secondary="AI will extract the amount and details"
             />
           </ListItem>
         </List>
