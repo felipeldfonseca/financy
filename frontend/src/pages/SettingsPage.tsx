@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Typography,
   Paper,
@@ -11,62 +11,221 @@ import {
   CircularProgress,
   Divider,
   Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  IconButton,
+  InputAdornment,
 } from '@mui/material';
 import {
   Telegram as TelegramIcon,
   ArrowForward as ArrowIcon,
   CheckCircle as CheckIcon,
+  Visibility,
+  VisibilityOff,
+  Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authApi } from '../services/authApi';
 import { SUPPORTED_CURRENCIES, getCurrencySymbol } from '../utils/currency.utils';
 
+// Language options
+const SUPPORTED_LANGUAGES = [
+  { code: 'en', name: 'English' },
+  { code: 'es', name: 'Español' },
+  { code: 'pt', name: 'Português' },
+  { code: 'fr', name: 'Français' },
+  { code: 'de', name: 'Deutsch' },
+];
+
+// Common timezones
+const SUPPORTED_TIMEZONES = [
+  'UTC',
+  'America/New_York',
+  'America/Chicago',
+  'America/Denver',
+  'America/Los_Angeles',
+  'America/Sao_Paulo',
+  'Europe/London',
+  'Europe/Paris',
+  'Europe/Berlin',
+  'Asia/Tokyo',
+  'Asia/Shanghai',
+  'Australia/Sydney',
+];
+
 const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const { state: authState, refreshAuth } = useAuth();
-  const [selectedCurrency, setSelectedCurrency] = useState(
-    authState.user?.defaultCurrency || 'USD'
-  );
-  const [isLoading, setIsLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  // Profile state
+  const [firstName, setFirstName] = useState(authState.user?.firstName || '');
+  const [lastName, setLastName] = useState(authState.user?.lastName || '');
+  const [language, setLanguage] = useState(authState.user?.language || 'en');
+  const [timezone, setTimezone] = useState(authState.user?.timezone || 'UTC');
+  const [selectedCurrency, setSelectedCurrency] = useState(authState.user?.defaultCurrency || 'USD');
+
+  // Password state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // UI state
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [isLoadingCurrency, setIsLoadingCurrency] = useState(false);
+  const [isLoadingPassword, setIsLoadingPassword] = useState(false);
+  const [isLoadingOnboarding, setIsLoadingOnboarding] = useState(false);
+  const [successProfile, setSuccessProfile] = useState(false);
+  const [successCurrency, setSuccessCurrency] = useState(false);
+  const [successPassword, setSuccessPassword] = useState(false);
+  const [errorProfile, setErrorProfile] = useState<string | null>(null);
+  const [errorCurrency, setErrorCurrency] = useState<string | null>(null);
+  const [errorPassword, setErrorPassword] = useState<string | null>(null);
+  const [showOnboardingDialog, setShowOnboardingDialog] = useState(false);
 
   const isTelegramLinked = !!authState.user?.telegramUsername;
 
-  const handleCurrencyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedCurrency(event.target.value);
-    setSuccess(false);
-    setError(null);
+  // Update local state when auth state changes
+  useEffect(() => {
+    if (authState.user) {
+      setFirstName(authState.user.firstName || '');
+      setLastName(authState.user.lastName || '');
+      setLanguage(authState.user.language || 'en');
+      setTimezone(authState.user.timezone || 'UTC');
+      setSelectedCurrency(authState.user.defaultCurrency || 'USD');
+    }
+  }, [authState.user]);
+
+  const hasProfileChanges =
+    firstName !== authState.user?.firstName ||
+    lastName !== authState.user?.lastName ||
+    language !== authState.user?.language ||
+    timezone !== authState.user?.timezone;
+
+  const hasCurrencyChanges = selectedCurrency !== authState.user?.defaultCurrency;
+
+  const handleSaveProfile = async () => {
+    if (!authState.user) return;
+
+    // Validation
+    if (!firstName.trim() || !lastName.trim()) {
+      setErrorProfile('First name and last name are required.');
+      return;
+    }
+
+    try {
+      setIsLoadingProfile(true);
+      setErrorProfile(null);
+      setSuccessProfile(false);
+
+      await authApi.updateProfile({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        language,
+        timezone,
+      });
+
+      await refreshAuth();
+      setSuccessProfile(true);
+      setTimeout(() => setSuccessProfile(false), 3000);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to update profile. Please try again.';
+      setErrorProfile(errorMessage);
+    } finally {
+      setIsLoadingProfile(false);
+    }
   };
 
-  const handleSaveSettings = async () => {
+  const handleSaveCurrency = async () => {
     if (!authState.user) return;
 
     try {
-      setIsLoading(true);
-      setError(null);
-      setSuccess(false);
+      setIsLoadingCurrency(true);
+      setErrorCurrency(null);
+      setSuccessCurrency(false);
 
-      // Update user profile with new currency
       await authApi.updateProfile({
         defaultCurrency: selectedCurrency,
       });
 
-      // Refresh auth context to get updated user data
       await refreshAuth();
-
-      setSuccess(true);
+      setSuccessCurrency(true);
+      setTimeout(() => setSuccessCurrency(false), 3000);
     } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message || 'Failed to update settings. Please try again.';
-      setError(errorMessage);
+      const errorMessage = err.response?.data?.message || 'Failed to update currency. Please try again.';
+      setErrorCurrency(errorMessage);
     } finally {
-      setIsLoading(false);
+      setIsLoadingCurrency(false);
     }
   };
 
-  const hasChanges = selectedCurrency !== authState.user?.defaultCurrency;
+  const handleChangePassword = async () => {
+    // Validation
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setErrorPassword('All password fields are required.');
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setErrorPassword('New password must be at least 8 characters long.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setErrorPassword('New passwords do not match.');
+      return;
+    }
+
+    try {
+      setIsLoadingPassword(true);
+      setErrorPassword(null);
+      setSuccessPassword(false);
+
+      await authApi.changePassword({
+        currentPassword,
+        newPassword,
+      });
+
+      setSuccessPassword(true);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setSuccessPassword(false), 3000);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to change password. Please try again.';
+      setErrorPassword(errorMessage);
+    } finally {
+      setIsLoadingPassword(false);
+    }
+  };
+
+  const handleReopenOnboarding = async () => {
+    try {
+      setIsLoadingOnboarding(true);
+
+      // Reset onboarding status
+      await authApi.updateProfile({
+        onboardingCompleted: false,
+      });
+
+      await refreshAuth();
+      setShowOnboardingDialog(false);
+
+      // Reload page to trigger onboarding wizard
+      window.location.reload();
+    } catch (err: any) {
+      console.error('Failed to reset onboarding:', err);
+      setShowOnboardingDialog(false);
+    } finally {
+      setIsLoadingOnboarding(false);
+    }
+  };
 
   return (
     <Box sx={{ py: 4 }}>
@@ -75,13 +234,26 @@ const SettingsPage: React.FC = () => {
       </Typography>
 
       <Grid container spacing={3}>
-        {/* User Information */}
+        {/* User Profile */}
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
-              User Information
+              Profile Information
             </Typography>
             <Divider sx={{ mb: 2 }} />
+
+            {successProfile && (
+              <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessProfile(false)}>
+                Profile updated successfully!
+              </Alert>
+            )}
+
+            {errorProfile && (
+              <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErrorProfile(null)}>
+                {errorProfile}
+              </Alert>
+            )}
+
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <TextField
                 label="Email"
@@ -89,35 +261,70 @@ const SettingsPage: React.FC = () => {
                 disabled
                 fullWidth
                 variant="outlined"
+                helperText="Email cannot be changed"
               />
               <TextField
                 label="First Name"
-                value={authState.user?.firstName || ''}
-                disabled
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
                 fullWidth
                 variant="outlined"
+                required
               />
               <TextField
                 label="Last Name"
-                value={authState.user?.lastName || ''}
-                disabled
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
                 fullWidth
                 variant="outlined"
+                required
               />
               <TextField
+                select
                 label="Language"
-                value={authState.user?.language || 'en'}
-                disabled
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
                 fullWidth
                 variant="outlined"
-              />
+              >
+                {SUPPORTED_LANGUAGES.map((lang) => (
+                  <MenuItem key={lang.code} value={lang.code}>
+                    {lang.name}
+                  </MenuItem>
+                ))}
+              </TextField>
               <TextField
+                select
                 label="Timezone"
-                value={authState.user?.timezone || 'UTC'}
-                disabled
+                value={timezone}
+                onChange={(e) => setTimezone(e.target.value)}
                 fullWidth
                 variant="outlined"
-              />
+              >
+                {SUPPORTED_TIMEZONES.map((tz) => (
+                  <MenuItem key={tz} value={tz}>
+                    {tz}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSaveProfile}
+                disabled={!hasProfileChanges || isLoadingProfile}
+                fullWidth
+                sx={{ mt: 2 }}
+              >
+                {isLoadingProfile ? (
+                  <>
+                    <CircularProgress size={20} sx={{ mr: 1 }} color="inherit" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Profile'
+                )}
+              </Button>
             </Box>
           </Paper>
         </Grid>
@@ -130,16 +337,16 @@ const SettingsPage: React.FC = () => {
             </Typography>
             <Divider sx={{ mb: 2 }} />
 
-            {success && (
-              <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess(false)}>
+            {successCurrency && (
+              <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessCurrency(false)}>
                 Currency preference updated successfully! All your transactions will now be
                 displayed in {selectedCurrency}.
               </Alert>
             )}
 
-            {error && (
-              <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-                {error}
+            {errorCurrency && (
+              <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErrorCurrency(null)}>
+                {errorCurrency}
               </Alert>
             )}
 
@@ -148,7 +355,7 @@ const SettingsPage: React.FC = () => {
                 select
                 label="Default Currency"
                 value={selectedCurrency}
-                onChange={handleCurrencyChange}
+                onChange={(e) => setSelectedCurrency(e.target.value)}
                 fullWidth
                 variant="outlined"
                 helperText="All transactions will be converted to this currency for display and analytics"
@@ -165,7 +372,7 @@ const SettingsPage: React.FC = () => {
                   Current Currency: {authState.user?.defaultCurrency || 'USD'} (
                   {getCurrencySymbol(authState.user?.defaultCurrency || 'USD')})
                 </Typography>
-                {hasChanges && (
+                {hasCurrencyChanges && (
                   <Typography variant="body2" color="primary" gutterBottom>
                     New Currency: {selectedCurrency} ({getCurrencySymbol(selectedCurrency)})
                   </Typography>
@@ -175,12 +382,12 @@ const SettingsPage: React.FC = () => {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={handleSaveSettings}
-                disabled={!hasChanges || isLoading}
+                onClick={handleSaveCurrency}
+                disabled={!hasCurrencyChanges || isLoadingCurrency}
                 fullWidth
                 sx={{ mt: 2 }}
               >
-                {isLoading ? (
+                {isLoadingCurrency ? (
                   <>
                     <CircularProgress size={20} sx={{ mr: 1 }} color="inherit" />
                     Saving...
@@ -206,6 +413,136 @@ const SettingsPage: React.FC = () => {
                   </ul>
                 </Typography>
               </Box>
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* Change Password */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Change Password
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+
+            {successPassword && (
+              <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessPassword(false)}>
+                Password changed successfully!
+              </Alert>
+            )}
+
+            {errorPassword && (
+              <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErrorPassword(null)}>
+                {errorPassword}
+              </Alert>
+            )}
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <TextField
+                label="Current Password"
+                type={showCurrentPassword ? 'text' : 'password'}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                fullWidth
+                variant="outlined"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        edge="end"
+                      >
+                        {showCurrentPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <TextField
+                label="New Password"
+                type={showNewPassword ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                fullWidth
+                variant="outlined"
+                helperText="Minimum 8 characters"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        edge="end"
+                      >
+                        {showNewPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <TextField
+                label="Confirm New Password"
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                fullWidth
+                variant="outlined"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        edge="end"
+                      >
+                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleChangePassword}
+                disabled={isLoadingPassword}
+                fullWidth
+                sx={{ mt: 2 }}
+              >
+                {isLoadingPassword ? (
+                  <>
+                    <CircularProgress size={20} sx={{ mr: 1 }} color="inherit" />
+                    Changing Password...
+                  </>
+                ) : (
+                  'Change Password'
+                )}
+              </Button>
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* Onboarding & Other Settings */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Onboarding
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                Want to see the onboarding tutorial again? You can restart it anytime.
+              </Typography>
+
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<RefreshIcon />}
+                onClick={() => setShowOnboardingDialog(true)}
+                fullWidth
+              >
+                Reopen Onboarding Wizard
+              </Button>
             </Box>
           </Paper>
         </Grid>
@@ -261,6 +598,28 @@ const SettingsPage: React.FC = () => {
           </Paper>
         </Grid>
       </Grid>
+
+      {/* Onboarding Confirmation Dialog */}
+      <Dialog open={showOnboardingDialog} onClose={() => setShowOnboardingDialog(false)}>
+        <DialogTitle>Reopen Onboarding Wizard?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This will restart the onboarding tutorial and show you how to use Financy again.
+            The page will reload to display the onboarding wizard.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowOnboardingDialog(false)}>Cancel</Button>
+          <Button
+            onClick={handleReopenOnboarding}
+            color="primary"
+            disabled={isLoadingOnboarding}
+            startIcon={isLoadingOnboarding ? <CircularProgress size={20} /> : <RefreshIcon />}
+          >
+            Reopen Onboarding
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
