@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Card,
@@ -48,7 +48,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
     sortBy: 'date',
     sortOrder: 'DESC',
   });
-  const [isInitialized, setIsInitialized] = useState(false);
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
     loadCategories();
@@ -56,7 +56,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
   }, [loadCategories, loadMerchants]);
 
   // Helper function to parse filters from URL
-  const parseFiltersFromURL = useCallback((): TransactionFilters => {
+  const parseFiltersFromURL = (): TransactionFilters => {
     const urlFilters: TransactionFilters = {
       page: parseInt(searchParams.get('page') || '1', 10),
       limit: parseInt(searchParams.get('limit') || '20', 10),
@@ -77,7 +77,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
     if (searchParams.get('maxAmount')) urlFilters.maxAmount = parseFloat(searchParams.get('maxAmount')!);
 
     return urlFilters;
-  }, [searchParams]);
+  };
 
   // Helper function to update URL with current filters
   const updateURL = useCallback((newFilters: TransactionFilters) => {
@@ -125,6 +125,18 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
     const yesterdayStr = formatDateForApi(yesterday);
     if (startDate === yesterdayStr && endDate === yesterdayStr) return 'yesterday';
 
+    // Last 7 days
+    const last7 = new Date(now);
+    last7.setDate(last7.getDate() - 7);
+    const last7Str = formatDateForApi(last7);
+    if (startDate === last7Str && endDate === today) return 'last7days';
+
+    // Last 30 days
+    const last30 = new Date(now);
+    last30.setDate(last30.getDate() - 30);
+    const last30Str = formatDateForApi(last30);
+    if (startDate === last30Str && endDate === today) return 'last30days';
+
     // This Month
     const monthStart = formatDateForApi(new Date(now.getFullYear(), now.getMonth(), 1));
     if (startDate === monthStart && endDate === today) return 'thisMonth';
@@ -148,7 +160,9 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
 
   // Initialize from URL on mount
   useEffect(() => {
-    if (!isInitialized) {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+
       const urlFilters = parseFiltersFromURL();
 
       // If URL has no date filters, apply default "This Month"
@@ -157,16 +171,17 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
         urlFilters.startDate = formatDateForApi(monthStart);
         urlFilters.endDate = formatDateForApi(now);
+        // Only update URL if we're applying defaults (no dates in URL)
+        updateURL(urlFilters);
       }
 
       const period = detectDatePeriod(urlFilters.startDate, urlFilters.endDate);
       setDateFilterPeriod(period);
       setFilters(urlFilters);
-      updateURL(urlFilters);
       onFiltersChange(urlFilters);
-      setIsInitialized(true);
     }
-  }, [isInitialized, parseFiltersFromURL, detectDatePeriod, updateURL, onFiltersChange]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const applyDateFilter = useCallback((period: DateFilterPeriod) => {
     setDateFilterPeriod(period);

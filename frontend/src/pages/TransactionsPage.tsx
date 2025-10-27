@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Typography,
   Box,
@@ -124,9 +124,10 @@ const TransactionsPageContent: React.FC = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
-  useEffect(() => {
-    loadTransactions();
-  }, []);
+  // Don't load transactions on mount - let TransactionFiltersComponent initialize from URL first
+  // useEffect(() => {
+  //   loadTransactions();
+  // }, []);
 
   const handleFiltersChange = (filters: TransactionFilters) => {
     setFilters(filters);
