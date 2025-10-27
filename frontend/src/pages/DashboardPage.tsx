@@ -73,7 +73,7 @@ const DashboardPage: React.FC = () => {
   const [contextType, setContextType] = useState<'personal' | 'groups'>('personal');
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [hasTransactions, setHasTransactions] = useState(true);
+  const [hasTransactions, setHasTransactions] = useState(false);
 
   useEffect(() => {
     // Check if user needs onboarding
@@ -336,47 +336,49 @@ const DashboardPage: React.FC = () => {
       )}
 
       {/* Empty State or Dashboard Content */}
-      {!isLoading && !hasTransactions ? (
-        <DashboardEmptyState
-          onAddTransaction={handleAddTransaction}
-          onConnectTelegram={handleConnectTelegram}
-          isTelegramLinked={!!state.user?.telegramUsername}
-        />
-      ) : (
-        <>
-          {/* Context Switcher */}
-          <Box sx={{ mb: 4 }}>
-            <ContextSwitcher
-              contextType={contextType}
-              selectedGroup={selectedGroup}
-              onContextTypeChange={handleContextTypeChange}
-              onGroupSelect={handleGroupSelect}
-            />
-          </Box>
+      {!isLoading && (
+        !hasTransactions ? (
+          <DashboardEmptyState
+            onAddTransaction={handleAddTransaction}
+            onConnectTelegram={handleConnectTelegram}
+            isTelegramLinked={!!state.user?.telegramUsername}
+          />
+        ) : (
+          <>
+            {/* Context Switcher */}
+            <Box sx={{ mb: 4 }}>
+              <ContextSwitcher
+                contextType={contextType}
+                selectedGroup={selectedGroup}
+                onContextTypeChange={handleContextTypeChange}
+                onGroupSelect={handleGroupSelect}
+              />
+            </Box>
 
-          {/* Summary Cards */}
-          <Box sx={{ mb: 4 }}>
-            <SummaryCards data={data?.summary} isLoading={isLoading} userCurrency={state.user?.defaultCurrency} />
-          </Box>
+            {/* Summary Cards */}
+            <Box sx={{ mb: 4 }}>
+              <SummaryCards data={data?.summary} isLoading={isLoading} userCurrency={state.user?.defaultCurrency} />
+            </Box>
 
-          {/* Smart Insights */}
-          <Box sx={{ mb: 4 }}>
-            <QuickActions
-              contextType={contextType}
-              selectedGroupName={selectedGroup?.name}
-            />
-          </Box>
+            {/* Smart Insights */}
+            <Box sx={{ mb: 4 }}>
+              <QuickActions
+                contextType={contextType}
+                selectedGroupName={selectedGroup?.name}
+              />
+            </Box>
 
-          {/* Charts Section */}
-          <Box>
-            <ChartSection
-              monthlyData={data?.monthlyData}
-              categoryData={data?.categoryData}
-              isLoading={isLoading}
-              userCurrency={state.user?.defaultCurrency}
-            />
-          </Box>
-        </>
+            {/* Charts Section */}
+            <Box>
+              <ChartSection
+                monthlyData={data?.monthlyData}
+                categoryData={data?.categoryData}
+                isLoading={isLoading}
+                userCurrency={state.user?.defaultCurrency}
+              />
+            </Box>
+          </>
+        )
       )}
     </Box>
   );
