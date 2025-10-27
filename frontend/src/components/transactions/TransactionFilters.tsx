@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Card,
   CardContent,
@@ -38,6 +39,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
   onFiltersChange,
 }) => {
   const { state, loadCategories, loadMerchants } = useTransactions();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [expanded, setExpanded] = useState(false);
   const [dateFilterPeriod, setDateFilterPeriod] = useState<DateFilterPeriod>('thisMonth');
   const [filters, setFilters] = useState<TransactionFilters>({
@@ -46,15 +48,125 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
     sortBy: 'date',
     sortOrder: 'DESC',
   });
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     loadCategories();
     loadMerchants();
   }, [loadCategories, loadMerchants]);
 
+  // Helper function to parse filters from URL
+  const parseFiltersFromURL = useCallback((): TransactionFilters => {
+    const urlFilters: TransactionFilters = {
+      page: parseInt(searchParams.get('page') || '1', 10),
+      limit: parseInt(searchParams.get('limit') || '20', 10),
+      sortBy: (searchParams.get('sortBy') as 'date' | 'amount' | 'description' | 'createdAt') || 'date',
+      sortOrder: (searchParams.get('sortOrder') as 'ASC' | 'DESC') || 'DESC',
+    };
+
+    if (searchParams.get('startDate')) urlFilters.startDate = searchParams.get('startDate')!;
+    if (searchParams.get('endDate')) urlFilters.endDate = searchParams.get('endDate')!;
+    if (searchParams.get('type')) urlFilters.type = searchParams.get('type') as any;
+    if (searchParams.get('status')) urlFilters.status = searchParams.get('status') as any;
+    if (searchParams.get('category')) urlFilters.category = searchParams.get('category')!;
+    if (searchParams.get('subcategory')) urlFilters.subcategory = searchParams.get('subcategory')!;
+    if (searchParams.get('currency')) urlFilters.currency = searchParams.get('currency')!;
+    if (searchParams.get('merchantName')) urlFilters.merchantName = searchParams.get('merchantName')!;
+    if (searchParams.get('search')) urlFilters.search = searchParams.get('search')!;
+    if (searchParams.get('minAmount')) urlFilters.minAmount = parseFloat(searchParams.get('minAmount')!);
+    if (searchParams.get('maxAmount')) urlFilters.maxAmount = parseFloat(searchParams.get('maxAmount')!);
+
+    return urlFilters;
+  }, [searchParams]);
+
+  // Helper function to update URL with current filters
+  const updateURL = useCallback((newFilters: TransactionFilters) => {
+    const params = new URLSearchParams();
+
+    // Always include pagination and sorting
+    params.set('page', newFilters.page?.toString() || '1');
+    params.set('limit', newFilters.limit?.toString() || '20');
+    params.set('sortBy', newFilters.sortBy || 'date');
+    params.set('sortOrder', newFilters.sortOrder || 'DESC');
+
+    // Only add optional filters if they have values
+    if (newFilters.startDate) params.set('startDate', newFilters.startDate);
+    if (newFilters.endDate) params.set('endDate', newFilters.endDate);
+    if (newFilters.type) params.set('type', newFilters.type);
+    if (newFilters.status) params.set('status', newFilters.status);
+    if (newFilters.category) params.set('category', newFilters.category);
+    if (newFilters.subcategory) params.set('subcategory', newFilters.subcategory);
+    if (newFilters.currency) params.set('currency', newFilters.currency);
+    if (newFilters.merchantName) params.set('merchantName', newFilters.merchantName);
+    if (newFilters.search) params.set('search', newFilters.search);
+    if (newFilters.minAmount !== undefined) params.set('minAmount', newFilters.minAmount.toString());
+    if (newFilters.maxAmount !== undefined) params.set('maxAmount', newFilters.maxAmount.toString());
+
+    setSearchParams(params, { replace: true });
+  }, [setSearchParams]);
+
   const formatDateForApi = (date: Date): string => {
     return date.toISOString().split('T')[0];
   };
+
+  // Helper function to detect which period the current dates represent
+  const detectDatePeriod = useCallback((startDate?: string, endDate?: string): DateFilterPeriod => {
+    if (!startDate || !endDate) return 'allTime';
+
+    const now = new Date();
+    const today = formatDateForApi(now);
+
+    // Today
+    if (startDate === today && endDate === today) return 'today';
+
+    // Yesterday
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = formatDateForApi(yesterday);
+    if (startDate === yesterdayStr && endDate === yesterdayStr) return 'yesterday';
+
+    // This Month
+    const monthStart = formatDateForApi(new Date(now.getFullYear(), now.getMonth(), 1));
+    if (startDate === monthStart && endDate === today) return 'thisMonth';
+
+    // Last Month
+    const lastMonthStart = formatDateForApi(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+    const lastMonthEnd = formatDateForApi(new Date(now.getFullYear(), now.getMonth(), 0));
+    if (startDate === lastMonthStart && endDate === lastMonthEnd) return 'lastMonth';
+
+    // This Year
+    const yearStart = formatDateForApi(new Date(now.getFullYear(), 0, 1));
+    if (startDate === yearStart && endDate === today) return 'thisYear';
+
+    // Last Year
+    const lastYearStart = formatDateForApi(new Date(now.getFullYear() - 1, 0, 1));
+    const lastYearEnd = formatDateForApi(new Date(now.getFullYear() - 1, 11, 31));
+    if (startDate === lastYearStart && endDate === lastYearEnd) return 'lastYear';
+
+    return 'custom';
+  }, []);
+
+  // Initialize from URL on mount
+  useEffect(() => {
+    if (!isInitialized) {
+      const urlFilters = parseFiltersFromURL();
+
+      // If URL has no date filters, apply default "This Month"
+      if (!urlFilters.startDate && !urlFilters.endDate) {
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        urlFilters.startDate = formatDateForApi(monthStart);
+        urlFilters.endDate = formatDateForApi(now);
+      }
+
+      const period = detectDatePeriod(urlFilters.startDate, urlFilters.endDate);
+      setDateFilterPeriod(period);
+      setFilters(urlFilters);
+      updateURL(urlFilters);
+      onFiltersChange(urlFilters);
+      setIsInitialized(true);
+    }
+  }, [isInitialized, parseFiltersFromURL, detectDatePeriod, updateURL, onFiltersChange]);
 
   const applyDateFilter = useCallback((period: DateFilterPeriod) => {
     setDateFilterPeriod(period);
@@ -132,14 +244,9 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
       page: 1,
     };
     setFilters(newFilters);
+    updateURL(newFilters);
     onFiltersChange(newFilters);
-  }, [filters, onFiltersChange]);
-
-  // Initialize with "This Month" filter on mount
-  useEffect(() => {
-    applyDateFilter('thisMonth');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
+  }, [filters, onFiltersChange, updateURL]);
 
   const handleFilterChange = (key: keyof TransactionFilters, value: any) => {
     const newFilters = {
@@ -149,22 +256,21 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
     };
     setFilters(newFilters);
 
-    // If manually changing date fields, switch to custom mode
+    // If manually changing date fields, switch to custom mode and detect period
     if (key === 'startDate' || key === 'endDate') {
-      setDateFilterPeriod('custom');
+      const period = detectDatePeriod(
+        key === 'startDate' ? value : newFilters.startDate,
+        key === 'endDate' ? value : newFilters.endDate
+      );
+      setDateFilterPeriod(period);
     }
 
+    updateURL(newFilters);
     onFiltersChange(newFilters);
   };
 
   const handleClearFilters = () => {
-    const clearedFilters: TransactionFilters = {
-      page: 1,
-      limit: filters.limit,
-      sortBy: 'date',
-      sortOrder: 'DESC',
-    };
-    setFilters(clearedFilters);
+    // Apply "This Month" filter when clearing
     setDateFilterPeriod('thisMonth');
     applyDateFilter('thisMonth');
   };
