@@ -82,4 +82,14 @@ export const authApi = {
     const response = await api.post('/users/link-telegram', data);
     return response.data;
   },
+
+  async generateTelegramLinkToken(): Promise<{ token: string; expiresAt: string; instructions: string }> {
+    const response = await api.post('/users/generate-telegram-link-token');
+    return response.data;
+  },
+
+  async unlinkTelegram(): Promise<User> {
+    const response = await api.post('/users/unlink-telegram');
+    return response.data;
+  },
 };

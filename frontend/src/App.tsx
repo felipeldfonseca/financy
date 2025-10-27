@@ -12,6 +12,7 @@ import TransactionsPage from './pages/TransactionsPage';
 import ContextsPage from './pages/ContextsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import SettingsPage from './pages/SettingsPage';
+import TelegramSettingsPage from './pages/TelegramSettingsPage';
 
 function App() {
   return (
@@ -97,7 +98,17 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
+          <Route
+            path="/settings/telegram"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <TelegramSettingsPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
           {/* Fallback routes */}
           <Route path="/register" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

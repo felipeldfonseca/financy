@@ -10,12 +10,20 @@ import {
   Alert,
   CircularProgress,
   Divider,
+  Chip,
 } from '@mui/material';
+import {
+  Telegram as TelegramIcon,
+  ArrowForward as ArrowIcon,
+  CheckCircle as CheckIcon,
+} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authApi } from '../services/authApi';
 import { SUPPORTED_CURRENCIES, getCurrencySymbol } from '../utils/currency.utils';
 
 const SettingsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { state: authState, refreshAuth } = useAuth();
   const [selectedCurrency, setSelectedCurrency] = useState(
     authState.user?.defaultCurrency || 'USD'
@@ -23,6 +31,8 @@ const SettingsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isTelegramLinked = !!authState.user?.telegramUsername;
 
   const handleCurrencyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedCurrency(event.target.value);
@@ -197,6 +207,57 @@ const SettingsPage: React.FC = () => {
                 </Typography>
               </Box>
             </Box>
+          </Paper>
+        </Grid>
+
+        {/* Telegram Integration */}
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Telegram Integration
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <TelegramIcon sx={{ fontSize: 40, color: '#0088cc' }} />
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                    Track finances via Telegram
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                    <Chip
+                      label={isTelegramLinked ? 'Connected' : 'Not Connected'}
+                      color={isTelegramLinked ? 'success' : 'default'}
+                      size="small"
+                      icon={isTelegramLinked ? <CheckIcon /> : undefined}
+                    />
+                    {isTelegramLinked && (
+                      <Typography variant="caption" color="text.secondary">
+                        @{authState.user?.telegramUsername}
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+              </Box>
+              <Button
+                variant="contained"
+                endIcon={<ArrowIcon />}
+                onClick={() => navigate('/settings/telegram')}
+                sx={{
+                  bgcolor: '#0088cc',
+                  '&:hover': { bgcolor: '#006699' },
+                }}
+              >
+                {isTelegramLinked ? 'Manage Connection' : 'Connect Telegram'}
+              </Button>
+            </Box>
+
+            {!isTelegramLinked && (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                Link your Telegram account to track transactions with text messages, voice notes, or photos on the go!
+              </Alert>
+            )}
           </Paper>
         </Grid>
       </Grid>

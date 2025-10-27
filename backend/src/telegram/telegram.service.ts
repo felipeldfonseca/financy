@@ -111,6 +111,13 @@ export class TelegramService implements OnModuleInit {
 
     const userId = await this.getUserFromTelegramId(telegramUserId);
 
+    // Special handling for /start command with token (linking flow)
+    // Allow unregistered users to process linking commands
+    if (!userId && message.text?.startsWith('/start ')) {
+      await this.handleCommand(chatId, message.text, userId);
+      return;
+    }
+
     if (!userId) {
       await this.handleUnregisteredUser(chatId, message.from);
       return;
@@ -190,7 +197,14 @@ export class TelegramService implements OnModuleInit {
 
     switch (cmd.toLowerCase()) {
       case '/start':
-        await this.sendWelcomeMessage(chatId);
+        // Check if a link token was provided via deep link (e.g., /start TOKEN)
+        if (args.length > 0) {
+          // Always handle link command if token is provided (will check if already linked inside)
+          await this.handleLinkCommand(chatId, userId, args);
+        } else {
+          // No token, just send welcome message
+          await this.sendWelcomeMessage(chatId, userId);
+        }
         break;
 
       case '/help':
@@ -386,11 +400,20 @@ export class TelegramService implements OnModuleInit {
     }
   }
 
-  private async sendWelcomeMessage(chatId: number): Promise<void> {
-    const message = `
-🏦 <b>Welcome to Financy!</b>
+  private async sendWelcomeMessage(chatId: number, userId?: string): Promise<void> {
+    // Check if user is already linked
+    const isLinked = !!userId;
 
-I'm your personal financial assistant. Here's what I can do:
+    let message: string;
+
+    if (isLinked) {
+      // Message for existing/linked users
+      message = `
+🏦 <b>Welcome back to Financy!</b>
+
+Great to see you again! I'm ready to help you track your finances. 💼
+
+<b>Quick Reminders:</b>
 
 💰 <b>Track Transactions</b>
 Just tell me what you spent or earned:
@@ -399,18 +422,45 @@ Just tell me what you spent or earned:
 • "Spent R$25 on lunch"
 
 🎤 <b>Voice Messages</b>
-Send me a voice message with your transaction
+Send me a voice message describing your transaction
 
 📷 <b>Receipt Photos</b>
-Take a photo of your receipt and I'll extract the details
+Take a photo of any receipt and I'll extract the details
 
-📊 <b>Commands</b>
-/contexts - Manage your financial contexts
+📊 <b>Useful Commands</b>
 /summary - View your spending summary
-/help - Show this help message
+/contexts - Manage your financial contexts
+/help - Show detailed help
 
-Let's start tracking your finances! 🚀
-    `;
+Let's continue tracking your finances! 🚀
+      `;
+    } else {
+      // Message for new/unlinked users
+      message = `
+🏦 <b>Welcome to Financy!</b>
+
+I'm your personal financial assistant bot!
+
+To get started, you'll need to link your Telegram account to your Financy web account:
+
+<b>📱 Step 1:</b> Create an account
+• Visit: ${this.configService.get('FRONTEND_URL', 'https://financy.app')}
+• Register or log in
+
+<b>🔗 Step 2:</b> Link your account
+• Go to Settings → Telegram Integration
+• Click "Generate Link Token" or scan the QR code
+• Your account will be linked automatically!
+
+<b>✨ Once linked, you can:</b>
+• Track transactions via text, voice, or photos
+• View spending summaries anytime
+• Manage multiple financial contexts
+• Access all your data synced with the web app
+
+Questions? Type /help for more information! 😊
+      `;
+    }
 
     await this.sendMessage(chatId, message);
   }
