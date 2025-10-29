@@ -381,6 +381,9 @@ const DashboardPage: React.FC = () => {
                 categoryData={data?.categoryData}
                 isLoading={isLoading}
                 userCurrency={state.user?.defaultCurrency}
+                totalIncome={data?.summary?.totalIncome || 0}
+                totalExpenses={data?.summary?.totalExpenses || 0}
+                transactionCount={data?.summary?.transactionCount || 0}
               />
             </Box>
           </>

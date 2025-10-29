@@ -140,9 +140,21 @@ const ContextSwitcher: React.FC<ContextSwitcherProps> = ({
             <PersonIcon sx={{ mr: 1, fontSize: 22 }} />
             PERSONAL
           </ToggleButton>
-          <ToggleButton value="groups">
+          <ToggleButton value="groups" disabled>
             <GroupIcon sx={{ mr: 1, fontSize: 22 }} />
             GROUPS
+            <Chip
+              label="Coming soon"
+              size="small"
+              sx={{
+                ml: 1,
+                height: 20,
+                fontSize: '0.65rem',
+                background: 'linear-gradient(135deg, #4657D8 0%, #3b47c4 100%)',
+                color: 'white',
+                fontWeight: 500,
+              }}
+            />
           </ToggleButton>
         </ToggleButtonGroup>
 

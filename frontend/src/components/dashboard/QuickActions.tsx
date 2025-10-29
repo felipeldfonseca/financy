@@ -6,12 +6,15 @@ import {
   Typography,
   Box,
   LinearProgress,
+  Button,
 } from '@mui/material';
 import {
   EventNote as CalendarIcon,
   TrackChanges as GoalIcon,
   Savings as BudgetIcon,
+  Add as AddIcon,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 interface UpcomingBill {
   id: string;
@@ -52,40 +55,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({
   goals = [],
   budgets = [],
 }) => {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(Math.abs(amount));
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
-  const defaultUpcomingBills: UpcomingBill[] = [
-    { id: '1', name: 'Netflix Subscription', amount: 15.99, dueDate: '2024-01-15', category: 'Entertainment' },
-    { id: '2', name: 'Electric Bill', amount: 89.50, dueDate: '2024-01-18', category: 'Utilities' },
-    { id: '3', name: 'Internet', amount: 65.00, dueDate: '2024-01-20', category: 'Utilities' },
-  ];
-
-  const defaultGoals: Goal[] = [
-    { id: '1', name: 'Emergency Fund', currentAmount: 3500, targetAmount: 10000, targetDate: '2024-12-31', category: 'Savings' },
-    { id: '2', name: 'Vacation Fund', currentAmount: 1200, targetAmount: 3000, targetDate: '2024-06-30', category: 'Travel' },
-  ];
-
-  const defaultBudgets: Budget[] = [
-    { category: 'Food & Dining', spent: 450, budget: 600, color: '#10b981' },
-    { category: 'Transportation', spent: 280, budget: 300, color: '#f59e0b' },
-    { category: 'Entertainment', spent: 120, budget: 200, color: '#6366f1' },
-  ];
-
-  const displayUpcomingBills = upcomingBills.length > 0 ? upcomingBills : defaultUpcomingBills;
-  const displayGoals = goals.length > 0 ? goals : defaultGoals;
-  const displayBudgets = budgets.length > 0 ? budgets : defaultBudgets;
+  const navigate = useNavigate();
 
 
   return (
@@ -108,30 +78,37 @@ const QuickActions: React.FC<QuickActionsProps> = ({
                     <CalendarIcon sx={{ fontSize: 24, color: '#f59e0b' }} />
                     <Typography variant="h6" fontWeight={600}>Upcoming Bills</Typography>
                   </Box>
-                  <Box sx={{ flex: 1 }}>
-                    {displayUpcomingBills.slice(0, 2).map((bill, index) => (
-                      <Box key={bill.id} sx={{ 
-                        p: 2, 
-                        mb: index === 1 ? 0 : 1.5,
-                        height: 80,
-                        borderRadius: '12px',
-                        background: 'rgba(245, 158, 11, 0.05)',
-                        border: '1px solid rgba(245, 158, 11, 0.1)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                      }}>
-                        <Box display="flex" justifyContent="space-between" alignItems="center">
-                          <Typography variant="body1" fontWeight={500}>{bill.name}</Typography>
-                          <Typography variant="body1" fontWeight={600} color="#f59e0b">
-                            <Typography component="span" variant="numeric">{formatCurrency(bill.amount)}</Typography>
-                          </Typography>
-                        </Box>
-                        <Typography variant="body2" color="text.secondary">
-                          Due {formatDate(bill.dueDate)}
-                        </Typography>
-                      </Box>
-                    ))}
+                  <Box sx={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    p: 2,
+                    borderRadius: '12px',
+                    background: 'rgba(245, 158, 11, 0.03)',
+                    border: '1px dashed rgba(245, 158, 11, 0.2)',
+                  }}>
+                    <CalendarIcon sx={{ fontSize: 40, color: 'rgba(245, 158, 11, 0.3)', mb: 1 }} />
+                    <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mb: 2 }}>
+                      Track recurring bills and never miss a payment
+                    </Typography>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<AddIcon />}
+                      onClick={() => navigate('/planning')}
+                      sx={{
+                        borderColor: '#f59e0b',
+                        color: '#f59e0b',
+                        '&:hover': {
+                          borderColor: '#d97706',
+                          bgcolor: 'rgba(245, 158, 11, 0.05)',
+                        },
+                      }}
+                    >
+                      Add Bills
+                    </Button>
                   </Box>
                 </Box>
               </Grid>
@@ -143,100 +120,37 @@ const QuickActions: React.FC<QuickActionsProps> = ({
                     <GoalIcon sx={{ fontSize: 24, color: '#10b981' }} />
                     <Typography variant="h6" fontWeight={600}>Goal Progress</Typography>
                   </Box>
-                  <Box sx={{ flex: 1 }}>
-                    {displayGoals.slice(0, 1).map((goal) => {
-                      const progress = (goal.currentAmount / goal.targetAmount) * 100;
-                      return (
-                        <Box key={goal.id} sx={{ 
-                          p: 2,
-                          mb: 1.5,
-                          height: 80,
-                          borderRadius: '12px',
-                          background: 'rgba(16, 185, 129, 0.05)',
-                          border: '1px solid rgba(16, 185, 129, 0.1)',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'space-between',
-                        }}>
-                          <Box display="flex" justifyContent="space-between" alignItems="center">
-                            <Typography variant="body1" fontWeight={500}>{goal.name}</Typography>
-                            <Typography variant="body2" color="#10b981">
-                              <Typography component="span" variant="numeric">{Math.round(progress)}</Typography>%
-                            </Typography>
-                          </Box>
-                          <LinearProgress 
-                            variant="determinate" 
-                            value={progress} 
-                            sx={{ 
-                              height: 6, 
-                              borderRadius: 3,
-                              backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                              '& .MuiLinearProgress-bar': {
-                                backgroundColor: '#10b981',
-                                borderRadius: 3,
-                              },
-                            }} 
-                          />
-                          <Typography variant="body2" color="text.secondary" sx={{ display: 'block' }}>
-                            <Typography component="span" variant="numeric">{formatCurrency(goal.currentAmount)}</Typography> of <Typography component="span" variant="numeric">{formatCurrency(goal.targetAmount)}</Typography>
-                          </Typography>
-                        </Box>
-                      );
-                    })}
-                    
-                    {/* Monthly Investments Card */}
-                    {(() => {
-                      // Mock data - in real app this would come from props
-                      const monthlyIncome = 3300; // Current month income
-                      const monthlyInvestments = 450; // Amount invested this month
-                      const investmentGoal = 0.15; // 15% goal
-                      const targetInvestment = monthlyIncome * investmentGoal;
-                      const investmentProgress = (monthlyInvestments / targetInvestment) * 100;
-                      const isOnTrack = investmentProgress >= 100;
-                      
-                      return (
-                        <Box sx={{ 
-                          p: 2,
-                          mb: 0,
-                          height: 80,
-                          borderRadius: '12px',
-                          background: isOnTrack 
-                            ? 'rgba(16, 185, 129, 0.05)' 
-                            : 'rgba(245, 158, 11, 0.05)',
-                          border: isOnTrack 
-                            ? '1px solid rgba(16, 185, 129, 0.1)'
-                            : '1px solid rgba(245, 158, 11, 0.1)',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'space-between',
-                        }}>
-                          <Box display="flex" justifyContent="space-between" alignItems="center">
-                            <Typography variant="body1" fontWeight={500}>Monthly Investments</Typography>
-                            <Typography variant="body2" color={isOnTrack ? '#10b981' : '#f59e0b'}>
-                              <Typography component="span" variant="numeric">{Math.round(investmentProgress)}</Typography>%
-                            </Typography>
-                          </Box>
-                          <LinearProgress 
-                            variant="determinate" 
-                            value={Math.min(investmentProgress, 100)} 
-                            sx={{ 
-                              height: 6, 
-                              borderRadius: 3,
-                              backgroundColor: isOnTrack 
-                                ? 'rgba(16, 185, 129, 0.1)'
-                                : 'rgba(245, 158, 11, 0.1)',
-                              '& .MuiLinearProgress-bar': {
-                                backgroundColor: isOnTrack ? '#10b981' : '#f59e0b',
-                                borderRadius: 3,
-                              },
-                            }} 
-                          />
-                          <Typography variant="body2" color="text.secondary" sx={{ display: 'block' }}>
-                            <Typography component="span" variant="numeric">{formatCurrency(monthlyInvestments)}</Typography> of <Typography component="span" variant="numeric">{formatCurrency(targetInvestment)}</Typography> goal (15%)
-                          </Typography>
-                        </Box>
-                      );
-                    })()}
+                  <Box sx={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    p: 2,
+                    borderRadius: '12px',
+                    background: 'rgba(16, 185, 129, 0.03)',
+                    border: '1px dashed rgba(16, 185, 129, 0.2)',
+                  }}>
+                    <GoalIcon sx={{ fontSize: 40, color: 'rgba(16, 185, 129, 0.3)', mb: 1 }} />
+                    <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mb: 2 }}>
+                      Set financial goals and track your progress
+                    </Typography>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<AddIcon />}
+                      onClick={() => navigate('/planning')}
+                      sx={{
+                        borderColor: '#10b981',
+                        color: '#10b981',
+                        '&:hover': {
+                          borderColor: '#059669',
+                          bgcolor: 'rgba(16, 185, 129, 0.05)',
+                        },
+                      }}
+                    >
+                      Add Goals
+                    </Button>
                   </Box>
                 </Box>
               </Grid>
@@ -248,47 +162,37 @@ const QuickActions: React.FC<QuickActionsProps> = ({
                     <BudgetIcon sx={{ fontSize: 24, color: '#6366f1' }} />
                     <Typography variant="h6" fontWeight={600}>Budget Status</Typography>
                   </Box>
-                  <Box sx={{ flex: 1 }}>
-                    {displayBudgets.slice(0, 2).map((budget, index) => {
-                      const percentage = (budget.spent / budget.budget) * 100;
-                      const isOverBudget = percentage > 100;
-                      return (
-                        <Box key={budget.category} sx={{ 
-                          p: 2, 
-                          mb: index === 1 ? 0 : 1.5,
-                          height: 80,
-                          borderRadius: '12px',
-                          background: `rgba(${isOverBudget ? '239, 68, 68' : '99, 102, 241'}, 0.05)`,
-                          border: `1px solid rgba(${isOverBudget ? '239, 68, 68' : '99, 102, 241'}, 0.1)`,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'space-between',
-                        }}>
-                          <Box display="flex" justifyContent="space-between" alignItems="center">
-                            <Typography variant="body1" fontWeight={500}>{budget.category}</Typography>
-                            <Typography variant="body2" color={isOverBudget ? '#ef4444' : '#6366f1'}>
-                              <Typography component="span" variant="numeric">{Math.round(percentage)}</Typography>%
-                            </Typography>
-                          </Box>
-                          <LinearProgress 
-                            variant="determinate" 
-                            value={Math.min(percentage, 100)} 
-                            sx={{ 
-                              height: 4, 
-                              borderRadius: 2,
-                              backgroundColor: `rgba(${isOverBudget ? '239, 68, 68' : '99, 102, 241'}, 0.1)`,
-                              '& .MuiLinearProgress-bar': {
-                                backgroundColor: isOverBudget ? '#ef4444' : '#6366f1',
-                                borderRadius: 2,
-                              },
-                            }} 
-                          />
-                          <Typography variant="body2" color="text.secondary" sx={{ display: 'block' }}>
-                            <Typography component="span" variant="numeric">{formatCurrency(budget.spent)}</Typography> of <Typography component="span" variant="numeric">{formatCurrency(budget.budget)}</Typography>
-                          </Typography>
-                        </Box>
-                      );
-                    })}
+                  <Box sx={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    p: 2,
+                    borderRadius: '12px',
+                    background: 'rgba(99, 102, 241, 0.03)',
+                    border: '1px dashed rgba(99, 102, 241, 0.2)',
+                  }}>
+                    <BudgetIcon sx={{ fontSize: 40, color: 'rgba(99, 102, 241, 0.3)', mb: 1 }} />
+                    <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mb: 2 }}>
+                      Create budgets by category to control spending
+                    </Typography>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<AddIcon />}
+                      onClick={() => navigate('/planning')}
+                      sx={{
+                        borderColor: '#6366f1',
+                        color: '#6366f1',
+                        '&:hover': {
+                          borderColor: '#4f46e5',
+                          bgcolor: 'rgba(99, 102, 241, 0.05)',
+                        },
+                      }}
+                    >
+                      Add Budgets
+                    </Button>
                   </Box>
                 </Box>
               </Grid>
