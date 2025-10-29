@@ -11,11 +11,6 @@ import {
   CircularProgress,
   Divider,
   Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
   IconButton,
   InputAdornment,
 } from '@mui/material';
@@ -25,7 +20,6 @@ import {
   CheckCircle as CheckIcon,
   Visibility,
   VisibilityOff,
-  Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -43,18 +37,16 @@ const SUPPORTED_LANGUAGES = [
 
 // Common timezones
 const SUPPORTED_TIMEZONES = [
-  'UTC',
-  'America/New_York',
-  'America/Chicago',
-  'America/Denver',
-  'America/Los_Angeles',
-  'America/Sao_Paulo',
-  'Europe/London',
-  'Europe/Paris',
-  'Europe/Berlin',
-  'Asia/Tokyo',
-  'Asia/Shanghai',
-  'Australia/Sydney',
+  { value: 'America/New_York', label: 'Eastern Time (ET)' },
+  { value: 'America/Chicago', label: 'Central Time (CT)' },
+  { value: 'America/Denver', label: 'Mountain Time (MT)' },
+  { value: 'America/Los_Angeles', label: 'Pacific Time (PT)' },
+  { value: 'America/Sao_Paulo', label: 'Brasília Time (BRT)' },
+  { value: 'Europe/London', label: 'London (GMT)' },
+  { value: 'Europe/Paris', label: 'Central European Time (CET)' },
+  { value: 'Asia/Tokyo', label: 'Japan Standard Time (JST)' },
+  { value: 'Australia/Sydney', label: 'Australian Eastern Time (AET)' },
+  { value: 'UTC', label: 'Coordinated Universal Time (UTC)' },
 ];
 
 const SettingsPage: React.FC = () => {
@@ -80,14 +72,12 @@ const SettingsPage: React.FC = () => {
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isLoadingCurrency, setIsLoadingCurrency] = useState(false);
   const [isLoadingPassword, setIsLoadingPassword] = useState(false);
-  const [isLoadingOnboarding, setIsLoadingOnboarding] = useState(false);
   const [successProfile, setSuccessProfile] = useState(false);
   const [successCurrency, setSuccessCurrency] = useState(false);
   const [successPassword, setSuccessPassword] = useState(false);
   const [errorProfile, setErrorProfile] = useState<string | null>(null);
   const [errorCurrency, setErrorCurrency] = useState<string | null>(null);
   const [errorPassword, setErrorPassword] = useState<string | null>(null);
-  const [showOnboardingDialog, setShowOnboardingDialog] = useState(false);
 
   const isTelegramLinked = !!authState.user?.telegramUsername;
 
@@ -205,27 +195,6 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  const handleReopenOnboarding = async () => {
-    try {
-      setIsLoadingOnboarding(true);
-
-      // Reset onboarding status
-      await authApi.updateProfile({
-        onboardingCompleted: false,
-      });
-
-      await refreshAuth();
-      setShowOnboardingDialog(false);
-
-      // Reload page to trigger onboarding wizard
-      window.location.reload();
-    } catch (err: any) {
-      console.error('Failed to reset onboarding:', err);
-      setShowOnboardingDialog(false);
-    } finally {
-      setIsLoadingOnboarding(false);
-    }
-  };
 
   return (
     <Box sx={{ py: 4 }}>
@@ -302,8 +271,8 @@ const SettingsPage: React.FC = () => {
                 variant="outlined"
               >
                 {SUPPORTED_TIMEZONES.map((tz) => (
-                  <MenuItem key={tz} value={tz}>
-                    {tz}
+                  <MenuItem key={tz.value} value={tz.value}>
+                    {tz.label}
                   </MenuItem>
                 ))}
               </TextField>
@@ -521,34 +490,8 @@ const SettingsPage: React.FC = () => {
           </Paper>
         </Grid>
 
-        {/* Onboarding & Other Settings */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Onboarding
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                Want to see the onboarding tutorial again? You can restart it anytime.
-              </Typography>
-
-              <Button
-                variant="outlined"
-                color="primary"
-                startIcon={<RefreshIcon />}
-                onClick={() => setShowOnboardingDialog(true)}
-                fullWidth
-              >
-                Reopen Onboarding Wizard
-              </Button>
-            </Box>
-          </Paper>
-        </Grid>
-
         {/* Telegram Integration */}
-        <Grid item xs={12}>
+        <Grid item xs={12} md={6}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
               Telegram Integration
@@ -565,9 +508,11 @@ const SettingsPage: React.FC = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                     <Chip
                       label={isTelegramLinked ? 'Connected' : 'Not Connected'}
-                      color={isTelegramLinked ? 'success' : 'default'}
                       size="small"
-                      icon={isTelegramLinked ? <CheckIcon /> : undefined}
+                      sx={isTelegramLinked
+                        ? { bgcolor: 'success.main', color: 'white' }
+                        : { bgcolor: 'grey.300', color: 'text.secondary' }
+                      }
                     />
                     {isTelegramLinked && (
                       <Typography variant="caption" color="text.secondary">
@@ -598,28 +543,6 @@ const SettingsPage: React.FC = () => {
           </Paper>
         </Grid>
       </Grid>
-
-      {/* Onboarding Confirmation Dialog */}
-      <Dialog open={showOnboardingDialog} onClose={() => setShowOnboardingDialog(false)}>
-        <DialogTitle>Reopen Onboarding Wizard?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            This will restart the onboarding tutorial and show you how to use Financy again.
-            The page will reload to display the onboarding wizard.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowOnboardingDialog(false)}>Cancel</Button>
-          <Button
-            onClick={handleReopenOnboarding}
-            color="primary"
-            disabled={isLoadingOnboarding}
-            startIcon={isLoadingOnboarding ? <CircularProgress size={20} /> : <RefreshIcon />}
-          >
-            Reopen Onboarding
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 };

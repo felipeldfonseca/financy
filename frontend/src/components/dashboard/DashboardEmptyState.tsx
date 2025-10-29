@@ -10,6 +10,7 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  Chip,
 } from '@mui/material';
 import {
   Telegram as TelegramIcon,
@@ -17,6 +18,7 @@ import {
   Mic as VoiceIcon,
   CameraAlt as PhotoIcon,
   Edit as EditIcon,
+  CheckCircle as CheckIcon,
 } from '@mui/icons-material';
 
 interface DashboardEmptyStateProps {
@@ -74,15 +76,34 @@ const DashboardEmptyState: React.FC<DashboardEmptyStateProps> = ({
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                bgcolor: isTelegramLinked ? 'success.light' : 'background.paper',
+                bgcolor: isTelegramLinked ? '#e8f5e9' : 'background.paper',
+                position: 'relative',
               }}
             >
+              {isTelegramLinked && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 12,
+                    right: 12,
+                  }}
+                >
+                  <Chip
+                    label="Connected"
+                    size="small"
+                    sx={{
+                      bgcolor: 'success.main',
+                      color: 'white',
+                    }}
+                  />
+                </Box>
+              )}
               <Box sx={{ flex: 1 }}>
                 <TelegramIcon sx={{ fontSize: 48, color: '#0088cc', mb: 2 }} />
-                <Typography variant="h6" gutterBottom>
+                <Typography variant="h6" gutterBottom sx={{ color: 'text.primary' }}>
                   {isTelegramLinked ? 'Use Telegram Bot' : 'Connect Telegram Bot'}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                <Typography variant="body2" sx={{ mb: 2, color: 'text.primary' }}>
                   {isTelegramLinked
                     ? 'Send messages, voice notes, or photos directly to the bot to track your finances.'
                     : 'Connect your Telegram account and track your finances on the go with just a message.'
@@ -92,38 +113,41 @@ const DashboardEmptyState: React.FC<DashboardEmptyStateProps> = ({
                   <List dense>
                     <ListItem disablePadding sx={{ mb: 1 }}>
                       <ListItemIcon sx={{ minWidth: 32 }}>
-                        <EditIcon fontSize="small" color="action" />
+                        <EditIcon fontSize="small" sx={{ color: 'text.primary' }} />
                       </ListItemIcon>
                       <ListItemText
-                        primary={<Typography variant="caption">Text: "Spent $50 on groceries" or "Got paid $2k"</Typography>}
+                        primary={<Typography variant="caption" sx={{ color: 'text.primary' }}>Text: "Spent $50 on groceries" or "Got paid $2k"</Typography>}
                       />
                     </ListItem>
                     <ListItem disablePadding sx={{ mb: 1 }}>
                       <ListItemIcon sx={{ minWidth: 32 }}>
-                        <VoiceIcon fontSize="small" color="action" />
+                        <VoiceIcon fontSize="small" sx={{ color: 'text.primary' }} />
                       </ListItemIcon>
                       <ListItemText
-                        primary={<Typography variant="caption">Voice: Record income or expenses</Typography>}
+                        primary={<Typography variant="caption" sx={{ color: 'text.primary' }}>Voice: Record income or expenses</Typography>}
                       />
                     </ListItem>
                     <ListItem disablePadding>
                       <ListItemIcon sx={{ minWidth: 32 }}>
-                        <PhotoIcon fontSize="small" color="action" />
+                        <PhotoIcon fontSize="small" sx={{ color: 'text.primary' }} />
                       </ListItemIcon>
                       <ListItemText
-                        primary={<Typography variant="caption">Photo: Send a receipt or invoice</Typography>}
+                        primary={<Typography variant="caption" sx={{ color: 'text.primary' }}>Photo: Send a receipt or invoice</Typography>}
                       />
                     </ListItem>
                   </List>
                 )}
               </Box>
               <Button
-                variant={isTelegramLinked ? 'outlined' : 'contained'}
+                variant="contained"
                 size="large"
-                startIcon={<TelegramIcon />}
+                startIcon={<TelegramIcon sx={{ color: isTelegramLinked ? 'white' : 'white' }} />}
                 onClick={onConnectTelegram}
                 fullWidth
-                sx={isTelegramLinked ? {} : { bgcolor: '#0088cc', '&:hover': { bgcolor: '#006699' } }}
+                sx={isTelegramLinked
+                  ? { bgcolor: 'success.main', color: 'white', '&:hover': { bgcolor: 'success.dark' } }
+                  : { bgcolor: '#0088cc', '&:hover': { bgcolor: '#006699' } }
+                }
               >
                 {isTelegramLinked ? 'Open Telegram' : 'Connect Telegram'}
               </Button>

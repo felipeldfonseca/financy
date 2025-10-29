@@ -119,7 +119,7 @@ const TutorialStep: React.FC = () => {
       <Box sx={{ mt: 3, p: 2, bgcolor: 'primary.light', borderRadius: 1 }}>
         <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', color: 'primary.contrastText' }}>
           <GroupIcon sx={{ mr: 1 }} />
-          <strong>Coming Soon:</strong>&nbsp;Shared Groups - Track joint expenses and split bills automatically with family, friends, business partners, or teams
+          <strong>Coming Soon: Shared Groups - Track joint expenses and split bills automatically with family, friends, business partners, or teams</strong>
         </Typography>
       </Box>
 

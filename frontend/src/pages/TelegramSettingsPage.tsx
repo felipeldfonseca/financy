@@ -28,6 +28,9 @@ import {
   Refresh as RefreshIcon,
   Telegram as TelegramIcon,
   QrCode as QrCodeIcon,
+  Edit as TextIcon,
+  Mic as VoiceIcon,
+  CameraAlt as PhotoIcon,
 } from '@mui/icons-material';
 import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '../contexts/AuthContext';
@@ -145,6 +148,50 @@ const TelegramSettingsPage: React.FC = () => {
     }
   }, [tokenExpiresAt]);
 
+  // Auto-refresh auth state when user returns to page (to check if linking was successful)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && linkToken) {
+        // User returned to page, check if linking was successful
+        refreshAuth();
+      }
+    };
+
+    const handleFocus = () => {
+      if (linkToken) {
+        // User returned to page, check if linking was successful
+        refreshAuth();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [linkToken, refreshAuth]);
+
+  // Check for linking success when page loads
+  useEffect(() => {
+    if (linkToken && !isLinked) {
+      // Poll for link status every 2 seconds if token is active
+      const pollInterval = setInterval(async () => {
+        await refreshAuth();
+        // If user is now linked, clear the token and stop polling
+        if (authState.user?.telegramUsername) {
+          setLinkToken(null);
+          setTokenExpiresAt(null);
+          setSuccess('Telegram account linked successfully!');
+          clearInterval(pollInterval);
+        }
+      }, 2000);
+
+      return () => clearInterval(pollInterval);
+    }
+  }, [linkToken, isLinked, refreshAuth, authState.user?.telegramUsername]);
+
   return (
     <Box sx={{ py: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -168,7 +215,7 @@ const TelegramSettingsPage: React.FC = () => {
 
       <Grid container spacing={3}>
         {/* Connection Status */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={isLinked ? 12 : 6}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
               Connection Status
@@ -183,9 +230,11 @@ const TelegramSettingsPage: React.FC = () => {
                 </Typography>
                 <Chip
                   label={isLinked ? 'Connected' : 'Not Connected'}
-                  color={isLinked ? 'success' : 'default'}
                   size="small"
-                  icon={isLinked ? <CheckIcon /> : undefined}
+                  sx={isLinked
+                    ? { bgcolor: 'success.main', color: 'white' }
+                    : { bgcolor: 'grey.300', color: 'text.secondary' }
+                  }
                 />
               </Box>
             </Box>
@@ -199,11 +248,15 @@ const TelegramSettingsPage: React.FC = () => {
                 </Alert>
 
                 <Button
-                  variant="outlined"
-                  color="error"
-                  startIcon={<UnlinkIcon />}
+                  variant="contained"
+                  startIcon={<UnlinkIcon sx={{ color: 'white' }} />}
                   onClick={() => setShowUnlinkDialog(true)}
                   fullWidth
+                  sx={{
+                    bgcolor: '#e57373',
+                    color: 'white',
+                    '&:hover': { bgcolor: '#ef5350' },
+                  }}
                 >
                   Unlink Telegram Account
                 </Button>
@@ -298,7 +351,7 @@ const TelegramSettingsPage: React.FC = () => {
                   <StepLabel>Complete Linking</StepLabel>
                   <StepContent>
                     <Typography variant="body2" color="text.secondary">
-                      The bot will automatically link your account. Refresh this page after confirming in Telegram.
+                      The bot will automatically link your account. The page will update automatically once linking is complete.
                     </Typography>
                   </StepContent>
                 </Step>
@@ -311,33 +364,42 @@ const TelegramSettingsPage: React.FC = () => {
         {isLinked && (
           <Grid item xs={12}>
             <Paper sx={{ p: 3, bgcolor: 'primary.main', color: 'white' }}>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom sx={{ color: 'white' }}>
                 What You Can Do with Telegram
               </Typography>
               <Divider sx={{ my: 2, borderColor: 'rgba(255,255,255,0.2)' }} />
 
               <Grid container spacing={2}>
                 <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                    📝 Send Text Messages
-                  </Typography>
-                  <Typography variant="body2">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    <TextIcon sx={{ color: 'white', fontSize: 20 }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'white' }}>
+                      Send Text Messages
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)' }}>
                     "Spent $50 on groceries" or "Got paid $2000 salary"
                   </Typography>
                 </Grid>
                 <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                    🎤 Send Voice Messages
-                  </Typography>
-                  <Typography variant="body2">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    <VoiceIcon sx={{ color: 'white', fontSize: 20 }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'white' }}>
+                      Send Voice Messages
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)' }}>
                     Just speak naturally about your income or expenses
                   </Typography>
                 </Grid>
                 <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                    📸 Send Receipt Photos
-                  </Typography>
-                  <Typography variant="body2">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    <PhotoIcon sx={{ color: 'white', fontSize: 20 }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'white' }}>
+                      Send Receipt Photos
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)' }}>
                     AI will extract the amount and details automatically
                   </Typography>
                 </Grid>
@@ -347,6 +409,7 @@ const TelegramSettingsPage: React.FC = () => {
                 <Button
                   variant="outlined"
                   onClick={handleOpenTelegram}
+                  startIcon={<TelegramIcon sx={{ color: 'white' }} />}
                   sx={{
                     color: 'white',
                     borderColor: 'white',

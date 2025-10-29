@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -23,12 +23,15 @@ import { ContextSetupService } from './context-setup.service';
 import { MemberRole } from '../contexts/entities/context-member.entity';
 
 @Injectable()
-export class TelegramService implements OnModuleInit {
+export class TelegramService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(TelegramService.name);
   private readonly botToken: string;
   private readonly webhookUrl: string;
   private readonly baseUrl: string;
+  private readonly telegramMode: string;
   private readonly batchTransactions = new Map<string, ParsedTransaction[]>();
+  private pollingInterval: NodeJS.Timeout | null = null;
+  private lastUpdateId = 0;
 
   constructor(
     private configService: ConfigService,
@@ -44,14 +47,28 @@ export class TelegramService implements OnModuleInit {
   ) {
     this.botToken = this.configService.get('TELEGRAM_BOT_TOKEN');
     this.webhookUrl = this.configService.get('TELEGRAM_WEBHOOK_URL');
+    this.telegramMode = this.configService.get('TELEGRAM_MODE', 'webhook');
     this.baseUrl = `https://api.telegram.org/bot${this.botToken}`;
   }
 
   async onModuleInit() {
     if (this.botToken) {
-      await this.setupWebhook();
+      if (this.telegramMode === 'polling') {
+        await this.deleteWebhook();
+        await this.startPolling();
+        this.logger.log('Telegram bot started in POLLING mode');
+      } else {
+        await this.setupWebhook();
+      }
     } else {
       this.logger.warn('TELEGRAM_BOT_TOKEN not configured. Telegram integration disabled.');
+    }
+  }
+
+  async onModuleDestroy() {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.logger.log('Telegram polling stopped');
     }
   }
 
@@ -72,6 +89,86 @@ export class TelegramService implements OnModuleInit {
       }
     } catch (error) {
       this.logger.error('Error setting up webhook:', error.message);
+    }
+  }
+
+  async deleteWebhook(): Promise<void> {
+    try {
+      // First, check current webhook status
+      const infoResponse = await lastValueFrom(
+        this.httpService.get(`${this.baseUrl}/getWebhookInfo`)
+      );
+
+      if (infoResponse.data.ok && infoResponse.data.result.url) {
+        this.logger.log(`Existing webhook found: ${infoResponse.data.result.url}`);
+      }
+
+      // Delete the webhook
+      const response = await lastValueFrom(
+        this.httpService.post(`${this.baseUrl}/deleteWebhook`, {
+          drop_pending_updates: true,
+        })
+      );
+
+      if (response.data.ok) {
+        this.logger.log('Telegram webhook deleted successfully');
+
+        // Verify deletion
+        const verifyResponse = await lastValueFrom(
+          this.httpService.get(`${this.baseUrl}/getWebhookInfo`)
+        );
+
+        if (verifyResponse.data.ok) {
+          this.logger.log(`Webhook status after deletion: ${JSON.stringify(verifyResponse.data.result)}`);
+        }
+      } else {
+        this.logger.warn('Failed to delete webhook:', response.data);
+      }
+    } catch (error) {
+      this.logger.error('Error deleting webhook:', error.message);
+    }
+  }
+
+  async startPolling(): Promise<void> {
+    this.logger.log('Starting Telegram polling...');
+
+    // Initial poll
+    await this.poll();
+
+    // Poll every 2 seconds
+    this.pollingInterval = setInterval(async () => {
+      await this.poll();
+    }, 2000);
+  }
+
+  private async poll(): Promise<void> {
+    try {
+      const response = await lastValueFrom(
+        this.httpService.get(`${this.baseUrl}/getUpdates`, {
+          params: {
+            offset: this.lastUpdateId + 1,
+            timeout: 30,
+            allowed_updates: ['message', 'callback_query'],
+          },
+          timeout: 35000, // Slightly longer than Telegram's timeout
+        })
+      );
+
+      if (response.data.ok && response.data.result.length > 0) {
+        for (const update of response.data.result) {
+          this.lastUpdateId = update.update_id;
+          await this.processUpdate(update);
+        }
+      }
+    } catch (error) {
+      if (error.code !== 'ECONNABORTED') {
+        this.logger.error('Error polling for updates:', {
+          message: error.message,
+          code: error.code,
+          response: error.response?.data,
+          status: error.response?.status,
+        });
+      }
     }
   }
 
@@ -97,6 +194,7 @@ export class TelegramService implements OnModuleInit {
   private async processMessage(message: TelegramMessage): Promise<void> {
     const chatId = message.chat.id;
     const telegramUserId = message.from?.id?.toString();
+    const telegramUsername = message.from?.username;
 
     // Handle bot added to group
     if (message.new_chat_members?.some(member => member.is_bot)) {
@@ -114,7 +212,7 @@ export class TelegramService implements OnModuleInit {
     // Special handling for /start command with token (linking flow)
     // Allow unregistered users to process linking commands
     if (!userId && message.text?.startsWith('/start ')) {
-      await this.handleCommand(chatId, message.text, userId);
+      await this.handleCommand(chatId, message.text, userId, telegramUserId, telegramUsername);
       return;
     }
 
@@ -132,7 +230,7 @@ export class TelegramService implements OnModuleInit {
 
     // Handle different message types
     if (message.text?.startsWith('/')) {
-      await this.handleCommand(chatId, message.text, userId);
+      await this.handleCommand(chatId, message.text, userId, telegramUserId, telegramUsername);
     } else if (message.voice) {
       await this.handleVoiceMessage(chatId, message.voice, userId);
     } else if (message.photo && message.photo.length > 0) {
@@ -192,7 +290,7 @@ export class TelegramService implements OnModuleInit {
     }
   }
 
-  private async handleCommand(chatId: number, command: string, userId: string): Promise<void> {
+  private async handleCommand(chatId: number, command: string, userId: string, telegramUserId?: string, telegramUsername?: string): Promise<void> {
     const [cmd, ...args] = command.split(' ');
 
     switch (cmd.toLowerCase()) {
@@ -200,7 +298,7 @@ export class TelegramService implements OnModuleInit {
         // Check if a link token was provided via deep link (e.g., /start TOKEN)
         if (args.length > 0) {
           // Always handle link command if token is provided (will check if already linked inside)
-          await this.handleLinkCommand(chatId, userId, args);
+          await this.handleLinkCommand(chatId, userId, args, telegramUserId, telegramUsername);
         } else {
           // No token, just send welcome message
           await this.sendWelcomeMessage(chatId, userId);
@@ -220,7 +318,7 @@ export class TelegramService implements OnModuleInit {
         break;
 
       case '/link':
-        await this.handleLinkCommand(chatId, userId, args);
+        await this.handleLinkCommand(chatId, userId, args, telegramUserId, telegramUsername);
         break;
 
       default:
@@ -554,7 +652,7 @@ Need more help? Visit our web app for detailed features!
     }
   }
 
-  private async handleLinkCommand(chatId: number, userId: string, args: string[]): Promise<void> {
+  private async handleLinkCommand(chatId: number, userId: string, args: string[], telegramUserId?: string, telegramUsername?: string): Promise<void> {
     // If user is already linked, show status
     if (userId) {
       await this.sendMessage(chatId, '✅ Your Telegram account is already linked to Financy!\n\nYou can now track your transactions here.');
@@ -590,18 +688,23 @@ This will securely link your accounts and sync your transaction data! 🚀
       return;
     }
 
+    // Ensure we have telegramUserId
+    if (!telegramUserId) {
+      await this.sendMessage(chatId, 'Unable to identify your Telegram account. Please try again.');
+      return;
+    }
+
     // Process the linking token
     const token = args[0];
-    const telegramUserId = chatId.toString(); // For DMs, chatId is the user ID
-    const telegramUsername = await this.getTelegramUsername(chatId);
 
     try {
-      await this.usersService.linkTelegramWithToken(token, telegramUserId, telegramUsername);
-      
+      const linkedUser = await this.usersService.linkTelegramWithToken(token, telegramUserId, telegramUsername);
+
+      const firstName = linkedUser.firstName || 'there';
       const successMessage = `
 ✅ <b>Account Linked Successfully!</b>
 
-Your Telegram account is now connected to Financy! 🎉
+Hello, ${firstName}! Your Telegram account is now connected to Financy! 🎉
 
 <b>What you can do now:</b>
 • Send text messages with transactions

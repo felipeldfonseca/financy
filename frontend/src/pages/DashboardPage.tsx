@@ -10,10 +10,12 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
+  Fab,
 } from '@mui/material';
 import {
   Person as PersonIcon,
   Logout as LogoutIcon,
+  HelpOutline as HelpIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -161,6 +163,10 @@ const DashboardPage: React.FC = () => {
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
+  };
+
+  const handleReopenOnboarding = () => {
+    setShowOnboarding(true);
   };
 
   const handleContextTypeChange = (type: 'personal' | 'groups') => {
@@ -379,6 +385,24 @@ const DashboardPage: React.FC = () => {
             </Box>
           </>
         )
+      )}
+
+      {/* Floating Help Button - Only shows when no transactions */}
+      {!isLoading && !hasTransactions && (
+        <Fab
+          color="primary"
+          aria-label="help"
+          onClick={handleReopenOnboarding}
+          sx={{
+            position: 'fixed',
+            bottom: 32,
+            right: 32,
+            width: 56,
+            height: 56,
+          }}
+        >
+          <HelpIcon sx={{ fontSize: 28 }} />
+        </Fab>
       )}
     </Box>
   );
