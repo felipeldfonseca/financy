@@ -10,7 +10,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import TransactionsPage from './pages/TransactionsPage';
 import ContextsPage from './pages/ContextsPage';
-import AnalyticsPage from './pages/AnalyticsPage';
+import PlanningPage from './pages/PlanningPage';
 import SettingsPage from './pages/SettingsPage';
 import TelegramSettingsPage from './pages/TelegramSettingsPage';
 
@@ -79,11 +79,11 @@ function App() {
             }
           />
           <Route
-            path="/analytics"
+            path="/planning"
             element={
               <ProtectedRoute>
                 <Layout>
-                  <AnalyticsPage />
+                  <PlanningPage />
                 </Layout>
               </ProtectedRoute>
             }

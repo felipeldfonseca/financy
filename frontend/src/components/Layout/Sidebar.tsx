@@ -42,9 +42,9 @@ const navigationItems: NavigationItem[] = [
     icon: null,
   },
   {
-    id: 'analytics',
-    label: 'Analytics',
-    path: '/analytics',
+    id: 'planning',
+    label: 'Planning',
+    path: '/planning',
     icon: null,
   },
 ];
