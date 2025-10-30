@@ -12,6 +12,7 @@ export interface User {
   isActive: boolean;
   onboardingCompleted: boolean;
   telegramUsername?: string;
+  isTelegramLinked: boolean;
   lastLoginAt: string;
   emailVerifiedAt: string;
   createdAt: string;

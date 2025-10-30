@@ -32,6 +32,8 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
   private readonly batchTransactions = new Map<string, ParsedTransaction[]>();
   private pollingInterval: NodeJS.Timeout | null = null;
   private lastUpdateId = 0;
+  private isPolling = false;
+  private shouldStopPolling = false;
 
   constructor(
     private configService: ConfigService,
@@ -66,10 +68,12 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy() {
+    this.shouldStopPolling = true;
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
-      this.logger.log('Telegram polling stopped');
+      this.pollingInterval = null;
     }
+    this.logger.log('Telegram polling stopped');
   }
 
   async setupWebhook(): Promise<void> {
@@ -131,17 +135,35 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
 
   async startPolling(): Promise<void> {
     this.logger.log('Starting Telegram polling...');
+    this.shouldStopPolling = false;
+    this.isPolling = false;
 
-    // Initial poll
-    await this.poll();
+    // Start the polling loop
+    this.pollLoop();
+  }
 
-    // Poll every 2 seconds
-    this.pollingInterval = setInterval(async () => {
+  private async pollLoop(): Promise<void> {
+    while (!this.shouldStopPolling) {
       await this.poll();
-    }, 2000);
+
+      // Short delay between polls (only if we should continue)
+      if (!this.shouldStopPolling) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+
+    this.logger.log('Polling loop ended');
   }
 
   private async poll(): Promise<void> {
+    // Prevent concurrent polling
+    if (this.isPolling) {
+      this.logger.warn('Skipping poll - already polling');
+      return;
+    }
+
+    this.isPolling = true;
+
     try {
       const response = await lastValueFrom(
         this.httpService.get(`${this.baseUrl}/getUpdates`, {
@@ -161,14 +183,23 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
         }
       }
     } catch (error) {
-      if (error.code !== 'ECONNABORTED') {
+      // Handle 409 conflicts gracefully
+      if (error.response?.status === 409) {
+        this.logger.warn('Polling conflict detected (409). Another instance may be running. Waiting 10 seconds...');
+        await new Promise(resolve => setTimeout(resolve, 10000));
+      } else if (error.code !== 'ECONNABORTED') {
         this.logger.error('Error polling for updates:', {
           message: error.message,
           code: error.code,
           response: error.response?.data,
           status: error.response?.status,
         });
+
+        // Add a small delay on errors to avoid hammering the API
+        await new Promise(resolve => setTimeout(resolve, 3000));
       }
+    } finally {
+      this.isPolling = false;
     }
   }
 

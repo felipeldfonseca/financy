@@ -1,4 +1,4 @@
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Transform } from 'class-transformer';
 
 export class UserResponseDto {
   @Expose()
@@ -47,6 +47,10 @@ export class UserResponseDto {
   get fullName(): string {
     return `${this.firstName} ${this.lastName}`;
   }
+
+  @Expose()
+  @Transform(({ obj }) => !!obj.telegramUserId)
+  isTelegramLinked: boolean;
 
   @Exclude()
   password: string;

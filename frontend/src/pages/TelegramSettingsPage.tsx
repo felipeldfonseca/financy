@@ -49,7 +49,7 @@ const TelegramSettingsPage: React.FC = () => {
   const [, setTick] = useState(0); // Force re-render for timer updates
 
   const botUsername = process.env.REACT_APP_TELEGRAM_BOT_USERNAME || 'FinancyApp_bot';
-  const isLinked = !!authState.user?.telegramUsername;
+  const isLinked = !!authState.user?.isTelegramLinked;
 
   const handleGenerateToken = async () => {
     try {
@@ -180,7 +180,7 @@ const TelegramSettingsPage: React.FC = () => {
       const pollInterval = setInterval(async () => {
         await refreshAuth();
         // If user is now linked, clear the token and stop polling
-        if (authState.user?.telegramUsername) {
+        if (authState.user?.isTelegramLinked) {
           setLinkToken(null);
           setTokenExpiresAt(null);
           setSuccess('Telegram account linked successfully!');
@@ -190,7 +190,7 @@ const TelegramSettingsPage: React.FC = () => {
 
       return () => clearInterval(pollInterval);
     }
-  }, [linkToken, isLinked, refreshAuth, authState.user?.telegramUsername]);
+  }, [linkToken, isLinked, refreshAuth, authState.user?.isTelegramLinked]);
 
   return (
     <Box sx={{ py: 4 }}>
@@ -243,7 +243,9 @@ const TelegramSettingsPage: React.FC = () => {
               <>
                 <Alert severity="success" sx={{ mb: 2 }}>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    Connected as @{authState.user?.telegramUsername}
+                    {authState.user?.telegramUsername
+                      ? `Connected as @${authState.user.telegramUsername}`
+                      : 'Your Telegram account is connected'}
                   </Typography>
                 </Alert>
 
@@ -429,7 +431,7 @@ const TelegramSettingsPage: React.FC = () => {
         <DialogTitle>Unlink Telegram Account?</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to unlink your Telegram account (@{authState.user?.telegramUsername})?
+            Are you sure you want to unlink your Telegram account{authState.user?.telegramUsername ? ` (@${authState.user.telegramUsername})` : ''}?
             <br /><br />
             You will no longer be able to track transactions via Telegram until you link again.
             Your existing transactions will not be affected.

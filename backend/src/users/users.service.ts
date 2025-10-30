@@ -186,9 +186,16 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    // Check if user already has Telegram linked
-    if (user.telegramUserId) {
+    // Check if user already has Telegram fully linked (both fields populated)
+    if (user.telegramUserId && user.telegramUsername) {
       throw new ConflictException('Telegram account is already linked to this user');
+    }
+
+    // Clean up any stale partial linking data before generating new token
+    if (user.telegramUserId || user.telegramUsername) {
+      user.telegramUserId = null;
+      user.telegramUsername = null;
+      await this.usersRepository.save(user);
     }
 
     // Generate secure token
@@ -218,12 +225,13 @@ export class UsersService {
       throw new BadRequestException('Linking token has expired');
     }
 
-    // Check if telegram account is already linked to another user
+    // Check if telegram account is already linked to a different user
     const existingUser = await this.usersRepository.findOne({
       where: { telegramUserId }
     });
 
-    if (existingUser) {
+    // Only throw error if the Telegram account is linked to a DIFFERENT user
+    if (existingUser && existingUser.id !== tokenInfo.userId) {
       throw new ConflictException('Telegram account is already linked to another user');
     }
 

@@ -20,7 +20,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 
 const TelegramStep: React.FC = () => {
   const { state: { user } } = useAuth();
-  const isLinked = !!user?.telegramUsername;
+  const isLinked = !!user?.isTelegramLinked;
   const botUsername = process.env.REACT_APP_TELEGRAM_BOT_USERNAME || 'FinancyApp_bot';
 
   const handleOpenTelegram = () => {
@@ -41,9 +41,11 @@ const TelegramStep: React.FC = () => {
           <Typography variant="body2" sx={{ fontWeight: 500 }}>
             Telegram Connected!
           </Typography>
-          <Typography variant="caption">
-            Connected as @{user.telegramUsername}
-          </Typography>
+          {user?.telegramUsername && (
+            <Typography variant="caption">
+              Connected as @{user.telegramUsername}
+            </Typography>
+          )}
         </Alert>
       ) : (
         <Alert severity="info" sx={{ mb: 3 }}>

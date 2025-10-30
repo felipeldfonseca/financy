@@ -79,7 +79,7 @@ const SettingsPage: React.FC = () => {
   const [errorCurrency, setErrorCurrency] = useState<string | null>(null);
   const [errorPassword, setErrorPassword] = useState<string | null>(null);
 
-  const isTelegramLinked = !!authState.user?.telegramUsername;
+  const isTelegramLinked = !!authState.user?.isTelegramLinked;
 
   // Update local state when auth state changes
   useEffect(() => {
@@ -514,9 +514,9 @@ const SettingsPage: React.FC = () => {
                         : { bgcolor: 'grey.300', color: 'text.secondary' }
                       }
                     />
-                    {isTelegramLinked && (
+                    {isTelegramLinked && authState.user?.telegramUsername && (
                       <Typography variant="caption" color="text.secondary">
-                        @{authState.user?.telegramUsername}
+                        @{authState.user.telegramUsername}
                       </Typography>
                     )}
                   </Box>

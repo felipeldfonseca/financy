@@ -347,7 +347,7 @@ const DashboardPage: React.FC = () => {
           <DashboardEmptyState
             onAddTransaction={handleAddTransaction}
             onConnectTelegram={handleConnectTelegram}
-            isTelegramLinked={!!state.user?.telegramUsername}
+            isTelegramLinked={!!state.user?.isTelegramLinked}
           />
         ) : (
           <>
