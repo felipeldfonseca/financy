@@ -370,21 +370,25 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
 
       await this.sendMessage(chatId, '🤔 Processing your transactions...');
 
+      // Get user's default currency from their profile
+      let defaultCurrency = 'USD'; // fallback default
+      try {
+        const user = await this.usersRepository.findOne({ where: { telegramUserId: userId, isActive: true } });
+        if (user && user.defaultCurrency) {
+          defaultCurrency = user.defaultCurrency;
+          this.logger.log(`Using user's default currency: ${defaultCurrency}`);
+        }
+      } catch (error) {
+        this.logger.warn('Could not fetch user default currency, using USD:', error.message);
+      }
+
       // Determine context for this message
       let contextId: string | null = null;
-      let defaultCurrency = 'USD'; // fallback default
       if (message) {
         try {
           contextId = await this.contextDetection.determineContext(message, userId);
-          if (contextId) {
-            // Get context default currency if available
-            const context = await this.contextDetection.getContextInfo(contextId, userId);
-            // For now, we'll use USD as default since we don't store currency in context metadata yet
-            // TODO: Retrieve from context metadata when implemented
-            defaultCurrency = 'USD';
-          }
         } catch (error) {
-          this.logger.warn('Could not determine context, using default:', error.message);
+          this.logger.warn('Could not determine context:', error.message);
         }
       }
 
@@ -479,8 +483,20 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
       const photoCount = photos.length;
       await this.sendMessage(chatId, `📷 Processing ${photoCount} receipt${photoCount > 1 ? 's' : ''}...`);
 
+      // Get user's default currency from their profile
+      let defaultCurrency = 'USD'; // fallback default
+      try {
+        const user = await this.usersRepository.findOne({ where: { id: userId, isActive: true } });
+        if (user && user.defaultCurrency) {
+          defaultCurrency = user.defaultCurrency;
+          this.logger.log(`Using user's default currency for photo: ${defaultCurrency}`);
+        }
+      } catch (error) {
+        this.logger.warn('Could not fetch user default currency for photo, using USD:', error.message);
+      }
+
       // Process all photos
-      const extractedTransactions = await this.messageProcessor.processPhotoMessage(photos, userId);
+      const extractedTransactions = await this.messageProcessor.processPhotoMessage(photos, userId, defaultCurrency);
 
       if (extractedTransactions && extractedTransactions.length > 0) {
         // Filter transactions with sufficient confidence

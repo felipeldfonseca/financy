@@ -7,6 +7,24 @@ import * as FormData from 'form-data';
 import { ParsedTransaction } from './interfaces/telegram.interface';
 import { CurrencyService } from '../currency/currency.service';
 
+// Predefined category configuration (must match frontend categories)
+const PREDEFINED_CATEGORIES = {
+  expense: [
+    'Housing', 'Transportation', 'Food & Dining', 'Shopping', 'Health & Fitness',
+    'Entertainment', 'Bills & Utilities', 'Education', 'Personal Care', 'Insurance',
+    'Financial', 'Travel & Vacation', 'Gifts & Donations', 'Pets', 'Kids & Family',
+    'Business Expenses', 'Other Expenses'
+  ],
+  income: [
+    'Employment Income', 'Self-Employment', 'Investment Income', 'Other Income',
+    'Government & Benefits', 'Refunds & Returns'
+  ],
+  transfer: [
+    'Account Transfers', 'Debt Payments', 'Savings & Investments', 'Personal Transfers',
+    'Other Transfers'
+  ]
+};
+
 @Injectable()
 export class MessageProcessorService {
   private readonly logger = new Logger(MessageProcessorService.name);
@@ -35,8 +53,8 @@ export class MessageProcessorService {
         return this.parseTransactionsWithRegex(text, defaultCurrency);
       }
 
-      const extractionPrompt = this.buildMultiTransactionExtractionPrompt(text);
-      
+      const extractionPrompt = this.buildMultiTransactionExtractionPrompt(text, defaultCurrency);
+
       // Try AI models in sequence: Primary -> Secondary -> Tertiary -> Regex
       let aiResponse = await this.tryAIModel(this.primaryModel, extractionPrompt, 'Primary');
       
@@ -217,38 +235,74 @@ Examples:
 Remember: Respond with ONLY the JSON object, no additional text.`;
   }
 
-  private buildMultiTransactionExtractionPrompt(text: string): string {
+  private buildMultiTransactionExtractionPrompt(text: string, defaultCurrency: string = 'USD'): string {
     return `Extract ALL transaction details from this natural language text: "${text}"
+
+Current date for reference: ${new Date().toISOString().split('T')[0]}
+User's default currency: ${defaultCurrency}
 
 Respond with ONLY a valid JSON array containing transaction objects. Each transaction should have these exact fields:
 {
   "amount": number (positive value),
-  "currency": "USD" | "BRL" | "EUR" | "GBP" | "CAD" (detect from context or default to USD),
+  "currency": "USD" | "BRL" | "EUR" | "GBP" | "CAD" | "JPY" | "MXN" | "AUD" | "CNY" | "CHF" | "INR" | "KRW" (detect ONLY from explicit symbols or words),
   "type": "income" | "expense" | "transfer",
   "description": "brief description",
-  "category": "category name or null",
+  "category": "MUST be one from the allowed list below",
   "merchantName": "merchant name or null",
+  "date": "YYYY-MM-DD" (parse from text like 'yesterday', 'last week', or use current date),
   "confidence": number between 0.0 and 1.0
 }
 
+ALLOWED CATEGORIES (choose ONLY from this list):
+For EXPENSES: ${PREDEFINED_CATEGORIES.expense.join(', ')}
+For INCOME: ${PREDEFINED_CATEGORIES.income.join(', ')}
+For TRANSFERS: ${PREDEFINED_CATEGORIES.transfer.join(', ')}
+
+CURRENCY DETECTION RULES - VERY IMPORTANT:
+- ONLY detect currency if EXPLICITLY stated with symbols or words
+- Symbols: $ = USD, R$ = BRL, € = EUR, £ = GBP, ¥ = JPY, MX$ = MXN
+- Words: "dollars"/"USD" = USD, "reais"/"BRL" = BRL, "euros"/"EUR" = EUR, "pesos mexicanos"/"MXN" = MXN, "yen"/"JPY" = JPY
+- If NO currency symbol or word is mentioned AT ALL: use ${defaultCurrency} (user's default)
+- DO NOT guess currency based on language - only use ${defaultCurrency} when there's NO currency indicator
+- Examples:
+  * "coffee 5" → use ${defaultCurrency} (no currency mentioned)
+  * "lunch 20" → use ${defaultCurrency} (no currency mentioned)
+  * "$50" → use USD ($ symbol means USD specifically)
+  * "R$50" → use BRL (explicit R$ symbol)
+  * "50 reais" → use BRL (explicit word)
+  * "€30" → use EUR (explicit symbol)
+  * "bought food 15" → use ${defaultCurrency} (no currency mentioned)
+
+DATE PARSING RULES:
+- "today" → current date
+- "yesterday" → current date - 1 day
+- "last week" / "N days ago" → calculate backwards from current date
+- "Monday", "Tuesday" → most recent occurrence
+- If no date mentioned → use current date
+
 Guidelines:
 - Extract ALL transactions mentioned in the text
-- For each transaction: extract amount, detect currency, determine type
+- For each transaction: extract amount, detect currency ONLY if explicit, determine type
 - Create concise descriptions without redundant words
-- Suggest appropriate categories if obvious from context
+- Category is REQUIRED: choose the closest match from allowed categories above, use "Other Expenses"/"Other Income"/"Other Transfers" if unsure
 - Extract merchant names if mentioned
+- Parse dates from natural language (yesterday, last week, etc.)
 - Set confidence based on clarity (0.9+ for clear, 0.7+ for good, 0.5+ for unclear)
 - If only one transaction is found, still return it as an array with one element
 - If no clear transactions are found, return an empty array []
 
-Examples:
-"Bought coffee for $5 and gas for $40" → [{"amount": 5, "currency": "USD", "type": "expense", "description": "coffee", "category": "Food & Dining", "merchantName": null, "confidence": 0.95}, {"amount": 40, "currency": "USD", "type": "expense", "description": "gas", "category": "Transportation", "merchantName": null, "confidence": 0.95}]
+Examples with default currency ${defaultCurrency}:
+"Bought coffee for 5 yesterday" → [{"amount": 5, "currency": "${defaultCurrency}", "type": "expense", "description": "coffee", "category": "Food & Dining", "merchantName": null, "date": "2025-10-29", "confidence": 0.95}]
 
-"Paid $50 for groceries at Walmart" → [{"amount": 50, "currency": "USD", "type": "expense", "description": "groceries", "category": "Food & Dining", "merchantName": "Walmart", "confidence": 0.95}]
+"coffee 5 and gas 40" → [{"amount": 5, "currency": "${defaultCurrency}", "type": "expense", "description": "coffee", "category": "Food & Dining", "merchantName": null, "date": "2025-10-30", "confidence": 0.95}, {"amount": 40, "currency": "${defaultCurrency}", "type": "expense", "description": "gas", "category": "Transportation", "merchantName": null, "date": "2025-10-30", "confidence": 0.95}]
 
-"Spent €15 on lunch, then €8 on parking, and received €200 freelance payment" → [{"amount": 15, "currency": "EUR", "type": "expense", "description": "lunch", "category": "Food & Dining", "merchantName": null, "confidence": 0.9}, {"amount": 8, "currency": "EUR", "type": "expense", "description": "parking", "category": "Transportation", "merchantName": null, "confidence": 0.9}, {"amount": 200, "currency": "EUR", "type": "income", "description": "freelance payment", "category": "Income", "merchantName": null, "confidence": 0.9}]
+"Cena con amigos 750 pesos mexicanos" → [{"amount": 750, "currency": "MXN", "type": "expense", "description": "dinner with friends", "category": "Food & Dining", "merchantName": null, "date": "2025-10-30", "confidence": 0.9}]
 
-Remember: Respond with ONLY the JSON array, no additional text.`;
+"Got paid 3000 BRL salary last Friday" → [{"amount": 3000, "currency": "BRL", "type": "income", "description": "salary", "category": "Employment Income", "merchantName": null, "date": "2025-10-24", "confidence": 0.95}]
+
+"Spent R$50 on groceries" → [{"amount": 50, "currency": "BRL", "type": "expense", "description": "groceries", "category": "Food & Dining", "merchantName": null, "date": "2025-10-30", "confidence": 0.95}]
+
+Remember: Respond with ONLY the JSON array, no additional text. Always use ${defaultCurrency} as currency if not explicitly stated. Always use categories from the allowed list.`;
   }
 
   private async tryAIModel(model: string, prompt: string, tier: string): Promise<string | null> {
@@ -481,7 +535,7 @@ Remember: Respond with ONLY the JSON array, no additional text.`;
         type = 'expense';
       }
 
-      // Basic category detection
+      // Category detection using predefined categories
       let category: string | null = null;
       if (patterns.food.test(text)) {
         category = 'Food & Dining';
@@ -491,6 +545,9 @@ Remember: Respond with ONLY the JSON array, no additional text.`;
         category = 'Shopping';
       } else if (patterns.bills.test(text)) {
         category = 'Bills & Utilities';
+      } else {
+        // Default to "Other Expenses" for expense type
+        category = type === 'income' ? 'Other Income' : 'Other Expenses';
       }
 
       // Create basic description (remove amount and currency from text)
@@ -581,7 +638,7 @@ Remember: Respond with ONLY the JSON array, no additional text.`;
       typeof parsed.amount === 'number' &&
       parsed.amount > 0 &&
       typeof parsed.currency === 'string' &&
-      ['USD', 'BRL', 'EUR', 'GBP', 'CAD'].includes(parsed.currency) &&
+      ['USD', 'BRL', 'EUR', 'GBP', 'CAD', 'JPY', 'MXN', 'AUD', 'CNY', 'CHF', 'INR', 'KRW'].includes(parsed.currency) &&
       typeof parsed.type === 'string' &&
       ['income', 'expense', 'transfer'].includes(parsed.type) &&
       typeof parsed.description === 'string' &&
@@ -811,35 +868,43 @@ Remember: Respond with ONLY the JSON array, no additional text.`;
   }
 
   private buildReceiptExtractionPrompt(): string {
-    return `Analyze this receipt image and extract transaction details. 
+    return `Analyze this receipt image and extract transaction details.
+
+Current date for reference: ${new Date().toISOString().split('T')[0]}
 
 Respond with ONLY a valid JSON object containing these fields:
 {
   "amount": number (total amount, positive value),
-  "currency": "USD" | "BRL" | "EUR" | "GBP" | "CAD" (detect from receipt or symbols),
+  "currency": "USD" | "BRL" | "EUR" | "GBP" | "CAD" | "JPY" | "MXN" | "AUD" | "CNY" (detect from receipt or symbols),
   "type": "expense" (receipts are always expenses),
   "description": "brief description of purchase",
-  "category": "category name" (Food & Dining, Shopping, Gas, etc.),
+  "category": "MUST be one from the allowed list below",
   "merchantName": "store/restaurant name",
-  "date": "YYYY-MM-DD" (if visible on receipt),
+  "date": "YYYY-MM-DD" (extract from receipt or use current date),
   "confidence": number between 0.7 and 1.0
 }
 
+ALLOWED CATEGORIES (choose ONLY from this list):
+${PREDEFINED_CATEGORIES.expense.join(', ')}
+
 Guidelines:
 - Focus on the total amount (after tax, fees, etc.)
-- Detect currency from symbols ($, €, £, R$) or text
+- Detect currency from symbols ($, €, £, R$, ¥, MX$) or text
 - Identify merchant name from header/footer
-- Categorize based on merchant type or items
-- Use today's date if not visible on receipt
+- Category is REQUIRED: choose the closest match from allowed categories above, use "Other Expenses" if unsure
+- Extract date from receipt if visible, otherwise use current date
 - Set confidence 0.9+ for clear receipts, 0.7+ for unclear ones
 
-Examples:
+Category Examples:
 - Grocery store receipt → "Food & Dining"
-- Gas station → "Transportation" 
-- Restaurant → "Food & Dining"
-- Retail store → "Shopping"
+- Gas station → "Transportation"
+- Restaurant, cafe, bar → "Food & Dining"
+- Retail/clothing store → "Shopping"
+- Pharmacy → "Health & Fitness"
+- Uber/taxi → "Transportation"
+- Hotel → "Travel & Vacation"
 
-Remember: Respond with ONLY the JSON object, no additional text.`;
+Remember: Respond with ONLY the JSON object, no additional text. Always use a category from the allowed list.`;
   }
 
   private parseReceiptResponse(response: string): any | null {
