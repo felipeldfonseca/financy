@@ -12,49 +12,50 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const SIDEBAR_WIDTH = 250;
 
 interface NavigationItem {
   id: string;
-  label: string;
+  labelKey: string;
   path: string;
   icon: React.ReactNode;
 }
 
-const navigationItems: NavigationItem[] = [
+const getNavigationItems = (t: any): NavigationItem[] => [
   {
-    id: 'dashboard',
-    label: 'Home',
+    id: 'home',
+    labelKey: 'home',
     path: '/',
     icon: null,
   },
   {
     id: 'transactions',
-    label: 'Transactions',
+    labelKey: 'transactions',
     path: '/transactions',
     icon: null,
   },
   {
     id: 'groups',
-    label: 'Groups',
+    labelKey: 'groups',
     path: '/contexts',
     icon: null,
   },
   {
     id: 'planning',
-    label: 'Planning',
+    labelKey: 'planning',
     path: '/planning',
     icon: null,
   },
 ];
 
-const settingsItem: NavigationItem = {
+const getSettingsItem = (t: any): NavigationItem => ({
   id: 'settings',
-  label: 'Settings',
+  labelKey: 'settings',
   path: '/settings',
   icon: null,
-};
+});
 
 interface SidebarProps {
   mobileOpen: boolean;
@@ -62,10 +63,14 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) => {
+  const { t } = useTranslation('navigation');
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  const navigationItems = getNavigationItems(t);
+  const settingsItem = getSettingsItem(t);
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -101,10 +106,10 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) => {
         }}
       >
         <Typography variant="brand" component="h1">
-          financy
+          {t('brand.name')}
         </Typography>
         <Typography variant="tagline" component="p" sx={{ mt: 0.5 }}>
-          you talk. your money listens.
+          {t('brand.tagline')}
         </Typography>
       </Box>
 
@@ -162,7 +167,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) => {
                         fontWeight: isActive(item.path) ? 700 : 400 
                       }}
                     >
-                      {item.label}
+                      {t(`menu.${item.labelKey}`)}
                     </Typography>
                   }
                 />
@@ -225,7 +230,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onMobileClose }) => {
                       fontWeight: isActive(settingsItem.path) ? 700 : 400 
                     }}
                   >
-                    {settingsItem.label}
+                    {t(`menu.${settingsItem.labelKey}`)}
                   </Typography>
                 }
               />

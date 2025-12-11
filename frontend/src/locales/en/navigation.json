@@ -1,9 +1,14 @@
 {
   "menu": {
-    "dashboard": "Dashboard",
+    "home": "Home",
     "transactions": "Transactions",
+    "groups": "Groups",
     "planning": "Planning",
     "settings": "Settings"
+  },
+  "brand": {
+    "name": "financy",
+    "tagline": "you talk. your money listens."
   },
   "header": {
     "searchPlaceholder": "Search transactions...",

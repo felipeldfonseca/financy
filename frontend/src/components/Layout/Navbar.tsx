@@ -20,9 +20,11 @@ import {
   Logout 
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Navbar: React.FC = () => {
+  const { t } = useTranslation('navigation');
   const { state, logout } = useAuth();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -95,20 +97,20 @@ const Navbar: React.FC = () => {
               <ListItemIcon>
                 <Person fontSize="small" />
               </ListItemIcon>
-              <ListItemText>Profile</ListItemText>
+              <ListItemText>{t('header.profile')}</ListItemText>
             </MenuItem>
             <MenuItem onClick={() => navigate('/settings')}>
               <ListItemIcon>
                 <Settings fontSize="small" />
               </ListItemIcon>
-              <ListItemText>Settings</ListItemText>
+              <ListItemText>{t('menu.settings')}</ListItemText>
             </MenuItem>
             <Divider />
             <MenuItem onClick={handleLogout}>
               <ListItemIcon>
                 <Logout fontSize="small" />
               </ListItemIcon>
-              <ListItemText>Logout</ListItemText>
+              <ListItemText>{t('header.logout')}</ListItemText>
             </MenuItem>
           </Menu>
         </Box>

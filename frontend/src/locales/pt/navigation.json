@@ -1,9 +1,14 @@
 {
   "menu": {
-    "dashboard": "Painel",
+    "home": "Início",
     "transactions": "Transações",
+    "groups": "Grupos",
     "planning": "Planejamento",
     "settings": "Configurações"
+  },
+  "brand": {
+    "name": "financy",
+    "tagline": "você fala. seu dinheiro escuta."
   },
   "header": {
     "searchPlaceholder": "Buscar transações...",
