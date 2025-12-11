@@ -7,6 +7,7 @@ import {
 import {
   Add as AddIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 interface ExpandableAddButtonProps {
   onAddTransaction?: () => void;
@@ -19,6 +20,7 @@ const ExpandableAddButton: React.FC<ExpandableAddButtonProps> = ({
   contextType = 'personal',
   selectedGroupName,
 }) => {
+  const { t } = useTranslation('dashboard');
   const [isHovered, setIsHovered] = useState(false);
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
 
@@ -40,9 +42,9 @@ const ExpandableAddButton: React.FC<ExpandableAddButtonProps> = ({
 
   const getButtonText = () => {
     if (contextType === 'groups' && selectedGroupName) {
-      return `Add to ${selectedGroupName}`;
+      return t('addButton.addToGroupName', { groupName: selectedGroupName });
     }
-    return contextType === 'groups' ? 'Add to Group' : 'Add Transaction';
+    return contextType === 'groups' ? t('addButton.addToGroup') : t('addButton.addTransaction');
   };
 
   return (

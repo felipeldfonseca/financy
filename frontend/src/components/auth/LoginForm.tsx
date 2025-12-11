@@ -12,6 +12,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { Visibility, VisibilityOff, Email, Lock } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoginData } from '../../services/authApi';
 
@@ -20,6 +21,7 @@ interface LoginFormProps {
 }
 
 export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
+  const { t } = useTranslation('auth');
   const [showPassword, setShowPassword] = useState(false);
   const { state, login, clearError } = useAuth();
   const navigate = useNavigate();
@@ -47,10 +49,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   return (
     <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
       <Typography variant="h4" component="h1" gutterBottom align="center">
-        Welcome Back
+        {t('login.title')}
       </Typography>
       <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
-        Sign in to your Financy account
+        {t('login.subtitle')}
       </Typography>
 
       {state.error && (
@@ -61,14 +63,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
 
       <TextField
         {...register('email', {
-          required: 'Email is required',
+          required: t('login.email.required'),
           pattern: {
             value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-            message: 'Invalid email address',
+            message: t('login.email.invalid'),
           },
         })}
         fullWidth
-        label="Email"
+        label={t('login.email.label')}
         type="email"
         autoComplete="email"
         autoFocus
@@ -86,10 +88,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
 
       <TextField
         {...register('password', {
-          required: 'Password is required',
+          required: t('login.password.required'),
         })}
         fullWidth
-        label="Password"
+        label={t('login.password.label')}
         type={showPassword ? 'text' : 'password'}
         autoComplete="current-password"
         margin="normal"
@@ -104,7 +106,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           endAdornment: (
             <InputAdornment position="end">
               <IconButton
-                aria-label="toggle password visibility"
+                aria-label={t('login.password.toggleVisibility')}
                 onClick={() => setShowPassword(!showPassword)}
                 edge="end"
               >
@@ -126,7 +128,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         {isSubmitting || state.isLoading ? (
           <CircularProgress size={24} color="inherit" />
         ) : (
-          'Sign In'
+          t('login.submit')
         )}
       </Button>
     </Box>

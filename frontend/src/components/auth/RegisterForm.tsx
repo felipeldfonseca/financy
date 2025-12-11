@@ -13,6 +13,7 @@ import {
   Grid,
 } from '@mui/material';
 import { Visibility, VisibilityOff, Email, Lock, Person } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { RegisterData } from '../../services/authApi';
 
@@ -25,6 +26,7 @@ interface RegisterFormProps {
 }
 
 export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
+  const { t } = useTranslation('auth');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { state, register: registerUser, clearError } = useAuth();
@@ -55,24 +57,24 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
   };
 
   const passwordValidation = {
-    required: 'Password is required',
+    required: t('register.password.required'),
     minLength: {
       value: 8,
-      message: 'Password must be at least 8 characters',
+      message: t('register.password.minLength'),
     },
     pattern: {
       value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-      message: 'Password must contain uppercase, lowercase, number, and special character',
+      message: t('register.password.strength'),
     },
   };
 
   return (
     <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
       <Typography variant="h4" component="h1" gutterBottom align="center">
-        Create Account
+        {t('register.title')}
       </Typography>
       <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
-        Join Financy to start managing your finances
+        {t('register.subtitle')}
       </Typography>
 
       {state.error && (
@@ -85,10 +87,10 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
         <Grid item xs={12} sm={6}>
           <TextField
             {...register('firstName', {
-              required: 'First name is required',
+              required: t('register.firstName.required'),
               minLength: {
                 value: 2,
-                message: 'First name must be at least 2 characters',
+                message: t('register.firstName.minLength'),
               },
               maxLength: {
                 value: 50,
@@ -96,7 +98,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
               },
             })}
             fullWidth
-            label="First Name"
+            label={t('register.firstName.label')}
             autoComplete="given-name"
             autoFocus
             error={!!errors.firstName}
@@ -113,10 +115,10 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
         <Grid item xs={12} sm={6}>
           <TextField
             {...register('lastName', {
-              required: 'Last name is required',
+              required: t('register.lastName.required'),
               minLength: {
                 value: 2,
-                message: 'Last name must be at least 2 characters',
+                message: t('register.lastName.minLength'),
               },
               maxLength: {
                 value: 50,
@@ -124,7 +126,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
               },
             })}
             fullWidth
-            label="Last Name"
+            label={t('register.lastName.label')}
             autoComplete="family-name"
             error={!!errors.lastName}
             helperText={errors.lastName?.message}
@@ -141,14 +143,14 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
 
       <TextField
         {...register('email', {
-          required: 'Email is required',
+          required: t('register.email.required'),
           pattern: {
             value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-            message: 'Invalid email address',
+            message: t('register.email.invalid'),
           },
         })}
         fullWidth
-        label="Email"
+        label={t('register.email.label')}
         type="email"
         autoComplete="email"
         margin="normal"
@@ -166,7 +168,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
       <TextField
         {...register('password', passwordValidation)}
         fullWidth
-        label="Password"
+        label={t('register.password.label')}
         type={showPassword ? 'text' : 'password'}
         autoComplete="new-password"
         margin="normal"
@@ -194,11 +196,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
 
       <TextField
         {...register('confirmPassword', {
-          required: 'Please confirm your password',
-          validate: (value) => value === password || 'Passwords do not match',
+          required: t('register.confirmPassword.required'),
+          validate: (value) => value === password || t('register.confirmPassword.noMatch'),
         })}
         fullWidth
-        label="Confirm Password"
+        label={t('register.confirmPassword.label')}
         type={showConfirmPassword ? 'text' : 'password'}
         autoComplete="new-password"
         margin="normal"
@@ -235,7 +237,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
         {isSubmitting || state.isLoading ? (
           <CircularProgress size={24} color="inherit" />
         ) : (
-          'Create Account'
+          t('register.submit')
         )}
       </Button>
     </Box>
