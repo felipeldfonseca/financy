@@ -1,1 +1,80 @@
-{}
+{
+  "title": "Settings",
+  "profile": {
+    "title": "Profile Information",
+    "email": "Email",
+    "emailHelper": "Email cannot be changed",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "language": "Language",
+    "timezone": "Timezone",
+    "saveButton": "Save Profile",
+    "saving": "Saving...",
+    "successMessage": "Profile updated successfully!",
+    "errorRequired": "First name and last name are required.",
+    "errorGeneric": "Failed to update profile. Please try again."
+  },
+  "currency": {
+    "title": "Currency Preferences",
+    "defaultCurrency": "Default Currency",
+    "helper": "All transactions will be converted to this currency for display and analytics",
+    "current": "Current Currency",
+    "new": "New Currency",
+    "saveButton": "Save Currency Preference",
+    "saving": "Saving...",
+    "successMessage": "Currency preference updated successfully! All your transactions will now be displayed in {{currency}}.",
+    "errorGeneric": "Failed to update currency. Please try again.",
+    "note": {
+      "title": "Note:",
+      "description": "When you change your default currency:",
+      "points": {
+        "conversion": "New transactions entered in different currencies will be automatically converted to {{currency}}",
+        "display": "Your dashboard and analytics will display all amounts in {{currency}}",
+        "rates": "Exchange rates are updated hourly for accuracy",
+        "preservation": "Original transaction amounts and currencies are preserved"
+      }
+    }
+  },
+  "password": {
+    "title": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "helper": "Minimum 8 characters",
+    "changeButton": "Change Password",
+    "changing": "Changing Password...",
+    "successMessage": "Password changed successfully!",
+    "errorRequired": "All password fields are required.",
+    "errorMinLength": "New password must be at least 8 characters long.",
+    "errorMismatch": "New passwords do not match.",
+    "errorGeneric": "Failed to change password. Please try again."
+  },
+  "telegram": {
+    "title": "Telegram Integration",
+    "description": "Track finances via Telegram",
+    "connected": "Connected",
+    "notConnected": "Not Connected",
+    "manageButton": "Manage Connection",
+    "connectButton": "Connect Telegram",
+    "infoMessage": "Link your Telegram account to track transactions with text messages, voice notes, or photos on the go!"
+  },
+  "languages": {
+    "en": "English",
+    "es": "Español",
+    "pt": "Português",
+    "fr": "Français",
+    "de": "Deutsch"
+  },
+  "timezones": {
+    "America/New_York": "Eastern Time (ET)",
+    "America/Chicago": "Central Time (CT)",
+    "America/Denver": "Mountain Time (MT)",
+    "America/Los_Angeles": "Pacific Time (PT)",
+    "America/Sao_Paulo": "Brasília Time (BRT)",
+    "Europe/London": "London (GMT)",
+    "Europe/Paris": "Central European Time (CET)",
+    "Asia/Tokyo": "Japan Standard Time (JST)",
+    "Australia/Sydney": "Australian Eastern Time (AET)",
+    "UTC": "Coordinated Universal Time (UTC)"
+  }
+}

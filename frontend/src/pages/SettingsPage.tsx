@@ -21,42 +21,53 @@ import {
   Visibility,
   VisibilityOff,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { authApi } from '../services/authApi';
 import { SUPPORTED_CURRENCIES, getCurrencySymbol } from '../utils/currency.utils';
 
-// Language options
-const SUPPORTED_LANGUAGES = [
-  { code: 'en', name: 'English' },
-  { code: 'es', name: 'Español' },
-  { code: 'pt', name: 'Português' },
-  { code: 'fr', name: 'Français' },
-  { code: 'de', name: 'Deutsch' },
+// Get language options with translations
+const getLanguageOptions = (t: any) => [
+  { code: 'en', name: t('languages.en') },
+  { code: 'es', name: t('languages.es') },
+  { code: 'pt', name: t('languages.pt') },
+  { code: 'fr', name: t('languages.fr') },
+  { code: 'de', name: t('languages.de') },
 ];
 
-// Common timezones
-const SUPPORTED_TIMEZONES = [
-  { value: 'America/New_York', label: 'Eastern Time (ET)' },
-  { value: 'America/Chicago', label: 'Central Time (CT)' },
-  { value: 'America/Denver', label: 'Mountain Time (MT)' },
-  { value: 'America/Los_Angeles', label: 'Pacific Time (PT)' },
-  { value: 'America/Sao_Paulo', label: 'Brasília Time (BRT)' },
-  { value: 'Europe/London', label: 'London (GMT)' },
-  { value: 'Europe/Paris', label: 'Central European Time (CET)' },
-  { value: 'Asia/Tokyo', label: 'Japan Standard Time (JST)' },
-  { value: 'Australia/Sydney', label: 'Australian Eastern Time (AET)' },
-  { value: 'UTC', label: 'Coordinated Universal Time (UTC)' },
+// Get timezone options with translations
+const getTimezoneOptions = (t: any) => [
+  { value: 'America/New_York', label: t('timezones.America/New_York') },
+  { value: 'America/Chicago', label: t('timezones.America/Chicago') },
+  { value: 'America/Denver', label: t('timezones.America/Denver') },
+  { value: 'America/Los_Angeles', label: t('timezones.America/Los_Angeles') },
+  { value: 'America/Sao_Paulo', label: t('timezones.America/Sao_Paulo') },
+  { value: 'Europe/London', label: t('timezones.Europe/London') },
+  { value: 'Europe/Paris', label: t('timezones.Europe/Paris') },
+  { value: 'Asia/Tokyo', label: t('timezones.Asia/Tokyo') },
+  { value: 'Australia/Sydney', label: t('timezones.Australia/Sydney') },
+  { value: 'UTC', label: t('timezones.UTC') },
 ];
 
 const SettingsPage: React.FC = () => {
+  const { t } = useTranslation('settings');
   const navigate = useNavigate();
   const { state: authState, refreshAuth } = useAuth();
+  const { changeLanguage } = useLanguage();
 
   // Profile state
   const [firstName, setFirstName] = useState(authState.user?.firstName || '');
   const [lastName, setLastName] = useState(authState.user?.lastName || '');
   const [language, setLanguage] = useState(authState.user?.language || 'en');
+
+  // Handle language change with real-time UI update
+  const handleLanguageChange = (newLanguage: string) => {
+    setLanguage(newLanguage);
+    // Immediately change the UI language
+    changeLanguage(newLanguage);
+  };
   const [timezone, setTimezone] = useState(authState.user?.timezone || 'UTC');
   const [selectedCurrency, setSelectedCurrency] = useState(authState.user?.defaultCurrency || 'USD');
 
@@ -105,7 +116,7 @@ const SettingsPage: React.FC = () => {
 
     // Validation
     if (!firstName.trim() || !lastName.trim()) {
-      setErrorProfile('First name and last name are required.');
+      setErrorProfile(t('profile.errorRequired'));
       return;
     }
 
@@ -125,7 +136,7 @@ const SettingsPage: React.FC = () => {
       setSuccessProfile(true);
       setTimeout(() => setSuccessProfile(false), 3000);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to update profile. Please try again.';
+      const errorMessage = err.response?.data?.message || t('profile.errorGeneric');
       setErrorProfile(errorMessage);
     } finally {
       setIsLoadingProfile(false);
@@ -148,7 +159,7 @@ const SettingsPage: React.FC = () => {
       setSuccessCurrency(true);
       setTimeout(() => setSuccessCurrency(false), 3000);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to update currency. Please try again.';
+      const errorMessage = err.response?.data?.message || t('currency.errorGeneric');
       setErrorCurrency(errorMessage);
     } finally {
       setIsLoadingCurrency(false);
@@ -158,17 +169,17 @@ const SettingsPage: React.FC = () => {
   const handleChangePassword = async () => {
     // Validation
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setErrorPassword('All password fields are required.');
+      setErrorPassword(t('password.errorRequired'));
       return;
     }
 
     if (newPassword.length < 8) {
-      setErrorPassword('New password must be at least 8 characters long.');
+      setErrorPassword(t('password.errorMinLength'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setErrorPassword('New passwords do not match.');
+      setErrorPassword(t('password.errorMismatch'));
       return;
     }
 
@@ -188,7 +199,7 @@ const SettingsPage: React.FC = () => {
       setConfirmPassword('');
       setTimeout(() => setSuccessPassword(false), 3000);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to change password. Please try again.';
+      const errorMessage = err.response?.data?.message || t('password.errorGeneric');
       setErrorPassword(errorMessage);
     } finally {
       setIsLoadingPassword(false);
@@ -196,10 +207,14 @@ const SettingsPage: React.FC = () => {
   };
 
 
+  // Get translated options
+  const languageOptions = getLanguageOptions(t);
+  const timezoneOptions = getTimezoneOptions(t);
+
   return (
     <Box sx={{ py: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        Settings
+        {t('title')}
       </Typography>
 
       <Grid container spacing={3}>
@@ -207,13 +222,13 @@ const SettingsPage: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
-              Profile Information
+              {t('profile.title')}
             </Typography>
             <Divider sx={{ mb: 2 }} />
 
             {successProfile && (
               <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessProfile(false)}>
-                Profile updated successfully!
+                {t('profile.successMessage')}
               </Alert>
             )}
 
@@ -225,15 +240,15 @@ const SettingsPage: React.FC = () => {
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <TextField
-                label="Email"
+                label={t('profile.email')}
                 value={authState.user?.email || ''}
                 disabled
                 fullWidth
                 variant="outlined"
-                helperText="Email cannot be changed"
+                helperText={t('profile.emailHelper')}
               />
               <TextField
-                label="First Name"
+                label={t('profile.firstName')}
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 fullWidth
@@ -241,7 +256,7 @@ const SettingsPage: React.FC = () => {
                 required
               />
               <TextField
-                label="Last Name"
+                label={t('profile.lastName')}
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 fullWidth
@@ -250,13 +265,13 @@ const SettingsPage: React.FC = () => {
               />
               <TextField
                 select
-                label="Language"
+                label={t('profile.language')}
                 value={language}
-                onChange={(e) => setLanguage(e.target.value)}
+                onChange={(e) => handleLanguageChange(e.target.value)}
                 fullWidth
                 variant="outlined"
               >
-                {SUPPORTED_LANGUAGES.map((lang) => (
+                {languageOptions.map((lang) => (
                   <MenuItem key={lang.code} value={lang.code}>
                     {lang.name}
                   </MenuItem>
@@ -264,13 +279,13 @@ const SettingsPage: React.FC = () => {
               </TextField>
               <TextField
                 select
-                label="Timezone"
+                label={t('profile.timezone')}
                 value={timezone}
                 onChange={(e) => setTimezone(e.target.value)}
                 fullWidth
                 variant="outlined"
               >
-                {SUPPORTED_TIMEZONES.map((tz) => (
+                {timezoneOptions.map((tz) => (
                   <MenuItem key={tz.value} value={tz.value}>
                     {tz.label}
                   </MenuItem>
@@ -288,10 +303,10 @@ const SettingsPage: React.FC = () => {
                 {isLoadingProfile ? (
                   <>
                     <CircularProgress size={20} sx={{ mr: 1 }} color="inherit" />
-                    Saving...
+                    {t('profile.saving')}
                   </>
                 ) : (
-                  'Save Profile'
+                  t('profile.saveButton')
                 )}
               </Button>
             </Box>

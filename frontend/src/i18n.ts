@@ -5,21 +5,25 @@ import { initReactI18next } from 'react-i18next';
 import enCommon from './locales/en/common.json';
 import enOnboarding from './locales/en/onboarding.json';
 import enNavigation from './locales/en/navigation.json';
+import enSettings from './locales/en/settings.json';
 
 import ptCommon from './locales/pt/common.json';
 import ptOnboarding from './locales/pt/onboarding.json';
 import ptNavigation from './locales/pt/navigation.json';
+import ptSettings from './locales/pt/settings.json';
 
 const resources = {
   en: {
     common: enCommon,
     onboarding: enOnboarding,
     navigation: enNavigation,
+    settings: enSettings,
   },
   pt: {
     common: ptCommon,
     onboarding: ptOnboarding,
     navigation: ptNavigation,
+    settings: ptSettings,
   },
 };
 
@@ -36,7 +40,7 @@ i18n
 
     // Namespace configuration
     defaultNS: 'common',
-    ns: ['common', 'onboarding', 'navigation'],
+    ns: ['common', 'onboarding', 'navigation', 'settings'],
 
     // Debug mode for development
     debug: process.env.NODE_ENV === 'development',

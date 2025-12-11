@@ -1,0 +1,80 @@
+{
+  "title": "Configurações",
+  "profile": {
+    "title": "Informações do Perfil",
+    "email": "E-mail",
+    "emailHelper": "E-mail não pode ser alterado",
+    "firstName": "Primeiro Nome",
+    "lastName": "Último Nome",
+    "language": "Idioma",
+    "timezone": "Fuso Horário",
+    "saveButton": "Salvar Perfil",
+    "saving": "Salvando...",
+    "successMessage": "Perfil atualizado com sucesso!",
+    "errorRequired": "Primeiro nome e último nome são obrigatórios.",
+    "errorGeneric": "Falha ao atualizar perfil. Tente novamente."
+  },
+  "currency": {
+    "title": "Preferências de Moeda",
+    "defaultCurrency": "Moeda Padrão",
+    "helper": "Todas as transações serão convertidas para esta moeda para exibição e análises",
+    "current": "Moeda Atual",
+    "new": "Nova Moeda",
+    "saveButton": "Salvar Preferência de Moeda",
+    "saving": "Salvando...",
+    "successMessage": "Preferência de moeda atualizada com sucesso! Todas as suas transações agora serão exibidas em {{currency}}.",
+    "errorGeneric": "Falha ao atualizar moeda. Tente novamente.",
+    "note": {
+      "title": "Nota:",
+      "description": "Quando você alterar sua moeda padrão:",
+      "points": {
+        "conversion": "Novas transações inseridas em moedas diferentes serão automaticamente convertidas para {{currency}}",
+        "display": "Seu painel e análises exibirão todos os valores em {{currency}}",
+        "rates": "As taxas de câmbio são atualizadas de hora em hora para precisão",
+        "preservation": "Os valores e moedas originais das transações são preservados"
+      }
+    }
+  },
+  "password": {
+    "title": "Alterar Senha",
+    "currentPassword": "Senha Atual",
+    "newPassword": "Nova Senha",
+    "confirmPassword": "Confirmar Nova Senha",
+    "helper": "Mínimo 8 caracteres",
+    "changeButton": "Alterar Senha",
+    "changing": "Alterando Senha...",
+    "successMessage": "Senha alterada com sucesso!",
+    "errorRequired": "Todos os campos de senha são obrigatórios.",
+    "errorMinLength": "A nova senha deve ter pelo menos 8 caracteres.",
+    "errorMismatch": "As novas senhas não coincidem.",
+    "errorGeneric": "Falha ao alterar senha. Tente novamente."
+  },
+  "telegram": {
+    "title": "Integração com Telegram",
+    "description": "Acompanhe finanças via Telegram",
+    "connected": "Conectado",
+    "notConnected": "Não Conectado",
+    "manageButton": "Gerenciar Conexão",
+    "connectButton": "Conectar Telegram",
+    "infoMessage": "Conecte sua conta do Telegram para rastrear transações com mensagens de texto, notas de voz ou fotos em qualquer lugar!"
+  },
+  "languages": {
+    "en": "English",
+    "es": "Español",
+    "pt": "Português",
+    "fr": "Français",
+    "de": "Deutsch"
+  },
+  "timezones": {
+    "America/New_York": "Hora do Leste (ET)",
+    "America/Chicago": "Hora Central (CT)",
+    "America/Denver": "Hora da Montanha (MT)",
+    "America/Los_Angeles": "Hora do Pacífico (PT)",
+    "America/Sao_Paulo": "Horário de Brasília (BRT)",
+    "Europe/London": "Londres (GMT)",
+    "Europe/Paris": "Hora Central Europeia (CET)",
+    "Asia/Tokyo": "Hora Padrão do Japão (JST)",
+    "Australia/Sydney": "Hora do Leste Australiano (AET)",
+    "UTC": "Tempo Universal Coordenado (UTC)"
+  }
+}
