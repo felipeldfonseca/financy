@@ -21,6 +21,7 @@ import { MessageProcessorService } from './message-processor.service';
 import { ContextDetectionService } from './context-detection.service';
 import { ContextSetupService } from './context-setup.service';
 import { MemberRole } from '../contexts/entities/context-member.entity';
+import { getTelegramTranslation } from './translations';
 
 @Injectable()
 export class TelegramService implements OnModuleInit, OnModuleDestroy {
@@ -409,12 +410,13 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
           if (validTransactions.length === 1) {
             // Single transaction - use existing format
             const confirmationMessage = await this.formatTransactionConfirmation(validTransactions[0], userId);
+            const translation = getTelegramTranslation(userLanguage);
             await this.sendMessage(chatId, confirmationMessage, {
               reply_markup: {
                 inline_keyboard: [[
-                  { text: '✅ Confirm', callback_data: `confirm_${validTransactions[0].tempId}` },
-                  { text: '✏️ Edit', callback_data: `edit_${validTransactions[0].tempId}` },
-                  { text: '❌ Cancel', callback_data: `cancel_${validTransactions[0].tempId}` },
+                  { text: translation.buttons.confirm, callback_data: `confirm_${validTransactions[0].tempId}` },
+                  { text: translation.buttons.edit, callback_data: `edit_${validTransactions[0].tempId}` },
+                  { text: translation.buttons.cancel, callback_data: `cancel_${validTransactions[0].tempId}` },
                 ]],
               },
             });
@@ -426,12 +428,13 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
             // Store batch for processing
             this.storeBatchTransactions(batchId, validTransactions);
             
+            const translation = getTelegramTranslation(userLanguage);
             await this.sendMessage(chatId, confirmationMessage, {
               reply_markup: {
                 inline_keyboard: [[
-                  { text: '✅ Confirm All', callback_data: `confirm_batch_${batchId}` },
-                  { text: '✏️ Review', callback_data: `review_batch_${batchId}` },
-                  { text: '❌ Cancel All', callback_data: `cancel_batch_${batchId}` },
+                  { text: translation.buttons.confirmAll, callback_data: `confirm_batch_${batchId}` },
+                  { text: translation.buttons.review, callback_data: `review_batch_${batchId}` },
+                  { text: translation.buttons.cancelAll, callback_data: `cancel_batch_${batchId}` },
                 ]],
               },
             });
@@ -506,12 +509,13 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
           if (validTransactions.length === 1) {
             // Single transaction - use existing format
             const confirmationMessage = await this.formatTransactionConfirmation(validTransactions[0], userId);
+            const translation = getTelegramTranslation(userLanguage);
             await this.sendMessage(chatId, confirmationMessage, {
               reply_markup: {
                 inline_keyboard: [[
-                  { text: '✅ Confirm', callback_data: `confirm_${validTransactions[0].tempId}` },
-                  { text: '✏️ Edit', callback_data: `edit_${validTransactions[0].tempId}` },
-                  { text: '❌ Cancel', callback_data: `cancel_${validTransactions[0].tempId}` },
+                  { text: translation.buttons.confirm, callback_data: `confirm_${validTransactions[0].tempId}` },
+                  { text: translation.buttons.edit, callback_data: `edit_${validTransactions[0].tempId}` },
+                  { text: translation.buttons.cancel, callback_data: `cancel_${validTransactions[0].tempId}` },
                 ]],
               },
             });
@@ -523,12 +527,13 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
             // Store batch for processing
             this.storeBatchTransactions(batchId, validTransactions);
             
+            const translation = getTelegramTranslation(userLanguage);
             await this.sendMessage(chatId, confirmationMessage, {
               reply_markup: {
                 inline_keyboard: [[
-                  { text: '✅ Confirm All', callback_data: `confirm_batch_${batchId}` },
-                  { text: '✏️ Review', callback_data: `review_batch_${batchId}` },
-                  { text: '❌ Cancel All', callback_data: `cancel_batch_${batchId}` },
+                  { text: translation.buttons.confirmAll, callback_data: `confirm_batch_${batchId}` },
+                  { text: translation.buttons.review, callback_data: `review_batch_${batchId}` },
+                  { text: translation.buttons.cancelAll, callback_data: `cancel_batch_${batchId}` },
                 ]],
               },
             });
@@ -897,13 +902,29 @@ Or just type the complete transaction again:
     }
   }
 
+  private async getUserLanguage(userId: string): Promise<string> {
+    try {
+      const user = await this.usersRepository.findOne({ 
+        where: { id: userId, isActive: true },
+        select: ['language']
+      });
+      return user?.language || 'en';
+    } catch (error) {
+      this.logger.warn('Could not fetch user language, using default:', error.message);
+      return 'en';
+    }
+  }
+
   private async formatTransactionConfirmation(transaction: ParsedTransaction, userId: string): Promise<string> {
+    const userLanguage = await this.getUserLanguage(userId);
+    const t = getTelegramTranslation(userLanguage);
+
     let contextInfo = '';
     if (transaction.contextId) {
       try {
         const context = await this.contextDetection.getContextInfo(transaction.contextId, userId);
         const contextEmoji = this.getContextIcon(context.type);
-        contextInfo = `${contextEmoji} <b>Context:</b> ${context.name}\n`;
+        contextInfo = `${contextEmoji} <b>${t.context}:</b> ${context.name}\n`;
       } catch (error) {
         this.logger.warn('Could not get context info:', error.message);
       }
@@ -917,12 +938,12 @@ Or just type the complete transaction again:
     }
 
     // Get conversational opening and closing based on transaction type and details
-    const { opening, closing } = this.getConversationalMessages(transaction);
+    const { opening, closing } = this.getConversationalMessages(transaction, t);
 
     return `
 ${opening}
 
-I've got this logged:
+${t.logged}
 💵 ${amountDisplay} → ${transaction.description}
 🏷️  ${transaction.type}${transaction.category ? ` • ${transaction.category}` : ''}
 ${transaction.merchantName ? `🏪 ${transaction.merchantName}\n` : ''}${contextInfo}
@@ -930,7 +951,7 @@ ${closing}
     `;
   }
 
-  private getConversationalMessages(transaction: ParsedTransaction): { opening: string; closing: string } {
+  private getConversationalMessages(transaction: ParsedTransaction, t: any): { opening: string; closing: string } {
     const isInvestment = transaction.category?.toLowerCase().includes('investment') || 
                         transaction.description?.toLowerCase().includes('investment');
     const isSavings = transaction.category?.toLowerCase().includes('saving') || 
@@ -938,60 +959,15 @@ ${closing}
     const isIncome = transaction.type === 'income';
     const isTransfer = transaction.type === 'transfer';
 
-    // Opening messages with variations
-    const openings = {
-      investment: [
-        'Great job building those investments! 🎯',
-        'Nice investment move! 📈',
-        'Smart investing there! 💪',
-        'Love seeing those investment contributions! 🚀'
-      ],
-      savings: [
-        'Excellent work on those savings! 💰',
-        'Great job putting money aside! 🎯', 
-        'Smart saving move! 📈',
-        'Love seeing those savings grow! 💪'
-      ],
-      income: [
-        'Nice! Looks like some income came in 💰',
-        'Sweet! Money coming in 🎉',
-        'Great! Income detected 💵',
-        'Awesome! Looks like you got paid 🙌'
-      ],
-      transfer: [
-        'Got it! Money movement detected 💸',
-        'I see that transfer 💰',
-        'Caught that money transfer! 📱',
-        'Transfer logged! 🔄'
-      ],
-      expense: [
-        'Hey! I caught that expense 💸',
-        'Got it! Expense tracked 📝',
-        'I see that purchase 🛒',
-        'Expense logged! 💳'
-      ]
-    };
-
-    // Closing messages with variations
-    const closings = {
-      confirmation: [
-        'Does this look right?',
-        'Should I save this transaction?',
-        'Look good to you?',
-        'Ready to confirm?',
-        'All set to save?'
-      ]
-    };
-
     // Determine message type
     let messageType = 'expense';
     if (isIncome) messageType = 'income';
     else if (isTransfer && (isInvestment || isSavings)) messageType = 'investment';
     else if (isTransfer) messageType = 'transfer';
 
-    // Get random messages
-    const openingOptions = openings[messageType];
-    const closingOptions = closings.confirmation;
+    // Get random messages from translations
+    const openingOptions = t.conversation[messageType];
+    const closingOptions = t.confirmation;
     
     const opening = openingOptions[Math.floor(Math.random() * openingOptions.length)];
     const closing = closingOptions[Math.floor(Math.random() * closingOptions.length)];
@@ -1169,11 +1145,14 @@ ${closing}
     
     message += `You can edit individual transactions by typing them again, or proceed with confirmation.`;
     
+    const userLanguage = await this.getUserLanguage(chatId.toString());
+    const translation = getTelegramTranslation(userLanguage);
+    
     await this.sendMessage(chatId, message, {
       reply_markup: {
         inline_keyboard: [[
-          { text: '✅ Confirm All', callback_data: `confirm_batch_${batchId}` },
-          { text: '❌ Cancel All', callback_data: `cancel_batch_${batchId}` },
+          { text: translation.buttons.confirmAll, callback_data: `confirm_batch_${batchId}` },
+          { text: translation.buttons.cancelAll, callback_data: `cancel_batch_${batchId}` },
         ]],
       },
     });
