@@ -4,7 +4,7 @@
     "withName": "Bem-vindo, {{name}}!",
     "hello": "Olá, {{name}}!",
     "overview": "Aqui está sua visão geral financeira.",
-    "getStarted": "Vamos começar!"
+    "getStarted": "Vamos começar!",\n    "myProfile": "Meu perfil",\n    "logOut": "Sair"
   },
   "emptyState": {
     "title": "Bem-vindo ao Financy!",

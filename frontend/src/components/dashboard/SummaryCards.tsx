@@ -13,6 +13,7 @@ import {
   AccountBalanceWallet as BalanceIcon,
   SwapVerticalCircle as TransactionIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 interface SummaryData {
   totalIncome: number;
@@ -141,6 +142,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
 );
 
 const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isLoading = false, userCurrency = 'USD' }) => {
+  const { t } = useTranslation('dashboard');
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -152,28 +154,28 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data, isLoading = false, us
 
   const summaryItems = [
     {
-      title: 'Total Income',
+      title: t('summaryCards.totalIncome'),
       value: data ? formatCurrency(data.totalIncome) : '$0',
       numericValue: data ? data.totalIncome : 0,
       icon: <IncomeIcon sx={{ fontSize: 24 }} />,
       color: '#10b981', // Modern green
     },
     {
-      title: 'Total Expenses',
+      title: t('summaryCards.totalExpenses'),
       value: data ? formatCurrency(Math.abs(data.totalExpenses)) : '$0',
       numericValue: data ? Math.abs(data.totalExpenses) : 0,
       icon: <ExpenseIcon sx={{ fontSize: 24 }} />,
       color: '#ef4444', // Modern red
     },
     {
-      title: 'Net Amount',
+      title: t('summaryCards.netAmount'),
       value: data ? formatCurrency(data.netAmount) : '$0',
       numericValue: data ? data.netAmount : 0,
       icon: <BalanceIcon sx={{ fontSize: 24 }} />,
       color: data && data.netAmount >= 0 ? '#10b981' : '#ef4444',
     },
     {
-      title: 'Transactions',
+      title: t('summaryCards.transactions'),
       value: data ? data.transactionCount.toString() : '0',
       numericValue: data ? data.transactionCount : 0,
       icon: <TransactionIcon sx={{ fontSize: 24 }} />,

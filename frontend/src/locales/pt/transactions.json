@@ -1,1 +1,56 @@
-{}
+{
+  "form": {
+    "addTitle": "Adicionar Nova Transação",
+    "editTitle": "Editar Transação",
+    "amount": {
+      "label": "Valor",
+      "required": "Valor é obrigatório",
+      "invalid": "Por favor insira um valor válido"
+    },
+    "type": {
+      "label": "Tipo",
+      "required": "Tipo é obrigatório",
+      "expense": "Despesa",
+      "income": "Receita", 
+      "transfer": "Transferência"
+    },
+    "description": {
+      "label": "Descrição",
+      "required": "Descrição é obrigatória",
+      "placeholder": "No que você gastou?"
+    },
+    "category": {
+      "label": "Categoria",
+      "required": "Categoria é obrigatória"
+    },
+    "subcategory": {
+      "label": "Subcategoria"
+    },
+    "date": {
+      "label": "Data",
+      "required": "Data é obrigatória"
+    },
+    "time": {
+      "label": "Hora"
+    },
+    "merchant": {
+      "label": "Estabelecimento"
+    },
+    "location": {
+      "label": "Local"
+    },
+    "currency": {
+      "label": "Moeda"
+    },
+    "notes": {
+      "label": "Observações",
+      "placeholder": "Observações adicionais..."
+    },
+    "buttons": {
+      "cancel": "Cancelar",
+      "add": "Adicionar Transação",
+      "update": "Atualizar Transação",
+      "saving": "Salvando..."
+    }
+  }
+}

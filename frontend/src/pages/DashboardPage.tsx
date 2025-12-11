@@ -18,6 +18,7 @@ import {
   HelpOutline as HelpIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import SummaryCards from '../components/dashboard/SummaryCards';
 import ChartSection from '../components/dashboard/ChartSection';
@@ -66,6 +67,7 @@ interface Group {
 }
 
 const DashboardPage: React.FC = () => {
+  const { t } = useTranslation('dashboard');
   const { state, logout } = useAuth();
   const navigate = useNavigate();
   const [data, setData] = useState<DashboardData | null>(null);
@@ -140,7 +142,7 @@ const DashboardPage: React.FC = () => {
 
         setError(null);
       } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to load dashboard data');
+        setError(err.response?.data?.message || t('errors.failedToLoad'));
         console.error('Dashboard data loading error:', err);
         setHasTransactions(false);
       } finally {
@@ -195,11 +197,11 @@ const DashboardPage: React.FC = () => {
   };
 
   const getWelcomeMessage = () => {
-    if (!state.user?.firstName) return 'Welcome back!';
+    if (!state.user?.firstName) return t('welcome.back');
     const capitalizedFirstName = state.user.firstName.charAt(0).toUpperCase() + state.user.firstName.slice(1).toLowerCase();
     return isFirstVisit() 
-      ? `Welcome, ${capitalizedFirstName}!`
-      : `Hello, ${capitalizedFirstName}!`;
+      ? t('welcome.withName', { name: capitalizedFirstName })
+      : t('welcome.hello', { name: capitalizedFirstName });
   };
 
   const getUserInitial = () => {
@@ -250,7 +252,7 @@ const DashboardPage: React.FC = () => {
             {getWelcomeMessage()}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            {hasTransactions ? "Here's your financial overview." : "Let's get started!"}
+            {hasTransactions ? t('welcome.overview') : t('welcome.getStarted')}
           </Typography>
         </Box>
         
@@ -313,14 +315,14 @@ const DashboardPage: React.FC = () => {
                 <ListItemIcon>
                   <PersonIcon fontSize="small" />
                 </ListItemIcon>
-                <ListItemText>My profile</ListItemText>
+                <ListItemText>{t('welcome.myProfile')}</ListItemText>
               </MenuItem>
               <Divider />
               <MenuItem onClick={handleLogout}>
                 <ListItemIcon>
                   <LogoutIcon fontSize="small" />
                 </ListItemIcon>
-                <ListItemText>Log out</ListItemText>
+                <ListItemText>{t('welcome.logOut')}</ListItemText>
               </MenuItem>
             </Menu>
           </Box>

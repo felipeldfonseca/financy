@@ -7,12 +7,16 @@ import enOnboarding from './locales/en/onboarding.json';
 import enNavigation from './locales/en/navigation.json';
 import enSettings from './locales/en/settings.json';
 import enDashboard from './locales/en/dashboard.json';
+import enAuth from './locales/en/auth.json';
+import enTransactions from './locales/en/transactions.json';
 
 import ptCommon from './locales/pt/common.json';
 import ptOnboarding from './locales/pt/onboarding.json';
 import ptNavigation from './locales/pt/navigation.json';
 import ptSettings from './locales/pt/settings.json';
 import ptDashboard from './locales/pt/dashboard.json';
+import ptAuth from './locales/pt/auth.json';
+import ptTransactions from './locales/pt/transactions.json';
 
 const resources = {
   en: {
@@ -21,6 +25,8 @@ const resources = {
     navigation: enNavigation,
     settings: enSettings,
     dashboard: enDashboard,
+    auth: enAuth,
+    transactions: enTransactions,
   },
   pt: {
     common: ptCommon,
@@ -28,6 +34,8 @@ const resources = {
     navigation: ptNavigation,
     settings: ptSettings,
     dashboard: ptDashboard,
+    auth: ptAuth,
+    transactions: ptTransactions,
   },
 };
 
@@ -44,7 +52,7 @@ i18n
 
     // Namespace configuration
     defaultNS: 'common',
-    ns: ['common', 'onboarding', 'navigation', 'settings', 'dashboard'],
+    ns: ['common', 'onboarding', 'navigation', 'settings', 'dashboard', 'auth', 'transactions'],
 
     // Debug mode for development
     debug: process.env.NODE_ENV === 'development',
