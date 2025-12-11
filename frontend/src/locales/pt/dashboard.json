@@ -1,1 +1,91 @@
-{}
+{
+  "welcome": {
+    "back": "Bem-vindo de volta!",
+    "withName": "Bem-vindo, {{name}}!",
+    "hello": "Olá, {{name}}!",
+    "overview": "Aqui está sua visão geral financeira.",
+    "getStarted": "Vamos começar!"
+  },
+  "emptyState": {
+    "title": "Bem-vindo ao Financy!",
+    "subtitle": "Vamos começar adicionando sua primeira transação",
+    "addManually": {
+      "title": "Adicionar Transação Manualmente",
+      "description": "Clique no botão abaixo para adicionar sua primeira receita ou despesa manualmente através da interface web.",
+      "button": "Adicionar Transação"
+    },
+    "telegram": {
+      "title": "Conectar Bot do Telegram",
+      "titleConnected": "Usar Bot do Telegram",
+      "description": "Conecte sua conta do Telegram e acompanhe suas finanças em qualquer lugar com apenas uma mensagem.",
+      "descriptionConnected": "Envie mensagens, notas de voz ou fotos diretamente para o bot para rastrear suas finanças.",
+      "button": "Conectar Telegram",
+      "buttonConnected": "Abrir Telegram",
+      "connected": "Conectado",
+      "features": {
+        "text": "Texto: 'Gastei R$50 no mercado' ou 'Recebi R$2mil'",
+        "voice": "Voz: Grave receitas ou despesas",
+        "photo": "Foto: Envie um recibo ou nota fiscal"
+      }
+    },
+    "tip": "Dica: Após adicionar algumas transações, você verá insights como tendências de receita vs despesas, divisão por categoria, controle de orçamento e projeções de fluxo de caixa aqui no seu painel."
+  },
+  "summaryCards": {
+    "totalIncome": "Total de Receitas",
+    "totalExpenses": "Total de Despesas", 
+    "netAmount": "Valor Líquido",
+    "transactions": "Transações"
+  },
+  "quickActions": {
+    "upcomingBills": {
+      "title": "Contas Pendentes",
+      "description": "Acompanhe contas recorrentes e nunca perca um pagamento",
+      "button": "Adicionar Contas"
+    },
+    "goalProgress": {
+      "title": "Progresso das Metas",
+      "description": "Defina metas financeiras e acompanhe seu progresso",
+      "button": "Adicionar Metas"
+    },
+    "budgetStatus": {
+      "title": "Status do Orçamento", 
+      "description": "Crie orçamentos por categoria para controlar gastos",
+      "button": "Adicionar Orçamentos"
+    }
+  },
+  "charts": {
+    "incomeVsExpenses": "Receitas vs Despesas",
+    "financialHealth": "Saúde Financeira",
+    "topSpendingCategories": "Principais Categorias de Gastos",
+    "spendingDistribution": "Distribuição de Gastos",
+    "cashFlowTrend": "Tendência do Fluxo de Caixa",
+    "savingsRateOverTime": "Taxa de Poupança ao Longo do Tempo",
+    "emptyState": {
+      "title": "Comece a Rastrear para Liberar Insights",
+      "subtitle": "Desbloqueie Análises Financeiras Poderosas",
+      "description": "Acompanhe suas transações para desbloquear visualizações bonitas que ajudam você a entender padrões de gastos, identificar oportunidades de economia e tomar decisões financeiras mais inteligentes.",
+      "progress": "Apenas {{count}} transação(ões) a mais para desbloquear gráficos interativos...",
+      "tip": "Use o bot do Telegram ou adicione transações manualmente para desbloquear insights mais rapidamente"
+    },
+    "labels": {
+      "progress": "Progresso",
+      "cashFlow": "Fluxo de Caixa",
+      "savingsRate": "Taxa de Poupança",
+      "netAmount": "Valor Líquido"
+    }
+  },
+  "contextSwitcher": {
+    "personal": "PESSOAL",
+    "groups": "GRUPOS",
+    "comingSoon": "Em breve",
+    "members": "{{count}} membros"
+  },
+  "addButton": {
+    "addTransaction": "Adicionar Transação",
+    "addToGroup": "Adicionar ao Grupo",
+    "addToGroupName": "Adicionar a {{groupName}}"
+  },
+  "errors": {
+    "failedToLoad": "Falha ao carregar dados do painel"
+  }
+}

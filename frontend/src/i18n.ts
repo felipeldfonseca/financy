@@ -6,11 +6,13 @@ import enCommon from './locales/en/common.json';
 import enOnboarding from './locales/en/onboarding.json';
 import enNavigation from './locales/en/navigation.json';
 import enSettings from './locales/en/settings.json';
+import enDashboard from './locales/en/dashboard.json';
 
 import ptCommon from './locales/pt/common.json';
 import ptOnboarding from './locales/pt/onboarding.json';
 import ptNavigation from './locales/pt/navigation.json';
 import ptSettings from './locales/pt/settings.json';
+import ptDashboard from './locales/pt/dashboard.json';
 
 const resources = {
   en: {
@@ -18,12 +20,14 @@ const resources = {
     onboarding: enOnboarding,
     navigation: enNavigation,
     settings: enSettings,
+    dashboard: enDashboard,
   },
   pt: {
     common: ptCommon,
     onboarding: ptOnboarding,
     navigation: ptNavigation,
     settings: ptSettings,
+    dashboard: ptDashboard,
   },
 };
 
@@ -40,7 +44,7 @@ i18n
 
     // Namespace configuration
     defaultNS: 'common',
-    ns: ['common', 'onboarding', 'navigation', 'settings'],
+    ns: ['common', 'onboarding', 'navigation', 'settings', 'dashboard'],
 
     // Debug mode for development
     debug: process.env.NODE_ENV === 'development',

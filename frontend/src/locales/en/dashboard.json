@@ -1,1 +1,91 @@
-{}
+{
+  "welcome": {
+    "back": "Welcome back!",
+    "withName": "Welcome, {{name}}!",
+    "hello": "Hello, {{name}}!",
+    "overview": "Here's your financial overview.",
+    "getStarted": "Let's get started!"
+  },
+  "emptyState": {
+    "title": "Welcome to Financy!",
+    "subtitle": "Let's get started by adding your first transaction",
+    "addManually": {
+      "title": "Add Transaction Manually",
+      "description": "Click the button below to add your first income or expense manually through the web interface.",
+      "button": "Add Transaction"
+    },
+    "telegram": {
+      "title": "Connect Telegram Bot",
+      "titleConnected": "Use Telegram Bot",
+      "description": "Connect your Telegram account and track your finances on the go with just a message.",
+      "descriptionConnected": "Send messages, voice notes, or photos directly to the bot to track your finances.",
+      "button": "Connect Telegram",
+      "buttonConnected": "Open Telegram",
+      "connected": "Connected",
+      "features": {
+        "text": "Text: 'Spent $50 on groceries' or 'Got paid $2k'",
+        "voice": "Voice: Record income or expenses",
+        "photo": "Photo: Send a receipt or invoice"
+      }
+    },
+    "tip": "Tip: After adding some transactions, you'll see insights like income vs expense trends, category breakdowns, budget tracking, and cash flow projections right here on your dashboard."
+  },
+  "summaryCards": {
+    "totalIncome": "Total Income",
+    "totalExpenses": "Total Expenses", 
+    "netAmount": "Net Amount",
+    "transactions": "Transactions"
+  },
+  "quickActions": {
+    "upcomingBills": {
+      "title": "Upcoming Bills",
+      "description": "Track recurring bills and never miss a payment",
+      "button": "Add Bills"
+    },
+    "goalProgress": {
+      "title": "Goal Progress",
+      "description": "Set financial goals and track your progress",
+      "button": "Add Goals"
+    },
+    "budgetStatus": {
+      "title": "Budget Status", 
+      "description": "Create budgets by category to control spending",
+      "button": "Add Budgets"
+    }
+  },
+  "charts": {
+    "incomeVsExpenses": "Income vs Expenses",
+    "financialHealth": "Financial Health",
+    "topSpendingCategories": "Top Spending Categories",
+    "spendingDistribution": "Spending Distribution",
+    "cashFlowTrend": "Cash Flow Trend",
+    "savingsRateOverTime": "Savings Rate Over Time",
+    "emptyState": {
+      "title": "Start Tracking to Unlock Insights",
+      "subtitle": "Unlock Powerful Financial Analytics",
+      "description": "Track your transactions to unlock beautiful visualizations that help you understand spending patterns, identify savings opportunities, and make smarter financial decisions.",
+      "progress": "Just {{count}} more transaction(s) to unlock interactive charts...",
+      "tip": "Use the Telegram bot or add transactions manually to unlock insights faster"
+    },
+    "labels": {
+      "progress": "Progress",
+      "cashFlow": "Cash Flow",
+      "savingsRate": "Savings Rate",
+      "netAmount": "Net Amount"
+    }
+  },
+  "contextSwitcher": {
+    "personal": "PERSONAL",
+    "groups": "GROUPS",
+    "comingSoon": "Coming soon",
+    "members": "{{count}} members"
+  },
+  "addButton": {
+    "addTransaction": "Add Transaction",
+    "addToGroup": "Add to Group",
+    "addToGroupName": "Add to {{groupName}}"
+  },
+  "errors": {
+    "failedToLoad": "Failed to load dashboard data"
+  }
+}
