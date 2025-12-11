@@ -898,9 +898,6 @@ Or just type the complete transaction again:
   }
 
   private async formatTransactionConfirmation(transaction: ParsedTransaction, userId: string): Promise<string> {
-    const typeEmoji = transaction.type === 'income' ? '💰' : '💸';
-    const confidenceBar = '█'.repeat(Math.floor(transaction.confidence * 10)) + '░'.repeat(10 - Math.floor(transaction.confidence * 10));
-    
     let contextInfo = '';
     if (transaction.contextId) {
       try {
@@ -919,17 +916,87 @@ Or just type the complete transaction again:
       amountDisplay = `${transaction.amount} ${transaction.currency} (from ${transaction.originalAmount} ${transaction.originalCurrency})`;
     }
 
+    // Get conversational opening and closing based on transaction type and details
+    const { opening, closing } = this.getConversationalMessages(transaction);
+
     return `
-${typeEmoji} <b>Transaction Detected</b>
+${opening}
 
-💵 <b>Amount:</b> ${amountDisplay}
-📝 <b>Description:</b> ${transaction.description}
-🏷️ <b>Type:</b> ${transaction.type}
-${transaction.category ? `📂 <b>Category:</b> ${transaction.category}\n` : ''}${transaction.merchantName ? `🏪 <b>Merchant:</b> ${transaction.merchantName}\n` : ''}${contextInfo}
-🎯 <b>Confidence:</b> ${Math.round(transaction.confidence * 100)}% ${confidenceBar}
-
-Please confirm this transaction:
+I've got this logged:
+💵 ${amountDisplay} → ${transaction.description}
+🏷️  ${transaction.type}${transaction.category ? ` • ${transaction.category}` : ''}
+${transaction.merchantName ? `🏪 ${transaction.merchantName}\n` : ''}${contextInfo}
+${closing}
     `;
+  }
+
+  private getConversationalMessages(transaction: ParsedTransaction): { opening: string; closing: string } {
+    const isInvestment = transaction.category?.toLowerCase().includes('investment') || 
+                        transaction.description?.toLowerCase().includes('investment');
+    const isSavings = transaction.category?.toLowerCase().includes('saving') || 
+                     transaction.description?.toLowerCase().includes('saving');
+    const isIncome = transaction.type === 'income';
+    const isTransfer = transaction.type === 'transfer';
+
+    // Opening messages with variations
+    const openings = {
+      investment: [
+        'Great job building those investments! 🎯',
+        'Nice investment move! 📈',
+        'Smart investing there! 💪',
+        'Love seeing those investment contributions! 🚀'
+      ],
+      savings: [
+        'Excellent work on those savings! 💰',
+        'Great job putting money aside! 🎯', 
+        'Smart saving move! 📈',
+        'Love seeing those savings grow! 💪'
+      ],
+      income: [
+        'Nice! Looks like some income came in 💰',
+        'Sweet! Money coming in 🎉',
+        'Great! Income detected 💵',
+        'Awesome! Looks like you got paid 🙌'
+      ],
+      transfer: [
+        'Got it! Money movement detected 💸',
+        'I see that transfer 💰',
+        'Caught that money transfer! 📱',
+        'Transfer logged! 🔄'
+      ],
+      expense: [
+        'Hey! I caught that expense 💸',
+        'Got it! Expense tracked 📝',
+        'I see that purchase 🛒',
+        'Expense logged! 💳'
+      ]
+    };
+
+    // Closing messages with variations
+    const closings = {
+      confirmation: [
+        'Does this look right?',
+        'Should I save this transaction?',
+        'Look good to you?',
+        'Ready to confirm?',
+        'All set to save?'
+      ]
+    };
+
+    // Determine message type
+    let messageType = 'expense';
+    if (isIncome) messageType = 'income';
+    else if (isTransfer && (isInvestment || isSavings)) messageType = 'investment';
+    else if (isTransfer) messageType = 'transfer';
+
+    // Get random messages
+    const openingOptions = openings[messageType];
+    const closingOptions = closings.confirmation;
+    
+    const opening = openingOptions[Math.floor(Math.random() * openingOptions.length)];
+    const closing = closingOptions[Math.floor(Math.random() * closingOptions.length)];
+
+    return { opening, closing };
   }
 
   private async formatMultiTransactionConfirmation(transactions: ParsedTransaction[], userId: string): Promise<string> {
