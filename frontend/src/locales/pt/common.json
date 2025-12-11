@@ -1,0 +1,60 @@
+{
+  "buttons": {
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "add": "Adicionar",
+    "create": "Criar",
+    "submit": "Enviar",
+    "confirm": "Confirmar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "skip": "Pular",
+    "continue": "Continuar",
+    "finish": "Finalizar",
+    "close": "Fechar",
+    "ok": "OK",
+    "yes": "Sim",
+    "no": "Não"
+  },
+  "labels": {
+    "name": "Nome",
+    "email": "E-mail",
+    "password": "Senha",
+    "confirmPassword": "Confirmar Senha",
+    "firstName": "Primeiro Nome",
+    "lastName": "Último Nome",
+    "language": "Idioma",
+    "currency": "Moeda",
+    "timezone": "Fuso Horário",
+    "amount": "Valor",
+    "description": "Descrição",
+    "category": "Categoria",
+    "date": "Data",
+    "type": "Tipo",
+    "status": "Status"
+  },
+  "placeholders": {
+    "search": "Buscar...",
+    "enterAmount": "Digite o valor",
+    "enterDescription": "Digite a descrição",
+    "selectCategory": "Selecione a categoria",
+    "selectCurrency": "Selecione a moeda"
+  },
+  "messages": {
+    "loading": "Carregando...",
+    "error": "Ocorreu um erro",
+    "success": "Sucesso!",
+    "noData": "Nenhum dado disponível",
+    "confirmDelete": "Tem certeza que deseja excluir este item?",
+    "unsavedChanges": "Você tem alterações não salvas. Tem certeza que deseja sair?"
+  },
+  "currencies": {
+    "USD": "Dólar Americano",
+    "EUR": "Euro",
+    "BRL": "Real Brasileiro",
+    "GBP": "Libra Esterlina",
+    "JPY": "Iene Japonês"
+  }
+}

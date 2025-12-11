@@ -10,10 +10,12 @@ import {
   Button,
   Typography,
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import PreferencesStep from './steps/PreferencesStep';
 import TelegramStep from './steps/TelegramStep';
 import TutorialStep from './steps/TutorialStep';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { authApi } from '../../services/authApi';
 
 interface OnboardingWizardProps {
@@ -27,16 +29,30 @@ export interface OnboardingPreferences {
   defaultCurrency: string;
 }
 
-const steps = ['Set Preferences', 'Connect Telegram', 'Quick Tutorial'];
-
 const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ open, onComplete }) => {
+  const { t } = useTranslation('onboarding');
   const [activeStep, setActiveStep] = useState(0);
   const { state: { user }, refreshAuth } = useAuth();
+  const { changeLanguage } = useLanguage();
   const [preferences, setPreferences] = useState<OnboardingPreferences>({
     language: user?.language || 'en',
     timezone: user?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
     defaultCurrency: user?.defaultCurrency || 'USD',
   });
+
+  const steps = [
+    t('steps.setPreferences'),
+    t('steps.connectTelegram'),
+    t('steps.quickTutorial')
+  ];
+
+  const handlePreferencesChange = (newPreferences: OnboardingPreferences) => {
+    // If language changed, immediately update the UI language
+    if (newPreferences.language !== preferences.language) {
+      changeLanguage(newPreferences.language);
+    }
+    setPreferences(newPreferences);
+  };
 
   const handleNext = async () => {
     if (activeStep === 0) {
@@ -87,7 +103,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ open, onComplete })
         return (
           <PreferencesStep
             preferences={preferences}
-            onPreferencesChange={setPreferences}
+            onPreferencesChange={handlePreferencesChange}
           />
         );
       case 1:
@@ -108,10 +124,10 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ open, onComplete })
     >
       <DialogTitle>
         <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
-          Welcome to Financy!
+          {t('wizard.title')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          Let's get you set up in just a few steps
+          {t('wizard.subtitle')}
         </Typography>
       </DialogTitle>
       <DialogContent>
@@ -134,17 +150,17 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ open, onComplete })
               disabled={activeStep === 0}
               onClick={handleBack}
             >
-              Back
+              {t('common:buttons.back')}
             </Button>
             <Box>
               <Button onClick={handleSkip} sx={{ mr: 1 }}>
-                Skip for now
+                {t('wizard.skipForNow')}
               </Button>
               <Button
                 variant="contained"
                 onClick={handleNext}
               >
-                {activeStep === steps.length - 1 ? 'Get Started' : 'Next'}
+                {activeStep === steps.length - 1 ? t('wizard.getStarted') : t('common:buttons.next')}
               </Button>
             </Box>
           </Box>

@@ -1,0 +1,13 @@
+{
+  "menu": {
+    "dashboard": "Dashboard",
+    "transactions": "Transactions",
+    "planning": "Planning",
+    "settings": "Settings"
+  },
+  "header": {
+    "searchPlaceholder": "Search transactions...",
+    "profile": "Profile",
+    "logout": "Logout"
+  }
+}

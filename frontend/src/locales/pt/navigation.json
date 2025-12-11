@@ -1,0 +1,13 @@
+{
+  "menu": {
+    "dashboard": "Painel",
+    "transactions": "Transações",
+    "planning": "Planejamento",
+    "settings": "Configurações"
+  },
+  "header": {
+    "searchPlaceholder": "Buscar transações...",
+    "profile": "Perfil",
+    "logout": "Sair"
+  }
+}

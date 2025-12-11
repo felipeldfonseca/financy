@@ -1,0 +1,105 @@
+{
+  "wizard": {
+    "title": "Bem-vindo ao Financy!",
+    "subtitle": "Vamos configurar sua conta em apenas alguns passos",
+    "skipForNow": "Pular por agora",
+    "getStarted": "Começar"
+  },
+  "steps": {
+    "setPreferences": "Definir Preferências",
+    "connectTelegram": "Conectar Telegram",
+    "quickTutorial": "Tutorial Rápido"
+  },
+  "preferences": {
+    "title": "Defina Suas Preferências",
+    "subtitle": "Personalize sua experiência no Financy. Você pode alterar isso depois nas configurações.",
+    "defaultCurrency": "Moeda Padrão",
+    "defaultCurrencyHelper": "Sua moeda principal para transações",
+    "timezone": "Fuso Horário",
+    "timezoneHelper": "Usado para exibição de data e hora",
+    "language": "Idioma",
+    "languageHelper": "Idioma da interface"
+  },
+  "telegram": {
+    "title": "Conectar Bot do Telegram",
+    "subtitle": "Acompanhe suas finanças em qualquer lugar com apenas uma mensagem, nota de voz ou foto.",
+    "connected": "Telegram Conectado!",
+    "connectedAs": "Conectado como @{{username}}",
+    "connectInfo": "Conecte sua conta do Telegram para começar a rastrear suas finanças via chat",
+    "officialBot": "Bot Oficial",
+    "openBot": "Abrir Bot do Telegram",
+    "connectBot": "Conectar Bot do Telegram",
+    "features": {
+      "textMessages": {
+        "title": "Enviar mensagens de texto",
+        "subtitle": "ex: 'Gastei R$50 no mercado' ou 'Recebi R$2000 de salário'"
+      },
+      "voiceMessages": {
+        "title": "Enviar mensagens de voz",
+        "subtitle": "Apenas fale naturalmente sobre receitas ou despesas"
+      },
+      "receiptPhotos": {
+        "title": "Enviar fotos de recibos",
+        "subtitle": "A IA extrairá o valor e detalhes"
+      }
+    },
+    "helpText": {
+      "connected": "Você pode desconectar ou reconectar a qualquer momento nas Configurações",
+      "notConnected": "Você pode pular esta etapa e conectar depois nas Configurações"
+    }
+  },
+  "tutorial": {
+    "title": "Tutorial Rápido",
+    "subtitle": "Aqui está tudo que você pode fazer com o Financy",
+    "features": {
+      "trackingTitle": "Registrar Receitas e Despesas",
+      "telegramTracking": "Via bot do Telegram",
+      "telegramTrackingDesc": "Envie mensagens, voz ou fotos para registrar transações",
+      "webTracking": "Via dashboard web",
+      "webTrackingDesc": "Adicione receitas, despesas e transferências facilmente",
+      "insightsTitle": "Insights Financeiros",
+      "trendInsights": "Tendências de receita vs despesas",
+      "trendInsightsDesc": "Visualize seu fluxo de caixa ao longo do tempo",
+      "categoryBreakdown": "Divisão por categoria",
+      "categoryBreakdownDesc": "Veja de onde vem e para onde vai seu dinheiro",
+      "budgetTitle": "Orçamento e Metas",
+      "budgetDesc": "Defina orçamentos por categoria, acompanhe metas financeiras e monitore seu progresso em direção aos objetivos de economia.",
+      "recurringTitle": "Transações Recorrentes",
+      "recurringDesc": "Acompanhe assinaturas, contas e renda recorrente. Projete seu fluxo de caixa futuro com confiança."
+    },
+    "comingSoon": "Em Breve: Grupos Compartilhados - Acompanhe despesas conjuntas e divida contas automaticamente com família, amigos, parceiros de negócios ou equipes",
+    "chips": {
+      "voiceInput": "Entrada por voz via Telegram",
+      "receiptScanning": "Escaneamento de recibos com IA",
+      "multiCurrency": "Suporte multi-moedas",
+      "autoCategories": "Categorização automática"
+    }
+  },
+  "currencies": {
+    "USD": "Dólar Americano ($)",
+    "BRL": "Real Brasileiro (R$)",
+    "EUR": "Euro (€)",
+    "GBP": "Libra Esterlina (£)",
+    "CAD": "Dólar Canadense (C$)",
+    "AUD": "Dólar Australiano (A$)",
+    "BTC": "Bitcoin (₿)",
+    "ETH": "Ethereum (Ξ)"
+  },
+  "timezones": {
+    "America/New_York": "Hora do Leste (ET)",
+    "America/Chicago": "Hora Central (CT)",
+    "America/Denver": "Hora da Montanha (MT)",
+    "America/Los_Angeles": "Hora do Pacífico (PT)",
+    "America/Sao_Paulo": "Horário de Brasília (BRT)",
+    "Europe/London": "Londres (GMT)",
+    "Europe/Paris": "Hora Central Europeia (CET)",
+    "Asia/Tokyo": "Hora Padrão do Japão (JST)",
+    "Australia/Sydney": "Hora do Leste Australiano (AET)",
+    "UTC": "Tempo Universal Coordenado (UTC)"
+  },
+  "languages": {
+    "en": "English",
+    "pt": "Português",
+    "es": "Español"
+  }
+}

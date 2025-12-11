@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import { AuthProvider } from './contexts/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { PublicRoute } from './components/auth/PublicRoute';
 import Layout from './components/Layout/Layout';
@@ -13,12 +14,14 @@ import ContextsPage from './pages/ContextsPage';
 import PlanningPage from './pages/PlanningPage';
 import SettingsPage from './pages/SettingsPage';
 import TelegramSettingsPage from './pages/TelegramSettingsPage';
+import './i18n'; // Initialize i18n
 
 function App() {
   return (
     <AuthProvider>
-      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <Routes>
+      <LanguageProvider>
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+          <Routes>
           {/* Public routes */}
           <Route
             path="/welcome"
@@ -112,8 +115,9 @@ function App() {
           {/* Fallback routes */}
           <Route path="/register" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </Box>
+          </Routes>
+        </Box>
+      </LanguageProvider>
     </AuthProvider>
   );
 }

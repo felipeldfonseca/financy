@@ -6,6 +6,7 @@ import {
   Typography,
   Grid,
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { OnboardingPreferences } from '../OnboardingWizard';
 
 interface PreferencesStepProps {
@@ -13,41 +14,42 @@ interface PreferencesStepProps {
   onPreferencesChange: (preferences: OnboardingPreferences) => void;
 }
 
-const CURRENCIES = [
-  { value: 'USD', label: 'US Dollar ($)' },
-  { value: 'BRL', label: 'Brazilian Real (R$)' },
-  { value: 'EUR', label: 'Euro (€)' },
-  { value: 'GBP', label: 'British Pound (£)' },
-  { value: 'CAD', label: 'Canadian Dollar (C$)' },
-  { value: 'AUD', label: 'Australian Dollar (A$)' },
-  { value: 'BTC', label: 'Bitcoin (₿)' },
-  { value: 'ETH', label: 'Ethereum (Ξ)' },
+const getCurrencyOptions = (t: any) => [
+  { value: 'USD', label: t('currencies.USD') },
+  { value: 'BRL', label: t('currencies.BRL') },
+  { value: 'EUR', label: t('currencies.EUR') },
+  { value: 'GBP', label: t('currencies.GBP') },
+  { value: 'CAD', label: t('currencies.CAD') },
+  { value: 'AUD', label: t('currencies.AUD') },
+  { value: 'BTC', label: t('currencies.BTC') },
+  { value: 'ETH', label: t('currencies.ETH') },
 ];
 
-const LANGUAGES = [
-  { value: 'en', label: 'English' },
-  { value: 'pt', label: 'Português' },
-  { value: 'es', label: 'Español' },
+const getLanguageOptions = (t: any) => [
+  { value: 'en', label: t('languages.en') },
+  { value: 'pt', label: t('languages.pt') },
+  { value: 'es', label: t('languages.es') },
 ];
 
-// Common timezones
-const TIMEZONES = [
-  { value: 'America/New_York', label: 'Eastern Time (ET)' },
-  { value: 'America/Chicago', label: 'Central Time (CT)' },
-  { value: 'America/Denver', label: 'Mountain Time (MT)' },
-  { value: 'America/Los_Angeles', label: 'Pacific Time (PT)' },
-  { value: 'America/Sao_Paulo', label: 'Brasília Time (BRT)' },
-  { value: 'Europe/London', label: 'London (GMT)' },
-  { value: 'Europe/Paris', label: 'Central European Time (CET)' },
-  { value: 'Asia/Tokyo', label: 'Japan Standard Time (JST)' },
-  { value: 'Australia/Sydney', label: 'Australian Eastern Time (AET)' },
-  { value: 'UTC', label: 'Coordinated Universal Time (UTC)' },
+const getTimezoneOptions = (t: any) => [
+  { value: 'America/New_York', label: t('timezones.America/New_York') },
+  { value: 'America/Chicago', label: t('timezones.America/Chicago') },
+  { value: 'America/Denver', label: t('timezones.America/Denver') },
+  { value: 'America/Los_Angeles', label: t('timezones.America/Los_Angeles') },
+  { value: 'America/Sao_Paulo', label: t('timezones.America/Sao_Paulo') },
+  { value: 'Europe/London', label: t('timezones.Europe/London') },
+  { value: 'Europe/Paris', label: t('timezones.Europe/Paris') },
+  { value: 'Asia/Tokyo', label: t('timezones.Asia/Tokyo') },
+  { value: 'Australia/Sydney', label: t('timezones.Australia/Sydney') },
+  { value: 'UTC', label: t('timezones.UTC') },
 ];
 
 const PreferencesStep: React.FC<PreferencesStepProps> = ({
   preferences,
   onPreferencesChange,
 }) => {
+  const { t } = useTranslation('onboarding');
+  
   const handleChange = (field: keyof OnboardingPreferences) => (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -57,13 +59,17 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({
     });
   };
 
+  const currencyOptions = getCurrencyOptions(t);
+  const languageOptions = getLanguageOptions(t);
+  const timezoneOptions = getTimezoneOptions(t);
+
   return (
     <Box>
       <Typography variant="h6" gutterBottom>
-        Set Your Preferences
+        {t('preferences.title')}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Customize your Financy experience. You can change these later in settings.
+        {t('preferences.subtitle')}
       </Typography>
 
       <Grid container spacing={3}>
@@ -71,12 +77,12 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({
           <TextField
             select
             fullWidth
-            label="Default Currency"
+            label={t('preferences.defaultCurrency')}
             value={preferences.defaultCurrency}
             onChange={handleChange('defaultCurrency')}
-            helperText="Your primary currency for transactions"
+            helperText={t('preferences.defaultCurrencyHelper')}
           >
-            {CURRENCIES.map((option) => (
+            {currencyOptions.map((option) => (
               <MenuItem key={option.value} value={option.value}>
                 {option.label}
               </MenuItem>
@@ -88,12 +94,12 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({
           <TextField
             select
             fullWidth
-            label="Timezone"
+            label={t('preferences.timezone')}
             value={preferences.timezone}
             onChange={handleChange('timezone')}
-            helperText="Used for date and time display"
+            helperText={t('preferences.timezoneHelper')}
           >
-            {TIMEZONES.map((option) => (
+            {timezoneOptions.map((option) => (
               <MenuItem key={option.value} value={option.value}>
                 {option.label}
               </MenuItem>
@@ -105,12 +111,12 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({
           <TextField
             select
             fullWidth
-            label="Language"
+            label={t('preferences.language')}
             value={preferences.language}
             onChange={handleChange('language')}
-            helperText="Interface language (coming soon)"
+            helperText={t('preferences.languageHelper')}
           >
-            {LANGUAGES.map((option) => (
+            {languageOptions.map((option) => (
               <MenuItem key={option.value} value={option.value}>
                 {option.label}
               </MenuItem>

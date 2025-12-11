@@ -1,0 +1,105 @@
+{
+  "wizard": {
+    "title": "Welcome to Financy!",
+    "subtitle": "Let's get you set up in just a few steps",
+    "skipForNow": "Skip for now",
+    "getStarted": "Get Started"
+  },
+  "steps": {
+    "setPreferences": "Set Preferences",
+    "connectTelegram": "Connect Telegram",
+    "quickTutorial": "Quick Tutorial"
+  },
+  "preferences": {
+    "title": "Set Your Preferences",
+    "subtitle": "Customize your Financy experience. You can change these later in settings.",
+    "defaultCurrency": "Default Currency",
+    "defaultCurrencyHelper": "Your primary currency for transactions",
+    "timezone": "Timezone",
+    "timezoneHelper": "Used for date and time display",
+    "language": "Language",
+    "languageHelper": "Interface language"
+  },
+  "telegram": {
+    "title": "Connect Telegram Bot",
+    "subtitle": "Track your finances on the go with just a message, voice note, or photo.",
+    "connected": "Telegram Connected!",
+    "connectedAs": "Connected as @{{username}}",
+    "connectInfo": "Connect your Telegram account to start tracking your finances via chat",
+    "officialBot": "Official Bot",
+    "openBot": "Open Telegram Bot",
+    "connectBot": "Connect Telegram Bot",
+    "features": {
+      "textMessages": {
+        "title": "Send text messages",
+        "subtitle": "e.g., 'Spent $50 on groceries' or 'Got paid $2000 salary'"
+      },
+      "voiceMessages": {
+        "title": "Send voice messages",
+        "subtitle": "Just speak naturally about income or expenses"
+      },
+      "receiptPhotos": {
+        "title": "Send receipt photos",
+        "subtitle": "AI will extract the amount and details"
+      }
+    },
+    "helpText": {
+      "connected": "You can disconnect or reconnect anytime in Settings",
+      "notConnected": "You can skip this step and connect later in Settings"
+    }
+  },
+  "tutorial": {
+    "title": "Quick Tutorial",
+    "subtitle": "Here's everything you can do with Financy",
+    "features": {
+      "trackingTitle": "Track Income & Expenses",
+      "telegramTracking": "Via Telegram bot",
+      "telegramTrackingDesc": "Send messages, voice, or photos to log transactions",
+      "webTracking": "Via web dashboard",
+      "webTrackingDesc": "Add income, expenses, and transfers easily",
+      "insightsTitle": "Financial Insights",
+      "trendInsights": "Income vs expenses trends",
+      "trendInsightsDesc": "Visualize your cash flow over time",
+      "categoryBreakdown": "Category breakdown",
+      "categoryBreakdownDesc": "See where your money comes from and goes",
+      "budgetTitle": "Budget & Goals",
+      "budgetDesc": "Set budgets by category, track financial goals, and monitor your progress toward savings targets.",
+      "recurringTitle": "Recurring Transactions",
+      "recurringDesc": "Track subscriptions, bills, and recurring income. Project your future cash flow with confidence."
+    },
+    "comingSoon": "Coming Soon: Shared Groups - Track joint expenses and split bills automatically with family, friends, business partners, or teams",
+    "chips": {
+      "voiceInput": "Voice input via Telegram",
+      "receiptScanning": "Receipt scanning with AI",
+      "multiCurrency": "Multi-currency support",
+      "autoCategories": "Automated categorization"
+    }
+  },
+  "currencies": {
+    "USD": "US Dollar ($)",
+    "BRL": "Brazilian Real (R$)",
+    "EUR": "Euro (€)",
+    "GBP": "British Pound (£)",
+    "CAD": "Canadian Dollar (C$)",
+    "AUD": "Australian Dollar (A$)",
+    "BTC": "Bitcoin (₿)",
+    "ETH": "Ethereum (Ξ)"
+  },
+  "timezones": {
+    "America/New_York": "Eastern Time (ET)",
+    "America/Chicago": "Central Time (CT)",
+    "America/Denver": "Mountain Time (MT)",
+    "America/Los_Angeles": "Pacific Time (PT)",
+    "America/Sao_Paulo": "Brasília Time (BRT)",
+    "Europe/London": "London (GMT)",
+    "Europe/Paris": "Central European Time (CET)",
+    "Asia/Tokyo": "Japan Standard Time (JST)",
+    "Australia/Sydney": "Australian Eastern Time (AET)",
+    "UTC": "Coordinated Universal Time (UTC)"
+  },
+  "languages": {
+    "en": "English",
+    "pt": "Português",
+    "es": "Español"
+  }
+}
