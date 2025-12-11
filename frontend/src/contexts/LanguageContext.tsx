@@ -27,23 +27,28 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   const { state: { user } } = useAuth();
   const [isChangingLanguage, setIsChangingLanguage] = useState(false);
 
-  // Initialize language from user preference or browser default
+  // Smart language initialization: browser detection → user preference
   useEffect(() => {
     const initializeLanguage = async () => {
       let targetLanguage = 'en'; // fallback
 
       if (user?.language) {
-        // User has a saved language preference
+        // PRIORITY 1: Authenticated user has saved language preference 
         targetLanguage = user.language;
+        console.log('🔧 Using saved user language preference:', targetLanguage);
       } else {
-        // Try to detect browser language
+        // PRIORITY 2: Unauthenticated user → use browser language detection
         const browserLang = navigator.language.split('-')[0];
         if (['en', 'pt', 'es'].includes(browserLang)) {
           targetLanguage = browserLang;
+          console.log('🌍 Using browser language detection:', targetLanguage);
+        } else {
+          console.log('🔤 Browser language not supported, using English fallback');
         }
       }
 
       if (i18n.language !== targetLanguage) {
+        console.log('🔄 Switching language from', i18n.language, 'to', targetLanguage);
         await i18n.changeLanguage(targetLanguage);
       }
     };

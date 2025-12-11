@@ -39,12 +39,32 @@ const resources = {
   },
 };
 
+// Smart language detection function
+const detectInitialLanguage = (): string => {
+  // Try to detect browser language
+  const browserLang = navigator.language.split('-')[0];
+  
+  // Support Portuguese (pt), English (en), and Spanish (es)
+  if (['pt', 'en', 'es'].includes(browserLang)) {
+    return browserLang;
+  }
+  
+  // Fallback to English
+  return 'en';
+};
+
 i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'en', // default language
+    lng: detectInitialLanguage(), // Use browser detection as initial language
     fallbackLng: 'en',
+    
+    // Language detection options
+    detection: {
+      order: ['navigator'], // Use browser language
+      caches: [], // Don't cache in localStorage (we handle this in LanguageContext)
+    },
     
     interpolation: {
       escapeValue: false, // React already does escaping
