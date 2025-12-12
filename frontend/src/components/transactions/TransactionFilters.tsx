@@ -25,7 +25,8 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   CalendarToday as CalendarIcon,
-} from '@mui/icons-material';\nimport { useTranslation } from 'react-i18next';
+} from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import { TransactionFilters } from '../../services/transactionApi';
 import { useTransactions } from '../../contexts/TransactionContext';
 

@@ -17,15 +17,18 @@ import {
   Repeat as RepeatIcon,
   AccountBalance as BudgetIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 const TutorialStep: React.FC = () => {
+  const { t } = useTranslation('onboarding');
+  
   return (
     <Box>
       <Typography variant="h6" gutterBottom>
-        Quick Tutorial
+        {t('tutorial.title')}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Here's everything you can do with Financy
+        {t('tutorial.subtitle')}
       </Typography>
 
       <Grid container spacing={2}>
@@ -35,20 +38,20 @@ const TutorialStep: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <ChatIcon color="primary" sx={{ mr: 1 }} />
                 <Typography variant="h6" component="div">
-                  Track Income & Expenses
+                  {t('tutorial.features.trackingTitle')}
                 </Typography>
               </Box>
               <List dense>
                 <ListItem disablePadding>
                   <ListItemText
-                    primary="Via Telegram bot"
-                    secondary="Send messages, voice, or photos to log transactions"
+                    primary={t('tutorial.features.telegramTracking')}
+                    secondary={t('tutorial.features.telegramTrackingDesc')}
                   />
                 </ListItem>
                 <ListItem disablePadding>
                   <ListItemText
-                    primary="Via web dashboard"
-                    secondary="Add income, expenses, and transfers easily"
+                    primary={t('tutorial.features.webTracking')}
+                    secondary={t('tutorial.features.webTrackingDesc')}
                   />
                 </ListItem>
               </List>
@@ -62,20 +65,20 @@ const TutorialStep: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <DashboardIcon color="primary" sx={{ mr: 1 }} />
                 <Typography variant="h6" component="div">
-                  Financial Insights
+                  {t('tutorial.features.insightsTitle')}
                 </Typography>
               </Box>
               <List dense>
                 <ListItem disablePadding>
                   <ListItemText
-                    primary="Income vs expenses trends"
-                    secondary="Visualize your cash flow over time"
+                    primary={t('tutorial.features.trendInsights')}
+                    secondary={t('tutorial.features.trendInsightsDesc')}
                   />
                 </ListItem>
                 <ListItem disablePadding>
                   <ListItemText
-                    primary="Category breakdown"
-                    secondary="See where your money comes from and goes"
+                    primary={t('tutorial.features.categoryBreakdown')}
+                    secondary={t('tutorial.features.categoryBreakdownDesc')}
                   />
                 </ListItem>
               </List>
@@ -89,11 +92,11 @@ const TutorialStep: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <BudgetIcon color="primary" sx={{ mr: 1 }} />
                 <Typography variant="h6" component="div">
-                  Budget & Goals
+                  {t('tutorial.features.budgetTitle')}
                 </Typography>
               </Box>
               <Typography variant="body2" color="text.secondary">
-                Set budgets by category, track financial goals, and monitor your progress toward savings targets.
+                {t('tutorial.features.budgetDesc')}
               </Typography>
             </CardContent>
           </Card>
@@ -105,11 +108,11 @@ const TutorialStep: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <RepeatIcon color="primary" sx={{ mr: 1 }} />
                 <Typography variant="h6" component="div">
-                  Recurring Transactions
+                  {t('tutorial.features.recurringTitle')}
                 </Typography>
               </Box>
               <Typography variant="body2" color="text.secondary">
-                Track subscriptions, bills, and recurring income. Project your future cash flow with confidence.
+                {t('tutorial.features.recurringDesc')}
               </Typography>
             </CardContent>
           </Card>
@@ -119,15 +122,15 @@ const TutorialStep: React.FC = () => {
       <Box sx={{ mt: 3, p: 2, bgcolor: 'primary.light', borderRadius: 1 }}>
         <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', color: 'primary.contrastText' }}>
           <GroupIcon sx={{ mr: 1 }} />
-          <strong>Coming Soon: Shared Groups - Track joint expenses and split bills automatically with family, friends, business partners, or teams</strong>
+          <strong>{t('tutorial.comingSoon')}</strong>
         </Typography>
       </Box>
 
       <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 1, flexWrap: 'wrap' }}>
-        <Chip label="Voice input via Telegram" size="small" />
-        <Chip label="Receipt scanning with AI" size="small" />
-        <Chip label="Multi-currency support" size="small" />
-        <Chip label="Automated categorization" size="small" />
+        <Chip label={t('tutorial.chips.voiceInput')} size="small" />
+        <Chip label={t('tutorial.chips.receiptScanning')} size="small" />
+        <Chip label={t('tutorial.chips.multiCurrency')} size="small" />
+        <Chip label={t('tutorial.chips.autoCategories')} size="small" />
       </Box>
     </Box>
   );

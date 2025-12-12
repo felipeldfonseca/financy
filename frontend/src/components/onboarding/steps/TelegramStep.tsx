@@ -16,9 +16,11 @@ import {
   CheckCircle as CheckIcon,
   ArrowForward as ArrowIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 
 const TelegramStep: React.FC = () => {
+  const { t } = useTranslation('onboarding');
   const { state: { user } } = useAuth();
   const isLinked = !!user?.isTelegramLinked;
   const botUsername = process.env.REACT_APP_TELEGRAM_BOT_USERNAME || 'FinancyApp_bot';
@@ -30,26 +32,26 @@ const TelegramStep: React.FC = () => {
   return (
     <Box>
       <Typography variant="h6" gutterBottom>
-        Connect Telegram Bot
+        {t('telegram.title')}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Track your finances on the go with just a message, voice note, or photo.
+        {t('telegram.subtitle')}
       </Typography>
 
       {isLinked ? (
         <Alert severity="success" sx={{ mb: 3 }}>
           <Typography variant="body2" sx={{ fontWeight: 500 }}>
-            Telegram Connected!
+            {t('telegram.connected')}
           </Typography>
           {user?.telegramUsername && (
             <Typography variant="caption">
-              Connected as @{user.telegramUsername}
+              {t('telegram.connectedAs', { username: user.telegramUsername })}
             </Typography>
           )}
         </Alert>
       ) : (
         <Alert severity="info" sx={{ mb: 3 }}>
-          Connect your Telegram account to start tracking your finances via chat
+          {t('telegram.connectInfo')}
         </Alert>
       )}
 
@@ -58,7 +60,7 @@ const TelegramStep: React.FC = () => {
           <TelegramIcon sx={{ fontSize: 40, color: '#0088cc', mr: 2 }} />
           <Box>
             <Typography variant="h6">@{botUsername}</Typography>
-            <Chip label="Official Bot" size="small" color="primary" />
+            <Chip label={t('telegram.officialBot')} size="small" color="primary" />
           </Box>
         </Box>
 
@@ -68,8 +70,8 @@ const TelegramStep: React.FC = () => {
               <CheckIcon color="success" fontSize="small" />
             </ListItemIcon>
             <ListItemText
-              primary="Send text messages"
-              secondary="e.g., 'Spent $50 on groceries' or 'Got paid $2000 salary'"
+              primary={t('telegram.features.textMessages.title')}
+              secondary={t('telegram.features.textMessages.subtitle')}
             />
           </ListItem>
           <ListItem>
@@ -77,8 +79,8 @@ const TelegramStep: React.FC = () => {
               <CheckIcon color="success" fontSize="small" />
             </ListItemIcon>
             <ListItemText
-              primary="Send voice messages"
-              secondary="Just speak naturally about income or expenses"
+              primary={t('telegram.features.voiceMessages.title')}
+              secondary={t('telegram.features.voiceMessages.subtitle')}
             />
           </ListItem>
           <ListItem>
@@ -86,8 +88,8 @@ const TelegramStep: React.FC = () => {
               <CheckIcon color="success" fontSize="small" />
             </ListItemIcon>
             <ListItemText
-              primary="Send receipt photos"
-              secondary="AI will extract the amount and details"
+              primary={t('telegram.features.receiptPhotos.title')}
+              secondary={t('telegram.features.receiptPhotos.subtitle')}
             />
           </ListItem>
         </List>
@@ -104,14 +106,14 @@ const TelegramStep: React.FC = () => {
             '&:hover': { bgcolor: '#006699' },
           }}
         >
-          {isLinked ? 'Open Telegram Bot' : 'Connect Telegram Bot'}
+          {isLinked ? t('telegram.openBot') : t('telegram.connectBot')}
         </Button>
       </Paper>
 
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center' }}>
         {isLinked
-          ? 'You can disconnect or reconnect anytime in Settings'
-          : 'You can skip this step and connect later in Settings'
+          ? t('telegram.helpText.connected')
+          : t('telegram.helpText.notConnected')
         }
       </Typography>
     </Box>
