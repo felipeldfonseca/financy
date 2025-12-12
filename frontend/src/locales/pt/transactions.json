@@ -120,6 +120,130 @@
       "apply": "Aplicar Filtros"
     }
   },
+  "categories": {
+    "expense": {
+      "housing": {
+        "name": "Moradia",
+        "rent": "Aluguel/Financiamento",
+        "utilities": "Utilidades",
+        "maintenance": "Manutenção da Casa",
+        "insurance": "Seguro Residencial",
+        "furniture": "Móveis e Eletrodomésticos"
+      },
+      "transportation": {
+        "name": "Transporte",
+        "fuel": "Combustível",
+        "maintenance": "Manutenção do Carro",
+        "insurance": "Seguro do Carro",
+        "parking": "Estacionamento",
+        "public": "Transporte Público",
+        "rideshare": "Uber/Taxi"
+      },
+      "food": {
+        "name": "Alimentação",
+        "groceries": "Supermercado",
+        "restaurants": "Restaurantes",
+        "fastfood": "Fast Food",
+        "coffee": "Café/Bebidas",
+        "delivery": "Delivery"
+      },
+      "healthcare": {
+        "name": "Saúde",
+        "doctor": "Consultas Médicas",
+        "prescription": "Medicamentos",
+        "dental": "Cuidados Dentários",
+        "vision": "Cuidados Visuais",
+        "insurance": "Plano de Saúde"
+      },
+      "entertainment": {
+        "name": "Entretenimento",
+        "movies": "Cinema/Teatro",
+        "sports": "Eventos Esportivos",
+        "hobbies": "Hobbies",
+        "subscriptions": "Serviços de Streaming",
+        "gaming": "Jogos"
+      },
+      "shopping": {
+        "name": "Compras",
+        "clothing": "Roupas",
+        "electronics": "Eletrônicos",
+        "gifts": "Presentes",
+        "books": "Livros/Mídia",
+        "personal": "Cuidados Pessoais"
+      },
+      "education": {
+        "name": "Educação",
+        "tuition": "Mensalidade",
+        "books": "Livros/Materiais",
+        "courses": "Cursos Online",
+        "training": "Treinamento Profissional"
+      },
+      "travel": {
+        "name": "Viagem",
+        "flights": "Passagens Aéreas",
+        "hotels": "Hotéis",
+        "vacation": "Férias",
+        "business": "Viagem de Negócios"
+      },
+      "bills": {
+        "name": "Contas e Utilidades",
+        "phone": "Conta de Telefone",
+        "internet": "Internet",
+        "electricity": "Energia Elétrica",
+        "water": "Água",
+        "gas": "Gás"
+      },
+      "other": {
+        "name": "Outros",
+        "miscellaneous": "Diversos",
+        "fees": "Taxas/Encargos",
+        "donations": "Doações/Caridade"
+      }
+    },
+    "income": {
+      "employment": {
+        "name": "Renda do Trabalho",
+        "salary": "Salário",
+        "bonus": "Bônus",
+        "overtime": "Hora Extra",
+        "commission": "Comissão"
+      },
+      "investment": {
+        "name": "Renda de Investimentos",
+        "dividends": "Dividendos",
+        "interest": "Juros",
+        "capital": "Ganho de Capital",
+        "rental": "Renda de Aluguel"
+      },
+      "business": {
+        "name": "Renda de Negócios",
+        "revenue": "Receita de Negócios",
+        "consulting": "Consultoria",
+        "freelance": "Trabalho Freelance"
+      },
+      "other": {
+        "name": "Outras Receitas",
+        "gifts": "Presentes",
+        "refunds": "Reembolsos",
+        "cashback": "Cashback",
+        "miscellaneous": "Diversos"
+      }
+    },
+    "transfer": {
+      "accounts": {
+        "name": "Transferências entre Contas",
+        "checking": "Para Conta Corrente",
+        "savings": "Para Poupança",
+        "investment": "Para Investimentos"
+      },
+      "debt": {
+        "name": "Pagamento de Dívidas",
+        "credit": "Pagamento de Cartão de Crédito",
+        "loan": "Pagamento de Empréstimo",
+        "mortgage": "Pagamento de Financiamento"
+      }
+    }
+  },
   "list": {
     "headers": {
       "type": "Tipo",

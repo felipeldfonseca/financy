@@ -120,6 +120,130 @@
       "apply": "Apply Filters"
     }
   },
+  "categories": {
+    "expense": {
+      "housing": {
+        "name": "Housing",
+        "rent": "Rent/Mortgage",
+        "utilities": "Utilities",
+        "maintenance": "Home Maintenance",
+        "insurance": "Home Insurance",
+        "furniture": "Furniture & Appliances"
+      },
+      "transportation": {
+        "name": "Transportation",
+        "fuel": "Fuel/Gas",
+        "maintenance": "Car Maintenance",
+        "insurance": "Car Insurance",
+        "parking": "Parking",
+        "public": "Public Transport",
+        "rideshare": "Rideshare/Taxi"
+      },
+      "food": {
+        "name": "Food & Dining",
+        "groceries": "Groceries",
+        "restaurants": "Restaurants",
+        "fastfood": "Fast Food",
+        "coffee": "Coffee/Beverages",
+        "delivery": "Food Delivery"
+      },
+      "healthcare": {
+        "name": "Healthcare",
+        "doctor": "Doctor Visits",
+        "prescription": "Prescription Drugs",
+        "dental": "Dental Care",
+        "vision": "Vision Care",
+        "insurance": "Health Insurance"
+      },
+      "entertainment": {
+        "name": "Entertainment",
+        "movies": "Movies/Theater",
+        "sports": "Sports Events",
+        "hobbies": "Hobbies",
+        "subscriptions": "Streaming Services",
+        "gaming": "Gaming"
+      },
+      "shopping": {
+        "name": "Shopping",
+        "clothing": "Clothing",
+        "electronics": "Electronics",
+        "gifts": "Gifts",
+        "books": "Books/Media",
+        "personal": "Personal Care"
+      },
+      "education": {
+        "name": "Education",
+        "tuition": "Tuition",
+        "books": "Books/Supplies",
+        "courses": "Online Courses",
+        "training": "Professional Training"
+      },
+      "travel": {
+        "name": "Travel",
+        "flights": "Flights",
+        "hotels": "Hotels",
+        "vacation": "Vacation",
+        "business": "Business Travel"
+      },
+      "bills": {
+        "name": "Bills & Utilities",
+        "phone": "Phone Bill",
+        "internet": "Internet",
+        "electricity": "Electricity",
+        "water": "Water",
+        "gas": "Gas"
+      },
+      "other": {
+        "name": "Other",
+        "miscellaneous": "Miscellaneous",
+        "fees": "Fees/Charges",
+        "donations": "Donations/Charity"
+      }
+    },
+    "income": {
+      "employment": {
+        "name": "Employment Income",
+        "salary": "Salary",
+        "bonus": "Bonus",
+        "overtime": "Overtime",
+        "commission": "Commission"
+      },
+      "investment": {
+        "name": "Investment Income",
+        "dividends": "Dividends",
+        "interest": "Interest",
+        "capital": "Capital Gains",
+        "rental": "Rental Income"
+      },
+      "business": {
+        "name": "Business Income",
+        "revenue": "Business Revenue",
+        "consulting": "Consulting",
+        "freelance": "Freelance Work"
+      },
+      "other": {
+        "name": "Other Income",
+        "gifts": "Gifts",
+        "refunds": "Refunds",
+        "cashback": "Cashback",
+        "miscellaneous": "Miscellaneous"
+      }
+    },
+    "transfer": {
+      "accounts": {
+        "name": "Account Transfers",
+        "checking": "To Checking",
+        "savings": "To Savings",
+        "investment": "To Investment"
+      },
+      "debt": {
+        "name": "Debt Payments",
+        "credit": "Credit Card Payment",
+        "loan": "Loan Payment",
+        "mortgage": "Mortgage Payment"
+      }
+    }
+  },
   "list": {
     "headers": {
       "type": "Type",
