@@ -67,42 +67,49 @@ const currencyConfig = {
 
 const defaultCurrencies = Object.keys(currencyConfig);
 
-// Category/Subcategory configuration (complete list)
-const categoryConfig = {
+// Category/Subcategory configuration using translation keys that match transactions.json
+const getCategoryConfig = (t: any) => ({
   expense: {
-    'Housing': ['Rent', 'Mortgage', 'Property Tax', 'Home Insurance', 'HOA Fees', 'Maintenance & Repairs', 'Home Improvement', 'Furniture & Appliances'],
-    'Transportation': ['Fuel/Gas', 'Public Transport', 'Taxi/Ride Share', 'Car Payment', 'Car Insurance', 'Car Maintenance & Repairs', 'Parking', 'Tolls', 'Vehicle Registration'],
-    'Food & Dining': ['Groceries', 'Restaurants', 'Fast Food', 'Coffee Shops', 'Bars & Nightlife', 'Food Delivery'],
-    'Shopping': ['Clothing & Shoes', 'Electronics & Gadgets', 'Books & Magazines', 'Sporting Goods', 'Home Goods & Decor', 'Online Shopping', 'Other Shopping'],
-    'Health & Fitness': ['Doctor Visits', 'Dentist', 'Pharmacy & Medications', 'Health Insurance', 'Gym & Fitness', 'Sports & Activities', 'Medical Devices'],
-    'Entertainment': ['Streaming Services', 'Movies & Cinema', 'Concerts & Events', 'Hobbies', 'Games & Gaming', 'Sports Events', 'Music'],
-    'Bills & Utilities': ['Electricity', 'Water', 'Gas', 'Internet', 'Mobile Phone', 'Landline', 'Cable/TV', 'Trash/Recycling'],
-    'Education': ['Tuition', 'Books & Supplies', 'Courses & Training', 'Student Loan Payment', 'School Supplies'],
-    'Personal Care': ['Haircuts & Salon', 'Spa & Massage', 'Cosmetics & Skincare', 'Personal Hygiene', 'Laundry & Dry Cleaning'],
-    'Insurance': ['Life Insurance', 'Health Insurance', 'Car Insurance', 'Home Insurance', 'Other Insurance'],
-    'Financial': ['Bank Fees', 'ATM Fees', 'Credit Card Fees', 'Investment Fees', 'Accounting & Legal', 'Taxes'],
-    'Travel & Vacation': ['Flights', 'Hotels & Accommodation', 'Car Rental', 'Travel Insurance', 'Activities & Tours', 'Souvenirs'],
-    'Gifts & Donations': ['Charity & Donations', 'Gifts for Others', 'Religious Donations'],
-    'Pets': ['Pet Food', 'Veterinary Care', 'Pet Supplies', 'Pet Insurance', 'Grooming'],
-    'Kids & Family': ['Childcare & Babysitting', 'Child Support', 'Kids Activities', 'Toys', 'School Fees', 'Allowance'],
-    'Business Expenses': ['Office Supplies', 'Business Travel', 'Client Meetings', 'Software & Tools', 'Professional Services'],
-    'Other Expenses': ['Miscellaneous', 'Uncategorized'],
+    'housing': ['rent', 'utilities', 'maintenance', 'insurance', 'furniture'],
+    'transportation': ['fuel', 'maintenance', 'insurance', 'parking', 'public', 'rideshare'],
+    'food': ['groceries', 'restaurants', 'fastfood', 'coffee', 'delivery'],
+    'healthcare': ['doctor', 'prescription', 'dental', 'vision', 'insurance'],
+    'entertainment': ['movies', 'sports', 'hobbies', 'subscriptions', 'gaming'],
+    'shopping': ['clothing', 'electronics', 'gifts', 'books', 'personal'],
+    'education': ['tuition', 'books', 'courses', 'training'],
+    'travel': ['flights', 'hotels', 'vacation', 'business'],
+    'bills': ['phone', 'internet', 'electricity', 'water', 'gas'],
+    'other': ['miscellaneous', 'fees', 'donations']
   },
   income: {
-    'Employment Income': ['Salary', 'Hourly Wages', 'Overtime Pay', 'Bonus', 'Commission', 'Tips', 'Severance Pay'],
-    'Self-Employment': ['Freelance Income', 'Consulting Fees', 'Contract Work', 'Business Revenue', 'Royalties'],
-    'Investment Income': ['Dividends', 'Interest Income', 'Capital Gains', 'Rental Income', 'Cryptocurrency Gains'],
-    'Other Income': ['Gifts Received', 'Tax Refund', 'Reimbursement', 'Cashback & Rewards', 'Lottery & Gambling Winnings', 'Inheritance'],
-    'Government & Benefits': ['Unemployment Benefits', 'Social Security', 'Pension', 'Disability Benefits', 'Child Support Received', 'Government Grants'],
-    'Refunds & Returns': ['Purchase Refund', 'Insurance Claim', 'Expense Reimbursement'],
+    'employment': ['salary', 'bonus', 'overtime', 'commission'],
+    'investment': ['dividends', 'interest', 'capital', 'rental'],
+    'business': ['revenue', 'consulting', 'freelance'],
+    'other': ['gifts', 'refunds', 'cashback', 'miscellaneous']
   },
   transfer: {
-    'Account Transfers': ['Checking to Savings', 'Savings to Checking', 'Between Bank Accounts', 'Cash Deposit', 'Cash Withdrawal'],
-    'Debt Payments': ['Credit Card Payment', 'Loan Payment', 'Mortgage Payment', 'Student Loan Payment'],
-    'Savings & Investments': ['Investment Contribution', 'Retirement Account (401k, IRA)', 'Emergency Fund', 'Savings Goal'],
-    'Personal Transfers': ['Money to Family/Friends', 'Money from Family/Friends', 'Split Bill Payment'],
-    'Other Transfers': ['Currency Exchange', 'Wire Transfer', 'Other Transfer'],
-  },
+    'accounts': ['checking', 'savings', 'investment'],
+    'debt': ['credit', 'loan', 'mortgage']
+  }
+});
+
+// Helper function to get translated category names
+const getTranslatedCategories = (t: any, type: string) => {
+  const config = getCategoryConfig(t)[type as keyof ReturnType<typeof getCategoryConfig>] || {};
+  return Object.keys(config).reduce((acc, key) => {
+    acc[key] = t(`categories.${type}.${key}.name`);
+    return acc;
+  }, {} as Record<string, string>);
+};
+
+// Helper function to get translated subcategory names
+const getTranslatedSubcategories = (t: any, type: string, category: string): { key: string; name: string }[] => {
+  const config = getCategoryConfig(t)[type as keyof ReturnType<typeof getCategoryConfig>] || {};
+  const subcategories = config[category as keyof typeof config] as string[] || [];
+  return subcategories.map((sub: string) => ({
+    key: sub,
+    name: t(`categories.${type}.${category}.${sub}`)
+  }));
 };
 
 export const TransactionForm: React.FC<TransactionFormProps> = ({
@@ -125,8 +132,8 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
       amount: 0,
       description: '',
       type: 'expense',
-      category: 'Housing',
-      subcategory: 'Rent',
+      category: 'housing', // Use key instead of translated name
+      subcategory: 'rent', // Use key instead of translated name
       currency: 'USD',
       date: new Date().toISOString().split('T')[0],
       time: new Date().toTimeString().slice(0, 5),
@@ -152,12 +159,12 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   const currencySymbol = currencyConfig[selectedCurrency as keyof typeof currencyConfig]?.symbol || '$';
   const decimalSeparator = currencyConfig[selectedCurrency as keyof typeof currencyConfig]?.decimal || '.';
 
-  // Get available categories based on transaction type
-  const availableCategories = categoryConfig[selectedType as keyof typeof categoryConfig] || {};
-  const categoryList = Object.keys(availableCategories);
+  // Get available categories based on transaction type (translated)
+  const translatedCategories = getTranslatedCategories(t, selectedType);
+  const categoryList = Object.keys(translatedCategories);
 
-  // Get available subcategories based on selected category
-  const availableSubcategories = (selectedCategory && availableCategories[selectedCategory as keyof typeof availableCategories]) || [];
+  // Get available subcategories based on selected category (translated)
+  const availableSubcategories = selectedCategory ? getTranslatedSubcategories(t, selectedType, selectedCategory) : [];
 
   // Note: Form resolver will automatically use the updated schema when validation is triggered
   // since createTransactionSchema(t) is recreated on each render with the current translation function
@@ -186,11 +193,11 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           notes: transaction.notes || '',
         });
       } else if (mode === 'create') {
-        // Calculate categories for the default type ('expense')
-        const defaultCategories = categoryConfig['expense'] || {};
-        const defaultCategoryList = Object.keys(defaultCategories);
-        const firstCategory = defaultCategoryList[0] || '';
-        const firstSubcategory = firstCategory ? (defaultCategories as Record<string, string[]>)[firstCategory]?.[0] || '' : '';
+        // Calculate categories for the default type ('expense') using keys
+        const config = getCategoryConfig(t)['expense'] || {};
+        const categoryKeys = Object.keys(config);
+        const firstCategory = categoryKeys[0] || 'housing';
+        const firstSubcategory = firstCategory ? config[firstCategory as keyof typeof config]?.[0] || 'rent' : 'rent';
 
         reset({
           amount: 0,
@@ -212,25 +219,26 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   // Auto-select first category and subcategory when type changes
   useEffect(() => {
     if (open && mode === 'create') {
-      const categories = categoryConfig[selectedType as keyof typeof categoryConfig] || {};
-      const firstCategory = Object.keys(categories)[0] || '';
-      const firstSubcategory = firstCategory ? (categories as Record<string, string[]>)[firstCategory]?.[0] || '' : '';
+      const config = getCategoryConfig(t)[selectedType as keyof ReturnType<typeof getCategoryConfig>] || {};
+      const categoryKeys = Object.keys(config);
+      const firstCategory = categoryKeys[0] || '';
+      const firstSubcategory = firstCategory ? config[firstCategory as keyof typeof config]?.[0] || '' : '';
 
       setValue('category', firstCategory);
       setValue('subcategory', firstSubcategory);
     }
-  }, [selectedType, open, mode, setValue]);
+  }, [selectedType, open, mode, setValue, t]);
 
   // Auto-select first subcategory when category changes
   useEffect(() => {
     if (open && mode === 'create' && selectedCategory) {
-      const categories = categoryConfig[selectedType as keyof typeof categoryConfig] || {};
-      const subcategories = categories[selectedCategory as keyof typeof categories] || [];
+      const config = getCategoryConfig(t)[selectedType as keyof ReturnType<typeof getCategoryConfig>] || {};
+      const subcategories = config[selectedCategory as keyof typeof config] || [];
       const firstSubcategory = subcategories[0] || '';
 
       setValue('subcategory', firstSubcategory);
     }
-  }, [selectedCategory, selectedType, open, mode, setValue]);
+  }, [selectedCategory, selectedType, open, mode, setValue, t]);
 
   const onSubmit = async (data: CreateTransactionData) => {
     try {
@@ -416,7 +424,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                     >
                       {categoryList.map((category) => (
                         <MenuItem key={category} value={category}>
-                          {category}
+                          {translatedCategories[category]}
                         </MenuItem>
                       ))}
                     </Select>
@@ -438,9 +446,9 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                       value={field.value || ''}
                       error={!!errors.subcategory}
                     >
-                      {availableSubcategories.map((subcategory) => (
-                        <MenuItem key={subcategory} value={subcategory}>
-                          {subcategory}
+                      {availableSubcategories.map((subcategory: { key: string; name: string }) => (
+                        <MenuItem key={subcategory.key} value={subcategory.key}>
+                          {subcategory.name}
                         </MenuItem>
                       ))}
                     </Select>
