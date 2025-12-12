@@ -410,6 +410,7 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
           if (validTransactions.length === 1) {
             // Single transaction - use existing format
             const confirmationMessage = await this.formatTransactionConfirmation(validTransactions[0], userId);
+            const userLanguage = await this.getUserLanguage(userId);
             const translation = getTelegramTranslation(userLanguage);
             await this.sendMessage(chatId, confirmationMessage, {
               reply_markup: {
@@ -428,6 +429,7 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
             // Store batch for processing
             this.storeBatchTransactions(batchId, validTransactions);
             
+            const userLanguage = await this.getUserLanguage(userId);
             const translation = getTelegramTranslation(userLanguage);
             await this.sendMessage(chatId, confirmationMessage, {
               reply_markup: {
@@ -509,6 +511,7 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
           if (validTransactions.length === 1) {
             // Single transaction - use existing format
             const confirmationMessage = await this.formatTransactionConfirmation(validTransactions[0], userId);
+            const userLanguage = await this.getUserLanguage(userId);
             const translation = getTelegramTranslation(userLanguage);
             await this.sendMessage(chatId, confirmationMessage, {
               reply_markup: {
@@ -527,6 +530,7 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
             // Store batch for processing
             this.storeBatchTransactions(batchId, validTransactions);
             
+            const userLanguage = await this.getUserLanguage(userId);
             const translation = getTelegramTranslation(userLanguage);
             await this.sendMessage(chatId, confirmationMessage, {
               reply_markup: {
