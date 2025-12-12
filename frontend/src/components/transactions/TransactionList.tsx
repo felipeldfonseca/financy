@@ -206,7 +206,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
               {t('list.emptyState.title')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Add your first transaction to get started
+              {t('list.emptyState.subtitle')}
             </Typography>
           </Box>
         </CardContent>

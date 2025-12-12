@@ -13,11 +13,13 @@
     "amount": {
       "label": "Amount",
       "required": "Amount is required",
-      "invalid": "Please enter a valid amount"
+      "invalid": "Please enter a valid amount",
+      "minValue": "Amount must be greater than 0"
     },
     "type": {
       "label": "Type",
       "required": "Type is required",
+      "invalid": "Invalid transaction type",
       "expense": "Expense",
       "income": "Income", 
       "transfer": "Transfer"
@@ -25,7 +27,8 @@
     "description": {
       "label": "Description",
       "required": "Description is required",
-      "placeholder": "What did you spend on?"
+      "placeholder": "What did you spend on?",
+      "maxLength": "Description must be less than 500 characters"
     },
     "category": {
       "label": "Category",
@@ -42,17 +45,20 @@
       "label": "Time"
     },
     "merchant": {
-      "label": "Merchant"
+      "label": "Merchant",
+      "maxLength": "Merchant name must be less than 200 characters"
     },
     "location": {
-      "label": "Location"
+      "label": "Location",
+      "maxLength": "Location must be less than 300 characters"
     },
     "currency": {
       "label": "Currency"
     },
     "notes": {
       "label": "Notes",
-      "placeholder": "Additional notes..."
+      "placeholder": "Additional notes...",
+      "maxLength": "Notes must be less than 1000 characters"
     },
     "buttons": {
       "cancel": "Cancel",

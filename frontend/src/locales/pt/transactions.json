@@ -13,11 +13,13 @@
     "amount": {
       "label": "Valor",
       "required": "Valor é obrigatório",
-      "invalid": "Por favor insira um valor válido"
+      "invalid": "Por favor insira um valor válido",
+      "minValue": "Valor deve ser maior que 0"
     },
     "type": {
       "label": "Tipo",
       "required": "Tipo é obrigatório",
+      "invalid": "Tipo de transação inválido",
       "expense": "Despesa",
       "income": "Receita", 
       "transfer": "Transferência"
@@ -25,7 +27,8 @@
     "description": {
       "label": "Descrição",
       "required": "Descrição é obrigatória",
-      "placeholder": "No que você gastou?"
+      "placeholder": "No que você gastou?",
+      "maxLength": "Descrição deve ter menos de 500 caracteres"
     },
     "category": {
       "label": "Categoria",
@@ -42,17 +45,20 @@
       "label": "Hora"
     },
     "merchant": {
-      "label": "Estabelecimento"
+      "label": "Estabelecimento",
+      "maxLength": "Nome do estabelecimento deve ter menos de 200 caracteres"
     },
     "location": {
-      "label": "Local"
+      "label": "Local",
+      "maxLength": "Local deve ter menos de 300 caracteres"
     },
     "currency": {
       "label": "Moeda"
     },
     "notes": {
       "label": "Observações",
-      "placeholder": "Observações adicionais..."
+      "placeholder": "Observações adicionais...",
+      "maxLength": "Observações devem ter menos de 1000 caracteres"
     },
     "buttons": {
       "cancel": "Cancelar",

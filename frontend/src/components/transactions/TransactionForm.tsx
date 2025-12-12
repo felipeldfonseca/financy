@@ -31,28 +31,30 @@ interface TransactionFormProps {
   mode?: 'create' | 'edit';
 }
 
-const transactionSchema = yup.object({
-  amount: yup
-    .number()
-    .required('Amount is required')
-    .min(0.01, 'Amount must be greater than 0'),
-  description: yup
-    .string()
-    .required('Description is required')
-    .max(500, 'Description must be less than 500 characters'),
-  type: yup
-    .string()
-    .oneOf(['expense', 'income', 'transfer'], 'Invalid transaction type')
-    .required('Transaction type is required'),
-  category: yup.string(),
-  subcategory: yup.string(),
-  currency: yup.string(),
-  date: yup.string().required('Date is required'),
-  time: yup.string(),
-  merchantName: yup.string().max(200, 'Merchant name must be less than 200 characters'),
-  location: yup.string().max(300, 'Location must be less than 300 characters'),
-  notes: yup.string().max(1000, 'Notes must be less than 1000 characters'),
-}).shape({}) as yup.ObjectSchema<CreateTransactionData>;
+const createTransactionSchema = (t: any) => {
+  return yup.object({
+    amount: yup
+      .number()
+      .required(t('form.amount.required'))
+      .min(0.01, t('form.amount.minValue')),
+    description: yup
+      .string()
+      .required(t('form.description.required'))
+      .max(500, t('form.description.maxLength')),
+    type: yup
+      .string()
+      .oneOf(['expense', 'income', 'transfer'], t('form.type.invalid'))
+      .required(t('form.type.required')),
+    category: yup.string(),
+    subcategory: yup.string(),
+    currency: yup.string(),
+    date: yup.string().required(t('form.date.required')),
+    time: yup.string(),
+    merchantName: yup.string().max(200, t('form.merchant.maxLength')),
+    location: yup.string().max(300, t('form.location.maxLength')),
+    notes: yup.string().max(1000, t('form.notes.maxLength')),
+  }).shape({}) as yup.ObjectSchema<CreateTransactionData>;
+};
 
 const currencyConfig = {
   USD: { symbol: '$', decimal: '.' },
@@ -109,19 +111,13 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   transaction,
   mode = 'create',
 }) => {
+  const { t } = useTranslation('transactions');
   const { state, createTransaction, updateTransaction, loadCategories, loadMerchants } = useTransactions();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors },
-    watch,
-    setValue,
-  } = useForm<CreateTransactionData>({
-    resolver: yupResolver(transactionSchema),
+  const form = useForm<CreateTransactionData>({
+    resolver: yupResolver(createTransactionSchema(t)),
     defaultValues: {
       amount: 0,
       description: '',
@@ -137,6 +133,15 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
     },
   });
 
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+    watch,
+    setValue,
+  } = form;
+
   const selectedType = watch('type');
   const selectedCategory = watch('category');
   const selectedCurrency = watch('currency') || 'USD';
@@ -149,6 +154,13 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
 
   // Get available subcategories based on selected category
   const availableSubcategories = (selectedCategory && availableCategories[selectedCategory as keyof typeof availableCategories]) || [];
+
+  // Update form resolver when translation function changes
+  useEffect(() => {
+    const newResolver = yupResolver(createTransactionSchema(t));
+    // @ts-ignore - accessing internal form method to update resolver
+    form._options.resolver = newResolver;
+  }, [t, form]);
 
   useEffect(() => {
     if (open) {
@@ -255,7 +267,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        {mode === 'create' ? 'Add New Transaction' : 'Edit Transaction'}
+        {mode === 'create' ? t('form.addTitle') : t('form.editTitle')}
       </DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent>
@@ -323,7 +335,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                   return (
                     <TextField
                       {...field}
-                      label="Amount"
+                      label={t('form.amount.label')}
                       type="text"
                       fullWidth
                       required
@@ -347,21 +359,21 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 control={control}
                 render={({ field }) => (
                   <FormControl fullWidth required>
-                    <InputLabel>Type</InputLabel>
-                    <Select {...field} label="Type" error={!!errors.type}>
+                    <InputLabel>{t('form.type.label')}</InputLabel>
+                    <Select {...field} label={t('form.type.label')} error={!!errors.type}>
                       <MenuItem value="expense">
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography color="error.main">Expense</Typography>
+                          <Typography color="error.main">{t('form.type.expense')}</Typography>
                         </Box>
                       </MenuItem>
                       <MenuItem value="income">
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography color="success.main">Income</Typography>
+                          <Typography color="success.main">{t('form.type.income')}</Typography>
                         </Box>
                       </MenuItem>
                       <MenuItem value="transfer">
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography color="info.main">Transfer</Typography>
+                          <Typography color="info.main">{t('form.type.transfer')}</Typography>
                         </Box>
                       </MenuItem>
                     </Select>
@@ -378,7 +390,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Description"
+                    label={t('form.description.label')}
                     fullWidth
                     required
                     error={!!errors.description}
@@ -395,10 +407,10 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 control={control}
                 render={({ field }) => (
                   <FormControl fullWidth>
-                    <InputLabel>Category</InputLabel>
+                    <InputLabel>{t('form.category.label')}</InputLabel>
                     <Select
                       {...field}
-                      label="Category"
+                      label={t('form.category.label')}
                       value={field.value || ''}
                       error={!!errors.category}
                     >
@@ -419,10 +431,10 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 control={control}
                 render={({ field }) => (
                   <FormControl fullWidth>
-                    <InputLabel>Subcategory</InputLabel>
+                    <InputLabel>{t('form.subcategory.label')}</InputLabel>
                     <Select
                       {...field}
-                      label="Subcategory"
+                      label={t('form.subcategory.label')}
                       value={field.value || ''}
                       error={!!errors.subcategory}
                     >
@@ -445,7 +457,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Date"
+                    label={t('form.date.label')}
                     type="date"
                     fullWidth
                     required
@@ -464,7 +476,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Time"
+                    label={t('form.time.label')}
                     type="time"
                     fullWidth
                     error={!!errors.time}
@@ -490,7 +502,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        label="Merchant"
+                        label={t('form.merchant.label')}
                         error={!!errors.merchantName}
                         helperText={errors.merchantName?.message}
                       />
@@ -507,7 +519,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Location"
+                    label={t('form.location.label')}
                     fullWidth
                     error={!!errors.location}
                     helperText={errors.location?.message}
@@ -523,10 +535,10 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 control={control}
                 render={({ field }) => (
                   <FormControl fullWidth>
-                    <InputLabel>Currency</InputLabel>
+                    <InputLabel>{t('form.currency.label')}</InputLabel>
                     <Select
                       {...field}
-                      label="Currency"
+                      label={t('form.currency.label')}
                       value={field.value || 'USD'}
                       error={!!errors.currency}
                     >
@@ -553,7 +565,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Notes"
+                    label={t('form.notes.label')}
                     fullWidth
                     multiline
                     rows={3}
@@ -568,7 +580,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
 
         <DialogActions>
           <Button onClick={onClose} disabled={isSubmitting}>
-            Cancel
+            {t('form.buttons.cancel')}
           </Button>
           <Button
             type="submit"
@@ -576,7 +588,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
             disabled={isSubmitting}
             color={getTypeColor(selectedType) as any}
           >
-            {isSubmitting ? 'Saving...' : mode === 'create' ? 'Add Transaction' : 'Update Transaction'}
+            {isSubmitting ? t('form.buttons.saving') : mode === 'create' ? t('form.buttons.add') : t('form.buttons.update')}
           </Button>
         </DialogActions>
       </form>
