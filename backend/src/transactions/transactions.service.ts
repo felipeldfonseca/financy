@@ -15,6 +15,7 @@ import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { TransactionFiltersDto } from './dto/transaction-filters.dto';
 import { CurrencyService } from '../currency/currency.service';
+import { VALID_DASHBOARD_CATEGORIES, getValidDashboardCategories } from './constants/categories.constants';
 
 export interface TransactionSummary {
   totalIncome: number;
@@ -244,6 +245,43 @@ export class TransactionsService {
     return result.map(r => r.category).filter(Boolean).sort();
   }
 
+  async getDashboardCategories(userId: string): Promise<{ [type: string]: string[] }> {
+    const result = await this.transactionsRepository
+      .createQueryBuilder('transaction')
+      .select('DISTINCT transaction.dashboardCategory', 'dashboardCategory')
+      .addSelect('transaction.type', 'type')
+      .where('transaction.userId = :userId', { userId })
+      .andWhere('transaction.dashboardCategory IS NOT NULL')
+      .getRawMany();
+
+    // Group by transaction type
+    const grouped = result.reduce((acc, item) => {
+      const type = item.type;
+      if (!acc[type]) {
+        acc[type] = [];
+      }
+      if (!acc[type].includes(item.dashboardCategory)) {
+        acc[type].push(item.dashboardCategory);
+      }
+      return acc;
+    }, {});
+
+    // Sort categories within each type
+    Object.keys(grouped).forEach(type => {
+      grouped[type].sort();
+    });
+
+    return grouped;
+  }
+
+  getValidDashboardCategoriesForType(transactionType: string): string[] {
+    return Array.from(getValidDashboardCategories(transactionType));
+  }
+
+  getAllValidDashboardCategories(): typeof VALID_DASHBOARD_CATEGORIES {
+    return VALID_DASHBOARD_CATEGORIES;
+  }
+
   async getMerchants(userId: string): Promise<string[]> {
     const result = await this.transactionsRepository
       .createQueryBuilder('transaction')
@@ -286,6 +324,12 @@ export class TransactionsService {
     if (filters.subcategory) {
       queryBuilder.andWhere('transaction.subcategory = :subcategory', {
         subcategory: filters.subcategory,
+      });
+    }
+
+    if (filters.dashboardCategory) {
+      queryBuilder.andWhere('transaction.dashboardCategory = :dashboardCategory', {
+        dashboardCategory: filters.dashboardCategory,
       });
     }
 

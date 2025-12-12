@@ -55,6 +55,9 @@ export class Transaction {
   @Column({ nullable: true })
   subcategory: string;
 
+  @Column({ nullable: true })
+  dashboardCategory: string;
+
   @Column({ default: 'USD' })
   currency: string;
 

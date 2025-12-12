@@ -55,6 +55,20 @@ export class TransactionsController {
     return await this.transactionsService.getCategories(req.user.id);
   }
 
+  @Get('dashboard-categories')
+  @ApiOperation({ summary: 'Get dashboard categories grouped by transaction type for user' })
+  @ApiResponse({ status: 200, description: 'Dashboard categories retrieved successfully' })
+  async getDashboardCategories(@Request() req) {
+    return await this.transactionsService.getDashboardCategories(req.user.id);
+  }
+
+  @Get('valid-dashboard-categories')
+  @ApiOperation({ summary: 'Get all valid dashboard categories' })
+  @ApiResponse({ status: 200, description: 'Valid dashboard categories retrieved successfully' })
+  getAllValidDashboardCategories() {
+    return this.transactionsService.getAllValidDashboardCategories();
+  }
+
   @Get('merchants')
   @ApiOperation({ summary: 'Get all merchants for user' })
   @ApiResponse({ status: 200, description: 'Merchants retrieved successfully' })

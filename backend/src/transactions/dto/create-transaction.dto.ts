@@ -9,9 +9,11 @@ import {
   MaxLength,
   IsUUID,
   IsObject,
+  IsIn,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { TransactionType, InputMethod } from '../entities/transaction.entity';
+import { getAllValidDashboardCategories } from '../constants/categories.constants';
 
 export class CreateTransactionDto {
   @IsNumber({ maxDecimalPlaces: 2 })
@@ -35,6 +37,11 @@ export class CreateTransactionDto {
   @IsString()
   @MaxLength(100)
   subcategory?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(getAllValidDashboardCategories(), { message: 'Invalid dashboard category' })
+  dashboardCategory?: string;
 
   @IsOptional()
   @IsString()

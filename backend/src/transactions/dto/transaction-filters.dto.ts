@@ -10,6 +10,7 @@ import {
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { TransactionType, TransactionStatus } from '../entities/transaction.entity';
+import { getAllValidDashboardCategories } from '../constants/categories.constants';
 
 export class TransactionFiltersDto {
   @IsOptional()
@@ -35,6 +36,11 @@ export class TransactionFiltersDto {
   @IsOptional()
   @IsString()
   subcategory?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(getAllValidDashboardCategories(), { message: 'Invalid dashboard category filter' })
+  dashboardCategory?: string;
 
   @IsOptional()
   @IsString()
