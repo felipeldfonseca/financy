@@ -16,6 +16,7 @@ import {
   AccountBalance as BalanceIcon,
   Receipt as TransactionIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import { TransactionProvider, useTransactions } from '../contexts/TransactionContext';
 import { TransactionForm } from '../components/transactions/TransactionForm';
 import { TransactionList } from '../components/transactions/TransactionList';
@@ -120,6 +121,7 @@ const TransactionsSummaryCard: React.FC<{
 );
 
 const TransactionsPageContent: React.FC = () => {
+  const { t } = useTranslation('transactions');
   const { state, loadTransactions, setFilters } = useTransactions();
   const [formOpen, setFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
@@ -173,7 +175,7 @@ const TransactionsPageContent: React.FC = () => {
             fontSize: '2.5rem',
           }}
         >
-          Transactions
+          {t('title')}
         </Typography>
         <Button
           variant="contained"
@@ -197,7 +199,7 @@ const TransactionsPageContent: React.FC = () => {
             },
           }}
         >
-          Add Transaction
+          {t('addTransaction')}
         </Button>
       </Box>
 
@@ -205,7 +207,7 @@ const TransactionsPageContent: React.FC = () => {
       <Grid container spacing={4} mb={4}>
         <Grid item xs={12} sm={6} md={3}>
           <TransactionsSummaryCard
-            title="Total Income"
+            title={t('summary.totalIncome')}
             value={formatCurrency(summary.totalIncome)}
             icon={<IncomeIcon sx={{ fontSize: 40 }} />}
             color="#10b981"
@@ -213,7 +215,7 @@ const TransactionsPageContent: React.FC = () => {
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <TransactionsSummaryCard
-            title="Total Expenses"
+            title={t('summary.totalExpenses')}
             value={formatCurrency(summary.totalExpenses)}
             icon={<ExpenseIcon sx={{ fontSize: 40 }} />}
             color="#ef4444"
@@ -221,7 +223,7 @@ const TransactionsPageContent: React.FC = () => {
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <TransactionsSummaryCard
-            title="Net Amount"
+            title={t('summary.netAmount')}
             value={formatCurrency(summary.netAmount)}
             icon={<BalanceIcon sx={{ fontSize: 40 }} />}
             color={summary.netAmount >= 0 ? '#10b981' : '#ef4444'}
@@ -229,7 +231,7 @@ const TransactionsPageContent: React.FC = () => {
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <TransactionsSummaryCard
-            title="Total Transactions"
+            title={t('summary.totalTransactions')}
             value={summary.transactionCount.toString()}
             icon={<TransactionIcon sx={{ fontSize: 40 }} />}
             color="#6366f1"

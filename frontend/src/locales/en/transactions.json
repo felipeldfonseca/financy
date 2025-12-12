@@ -1,4 +1,12 @@
 {
+  "title": "Transactions",
+  "addTransaction": "Add Transaction",
+  "summary": {
+    "totalIncome": "Total Income",
+    "totalExpenses": "Total Expenses",
+    "netAmount": "Net Amount",
+    "totalTransactions": "Total Transactions"
+  },
   "form": {
     "addTitle": "Add New Transaction",
     "editTitle": "Edit Transaction",

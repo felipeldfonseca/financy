@@ -1,4 +1,12 @@
 {
+  "title": "Transações",
+  "addTransaction": "Adicionar Transação",
+  "summary": {
+    "totalIncome": "Total de Receitas",
+    "totalExpenses": "Total de Despesas",
+    "netAmount": "Valor Líquido",
+    "totalTransactions": "Total de Transações"
+  },
   "form": {
     "addTitle": "Adicionar Nova Transação",
     "editTitle": "Editar Transação",

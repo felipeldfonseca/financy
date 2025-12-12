@@ -39,6 +39,7 @@ type DateFilterPeriod = 'today' | 'yesterday' | 'last7days' | 'last30days' | 'th
 export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
   onFiltersChange,
 }) => {
+  const { t } = useTranslation('transactions');
   const { state, loadCategories, loadMerchants } = useTransactions();
   const [searchParams, setSearchParams] = useSearchParams();
   const [expanded, setExpanded] = useState(false);
@@ -319,10 +320,10 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
         <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
           <Box display="flex" alignItems="center" gap={1}>
             <FilterIcon />
-            <Typography variant="h6">Filters</Typography>
+            <Typography variant="h6">{t('filters.title')}</Typography>
             {activeFiltersCount > 0 && (
               <Chip
-                label={`${activeFiltersCount} active`}
+                label={`${activeFiltersCount} ${t('filters.active')}`}
                 size="small"
                 sx={{
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -356,7 +357,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
                   },
                 }}
               >
-                Clear All
+                {t('filters.buttons.clearAll')}
               </Button>
             )}
             <IconButton 
@@ -382,7 +383,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
           <Box display="flex" alignItems="center" gap={1} mb={2}>
             <CalendarIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
             <Typography variant="body2" color="text.secondary" fontWeight={500}>
-              Time Period
+              {t('filters.timePeriod.label')}
             </Typography>
           </Box>
           <Box
@@ -393,14 +394,14 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
             }}
           >
             {[
-              { value: 'today', label: 'Today' },
-              { value: 'yesterday', label: 'Yesterday' },
-              { value: 'last7days', label: 'Last 7 Days' },
-              { value: 'last30days', label: 'Last 30 Days' },
-              { value: 'thisMonth', label: 'This Month' },
-              { value: 'lastMonth', label: 'Last Month' },
-              { value: 'thisYear', label: 'This Year' },
-              { value: 'allTime', label: 'All Time' },
+              { value: 'today', label: t('filters.timePeriod.today') },
+              { value: 'yesterday', label: t('filters.timePeriod.yesterday') },
+              { value: 'last7days', label: t('filters.timePeriod.last7days') },
+              { value: 'last30days', label: t('filters.timePeriod.last30days') },
+              { value: 'thisMonth', label: t('filters.timePeriod.thisMonth') },
+              { value: 'lastMonth', label: t('filters.timePeriod.lastMonth') },
+              { value: 'thisYear', label: t('filters.timePeriod.thisYear') },
+              { value: 'allTime', label: t('filters.timePeriod.allTime') },
             ].map((period) => (
               <Button
                 key={period.value}
@@ -475,7 +476,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
             >
-              Custom Range
+              {t('filters.timePeriod.customRange')}
             </Button>
           </Box>
         </Box>
@@ -491,38 +492,38 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
               size="small"
               value={filters.search || ''}
               onChange={(e) => handleFilterChange('search', e.target.value)}
-              placeholder="Description, merchant, notes..."
+              placeholder={t('filters.search.placeholder')}
             />
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth size="small">
-              <InputLabel>Type</InputLabel>
+              <InputLabel>{t('filters.type.label')}</InputLabel>
               <Select
                 value={filters.type || ''}
                 onChange={(e) => handleFilterChange('type', e.target.value || undefined)}
                 label="Type"
               >
-                <MenuItem value="">All Types</MenuItem>
-                <MenuItem value="expense">Expense</MenuItem>
-                <MenuItem value="income">Income</MenuItem>
-                <MenuItem value="transfer">Transfer</MenuItem>
+                <MenuItem value="">{t('filters.type.all')}</MenuItem>
+                <MenuItem value="expense">{t('filters.type.expense')}</MenuItem>
+                <MenuItem value="income">{t('filters.type.income')}</MenuItem>
+                <MenuItem value="transfer">{t('filters.type.transfer')}</MenuItem>
               </Select>
             </FormControl>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth size="small">
-              <InputLabel>Status</InputLabel>
+              <InputLabel>{t('filters.status.label')}</InputLabel>
               <Select
                 value={filters.status || ''}
                 onChange={(e) => handleFilterChange('status', e.target.value || undefined)}
                 label="Status"
               >
-                <MenuItem value="">All Statuses</MenuItem>
-                <MenuItem value="pending">Pending</MenuItem>
-                <MenuItem value="confirmed">Confirmed</MenuItem>
-                <MenuItem value="cancelled">Cancelled</MenuItem>
+                <MenuItem value="">{t('filters.status.all')}</MenuItem>
+                <MenuItem value="pending">{t('filters.status.pending')}</MenuItem>
+                <MenuItem value="confirmed">{t('filters.status.confirmed')}</MenuItem>
+                <MenuItem value="cancelled">{t('filters.status.cancelled')}</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -533,7 +534,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
               value={filters.category || ''}
               onChange={(_, value) => handleFilterChange('category', value || undefined)}
               renderInput={(params) => (
-                <TextField {...params} label="Category" size="small" />
+                <TextField {...params} label={t('filters.category.label')} size="small" />
               )}
               freeSolo
             />
@@ -545,7 +546,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
-                label="Start Date"
+                label={t('filters.dates.start')}
                 type="date"
                 fullWidth
                 size="small"
@@ -557,7 +558,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
 
             <Grid item xs={12} sm={6} md={3}>
               <TextField
-                label="End Date"
+                label={t('filters.dates.end')}
                 type="date"
                 fullWidth
                 size="small"
@@ -573,7 +574,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
                 value={filters.merchantName || ''}
                 onChange={(_, value) => handleFilterChange('merchantName', value || undefined)}
                 renderInput={(params) => (
-                  <TextField {...params} label="Merchant" size="small" />
+                  <TextField {...params} label={t('filters.merchant.label')} size="small" />
                 )}
                 freeSolo
               />
@@ -581,13 +582,13 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
 
             <Grid item xs={12} sm={6} md={3}>
               <FormControl fullWidth size="small">
-                <InputLabel>Currency</InputLabel>
+                <InputLabel>{t('filters.currency.label')}</InputLabel>
                 <Select
                   value={filters.currency || ''}
                   onChange={(e) => handleFilterChange('currency', e.target.value || undefined)}
-                  label="Currency"
+                  label={t('filters.currency.label')}
                 >
-                  <MenuItem value="">All Currencies</MenuItem>
+                  <MenuItem value="">{t('filters.currency.all')}</MenuItem>
                   <MenuItem value="USD">USD</MenuItem>
                   <MenuItem value="EUR">EUR</MenuItem>
                   <MenuItem value="GBP">GBP</MenuItem>
@@ -599,7 +600,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
 
             <Grid item xs={12} sm={6} md={3}>
               <TextField
-                label="Min Amount"
+                label={t('filters.amount.min')}
                 type="number"
                 fullWidth
                 size="small"
@@ -613,7 +614,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
 
             <Grid item xs={12} sm={6} md={3}>
               <TextField
-                label="Max Amount"
+                label={t('filters.amount.max')}
                 type="number"
                 fullWidth
                 size="small"
@@ -627,30 +628,30 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
 
             <Grid item xs={12} sm={6} md={3}>
               <FormControl fullWidth size="small">
-                <InputLabel>Sort By</InputLabel>
+                <InputLabel>{t('filters.sort.label')}</InputLabel>
                 <Select
                   value={filters.sortBy || 'date'}
                   onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-                  label="Sort By"
+                  label={t('filters.sort.label')}
                 >
-                  <MenuItem value="date">Date</MenuItem>
-                  <MenuItem value="amount">Amount</MenuItem>
-                  <MenuItem value="description">Description</MenuItem>
-                  <MenuItem value="createdAt">Created</MenuItem>
+                  <MenuItem value="date">{t('filters.sort.date')}</MenuItem>
+                  <MenuItem value="amount">{t('filters.sort.amount')}</MenuItem>
+                  <MenuItem value="description">{t('filters.sort.description')}</MenuItem>
+                  <MenuItem value="createdAt">{t('filters.sort.created')}</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
 
             <Grid item xs={12} sm={6} md={3}>
               <FormControl fullWidth size="small">
-                <InputLabel>Sort Order</InputLabel>
+                <InputLabel>{t('filters.sort.order')}</InputLabel>
                 <Select
                   value={filters.sortOrder || 'DESC'}
                   onChange={(e) => handleFilterChange('sortOrder', e.target.value as 'ASC' | 'DESC')}
-                  label="Sort Order"
+                  label={t('filters.sort.order')}
                 >
-                  <MenuItem value="DESC">Newest First</MenuItem>
-                  <MenuItem value="ASC">Oldest First</MenuItem>
+                  <MenuItem value="DESC">{t('filters.sort.newest')}</MenuItem>
+                  <MenuItem value="ASC">{t('filters.sort.oldest')}</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
