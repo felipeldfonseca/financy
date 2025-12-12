@@ -449,10 +449,11 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
       setIsSubmitting(true);
       setError(null);
 
-      // The category is now already the dashboard category, so we can store it directly
+      // Store both category (detailed) and dashboardCategory (for analytics)
       const enhancedData = {
         ...data,
-        dashboardCategory: data.category // category is now dashboard category
+        category: data.category, // This is already a dashboard category key
+        dashboardCategory: data.category // Same as category for simplified system
       };
 
       if (mode === 'create') {
