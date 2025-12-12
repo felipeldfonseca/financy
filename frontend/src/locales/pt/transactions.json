@@ -52,5 +52,101 @@
       "update": "Atualizar Transação",
       "saving": "Salvando..."
     }
+  },
+  "filters": {
+    "title": "Filtros",
+    "active": "ativo",
+    "search": {
+      "placeholder": "Descrição, estabelecimento, observações..."
+    },
+    "timePeriod": {
+      "label": "Período",
+      "today": "Hoje",
+      "yesterday": "Ontem", 
+      "last7days": "Últimos 7 Dias",
+      "last30days": "Últimos 30 Dias",
+      "thisMonth": "Este Mês",
+      "lastMonth": "Mês Passado",
+      "thisYear": "Este Ano",
+      "allTime": "Todos os Períodos",
+      "customRange": "Período Personalizado"
+    },
+    "type": {
+      "label": "Tipo",
+      "all": "Todos os Tipos",
+      "expense": "Despesas",
+      "income": "Receitas", 
+      "transfer": "Transferências"
+    },
+    "status": {
+      "label": "Status",
+      "all": "Todos os Status",
+      "pending": "Pendente",
+      "confirmed": "Confirmado",
+      "cancelled": "Cancelado"
+    },
+    "category": {
+      "label": "Categoria", 
+      "all": "Todas as Categorias"
+    },
+    "merchant": {
+      "label": "Estabelecimento",
+      "all": "Todos os Estabelecimentos"
+    },
+    "currency": {
+      "label": "Moeda",
+      "all": "Todas as Moedas"
+    },
+    "amount": {
+      "min": "Valor Mínimo",
+      "max": "Valor Máximo"
+    },
+    "sort": {
+      "label": "Ordenar por",
+      "order": "Ordem",
+      "date": "Data",
+      "amount": "Valor",
+      "description": "Descrição", 
+      "created": "Criado",
+      "newest": "Mais Recentes",
+      "oldest": "Mais Antigos"
+    },
+    "dates": {
+      "start": "Data Inicial",
+      "end": "Data Final"
+    },
+    "buttons": {
+      "clearAll": "Limpar Tudo",
+      "apply": "Aplicar Filtros"
+    }
+  },
+  "list": {
+    "headers": {
+      "type": "Tipo",
+      "description": "Descrição",
+      "category": "Categoria",
+      "amount": "Valor",
+      "date": "Data",
+      "status": "Status", 
+      "merchant": "Estabelecimento",
+      "actions": "Ações"
+    },
+    "actions": {
+      "edit": "Editar",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar",
+      "delete": "Excluir",
+      "moreActions": "Mais ações"
+    },
+    "status": {
+      "confirmed": "Confirmado",
+      "pending": "Pendente",
+      "cancelled": "Cancelado"
+    },
+    "emptyState": {
+      "title": "Nenhuma transação encontrada",
+      "subtitle": "Adicione sua primeira transação para começar",
+      "button": "Adicionar Transação"
+    }
   }
 }

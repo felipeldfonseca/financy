@@ -52,5 +52,101 @@
       "update": "Update Transaction",
       "saving": "Saving..."
     }
+  },
+  "filters": {
+    "title": "Filters",
+    "active": "active",
+    "search": {
+      "placeholder": "Description, merchant, notes..."
+    },
+    "timePeriod": {
+      "label": "Time Period",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "last7days": "Last 7 Days",
+      "last30days": "Last 30 Days",
+      "thisMonth": "This Month",
+      "lastMonth": "Last Month",
+      "thisYear": "This Year",
+      "allTime": "All Time",
+      "customRange": "Custom Range"
+    },
+    "type": {
+      "label": "Type",
+      "all": "All Types",
+      "expense": "Expenses",
+      "income": "Income",
+      "transfer": "Transfers"
+    },
+    "status": {
+      "label": "Status", 
+      "all": "All Statuses",
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled"
+    },
+    "category": {
+      "label": "Category",
+      "all": "All Categories"
+    },
+    "merchant": {
+      "label": "Merchant",
+      "all": "All Merchants"
+    },
+    "currency": {
+      "label": "Currency",
+      "all": "All Currencies"
+    },
+    "amount": {
+      "min": "Min Amount",
+      "max": "Max Amount"
+    },
+    "sort": {
+      "label": "Sort By",
+      "order": "Sort Order",
+      "date": "Date",
+      "amount": "Amount",
+      "description": "Description",
+      "created": "Created",
+      "newest": "Newest First",
+      "oldest": "Oldest First"
+    },
+    "dates": {
+      "start": "Start Date",
+      "end": "End Date"
+    },
+    "buttons": {
+      "clearAll": "Clear All",
+      "apply": "Apply Filters"
+    }
+  },
+  "list": {
+    "headers": {
+      "type": "Type",
+      "description": "Description", 
+      "category": "Category",
+      "amount": "Amount",
+      "date": "Date",
+      "status": "Status",
+      "merchant": "Merchant",
+      "actions": "Actions"
+    },
+    "actions": {
+      "edit": "Edit",
+      "confirm": "Confirm",
+      "cancel": "Cancel", 
+      "delete": "Delete",
+      "moreActions": "More actions"
+    },
+    "status": {
+      "confirmed": "Confirmed",
+      "pending": "Pending",
+      "cancelled": "Cancelled"
+    },
+    "emptyState": {
+      "title": "No transactions found",
+      "subtitle": "Add your first transaction to get started",
+      "button": "Add Transaction"
+    }
   }
 }
