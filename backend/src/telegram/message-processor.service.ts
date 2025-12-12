@@ -7,21 +7,17 @@ import * as FormData from 'form-data';
 import { ParsedTransaction } from './interfaces/telegram.interface';
 import { CurrencyService } from '../currency/currency.service';
 
-// Predefined category configuration (must match frontend categories)
+// Predefined dashboard category configuration (must match frontend categories)
 const PREDEFINED_CATEGORIES = {
   expense: [
-    'Housing', 'Transportation', 'Food & Dining', 'Shopping', 'Health & Fitness',
-    'Entertainment', 'Bills & Utilities', 'Education', 'Personal Care', 'Insurance',
-    'Financial', 'Travel & Vacation', 'Gifts & Donations', 'Pets', 'Kids & Family',
-    'Business Expenses', 'Other Expenses'
+    'Housing', 'Transportation', 'Food & Dining', 'Health & Fitness',
+    'Entertainment & Shopping', 'Bills & Financial', 'Travel & Lifestyle', 'Other'
   ],
   income: [
-    'Employment Income', 'Self-Employment', 'Investment Income', 'Other Income',
-    'Government & Benefits', 'Refunds & Returns'
+    'Employment', 'Investment', 'Government & Benefits', 'Other Income'
   ],
   transfer: [
-    'Account Transfers', 'Debt Payments', 'Savings & Investments', 'Personal Transfers',
-    'Other Transfers'
+    'Account Transfers', 'Debt Payments', 'Other Transfers'
   ]
 };
 
@@ -229,7 +225,7 @@ Guidelines:
 
 Examples:
 "Paid $50 for groceries at Walmart" → {"amount": 50, "currency": "USD", "type": "expense", "description": "groceries", "category": "Food & Dining", "merchantName": "Walmart", "confidence": 0.95}
-"Received $1000 salary" → {"amount": 1000, "currency": "USD", "type": "income", "description": "salary", "category": "Income", "merchantName": null, "confidence": 0.9}
+"Received $1000 salary" → {"amount": 1000, "currency": "USD", "type": "income", "description": "salary", "category": "Employment", "merchantName": null, "confidence": 0.9}
 "Spent R$25 on lunch" → {"amount": 25, "currency": "BRL", "type": "expense", "description": "lunch", "category": "Food & Dining", "merchantName": null, "confidence": 0.85}
 
 Remember: Respond with ONLY the JSON object, no additional text.`;
@@ -298,9 +294,11 @@ Examples with default currency ${defaultCurrency}:
 
 "Cena con amigos 750 pesos mexicanos" → [{"amount": 750, "currency": "MXN", "type": "expense", "description": "dinner with friends", "category": "Food & Dining", "merchantName": null, "date": "2025-10-30", "confidence": 0.9}]
 
-"Got paid 3000 BRL salary last Friday" → [{"amount": 3000, "currency": "BRL", "type": "income", "description": "salary", "category": "Employment Income", "merchantName": null, "date": "2025-10-24", "confidence": 0.95}]
+"Got paid 3000 BRL salary last Friday" → [{"amount": 3000, "currency": "BRL", "type": "income", "description": "salary", "category": "Employment", "merchantName": null, "date": "2025-10-24", "confidence": 0.95}]
 
 "Spent R$50 on groceries" → [{"amount": 50, "currency": "BRL", "type": "expense", "description": "groceries", "category": "Food & Dining", "merchantName": null, "date": "2025-10-30", "confidence": 0.95}]
+
+"Bought clothes 80 and paid insurance 200" → [{"amount": 80, "currency": "${defaultCurrency}", "type": "expense", "description": "clothes", "category": "Entertainment & Shopping", "merchantName": null, "date": "2025-10-30", "confidence": 0.9}, {"amount": 200, "currency": "${defaultCurrency}", "type": "expense", "description": "insurance", "category": "Bills & Financial", "merchantName": null, "date": "2025-10-30", "confidence": 0.9}]
 
 Remember: Respond with ONLY the JSON array, no additional text. Always use ${defaultCurrency} as currency if not explicitly stated. Always use categories from the allowed list.`;
   }

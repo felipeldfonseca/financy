@@ -134,6 +134,29 @@
       "apply": "Aplicar Filtros"
     }
   },
+  "dashboardCategories": {
+    "expense": {
+      "housing": "Moradia",
+      "transportation": "Transporte", 
+      "fooddining": "Alimentação",
+      "healthfitness": "Saúde e Fitness",
+      "entertainmentshopping": "Entretenimento e Compras",
+      "billsfinancial": "Contas e Financeiro",
+      "travellifestyle": "Viagem e Estilo de Vida",
+      "other": "Outros"
+    },
+    "income": {
+      "employment": "Renda do Trabalho",
+      "investment": "Investimentos",
+      "governmentbenefits": "Governo e Benefícios", 
+      "other": "Outras Receitas"
+    },
+    "transfer": {
+      "accounts": "Transferências entre Contas",
+      "debt": "Pagamento de Dívidas",
+      "other": "Outras Transferências"
+    }
+  },
   "categories": {
     "expense": {
       "housing": {
@@ -161,13 +184,15 @@
         "coffee": "Café/Bebidas",
         "delivery": "Delivery"
       },
-      "healthcare": {
-        "name": "Saúde",
+      "healthfitness": {
+        "name": "Saúde e Fitness",
         "doctor": "Consultas Médicas",
         "prescription": "Medicamentos",
         "dental": "Cuidados Dentários",
         "vision": "Cuidados Visuais",
-        "insurance": "Plano de Saúde"
+        "insurance": "Plano de Saúde",
+        "gym": "Academia/Fitness",
+        "sports": "Esportes e Atividades"
       },
       "entertainment": {
         "name": "Entretenimento",
@@ -192,12 +217,68 @@
         "courses": "Cursos Online",
         "training": "Treinamento Profissional"
       },
-      "travel": {
-        "name": "Viagem",
+      "travelvacation": {
+        "name": "Viagem e Férias",
         "flights": "Passagens Aéreas",
         "hotels": "Hotéis",
         "vacation": "Férias",
         "business": "Viagem de Negócios"
+      },
+      "personalcare": {
+        "name": "Cuidados Pessoais",
+        "hygiene": "Higiene Pessoal",
+        "cosmetics": "Cosméticos",
+        "haircare": "Cuidados com Cabelo",
+        "skincare": "Cuidados com a Pele",
+        "wellness": "Bem-estar"
+      },
+      "insurance": {
+        "name": "Seguros",
+        "home": "Seguro Residencial",
+        "auto": "Seguro do Carro",
+        "health": "Plano de Saúde",
+        "life": "Seguro de Vida",
+        "disability": "Seguro de Invalidez"
+      },
+      "financial": {
+        "name": "Financeiro",
+        "bankfees": "Taxas Bancárias",
+        "investment": "Taxas de Investimento",
+        "advisor": "Consultor Financeiro",
+        "taxes": "Impostos",
+        "accounting": "Contabilidade"
+      },
+      "giftdonations": {
+        "name": "Presentes e Doações",
+        "gifts": "Presentes",
+        "charity": "Caridade",
+        "religious": "Doações Religiosas",
+        "political": "Doações Políticas",
+        "nonprofit": "ONGs"
+      },
+      "pets": {
+        "name": "Pets",
+        "food": "Ração e Alimentação",
+        "veterinary": "Veterinário",
+        "grooming": "Cuidados Estéticos",
+        "supplies": "Suprimentos",
+        "insurance": "Seguro Pet"
+      },
+      "kidsfamily": {
+        "name": "Filhos e Família",
+        "childcare": "Creche/Babá",
+        "diapers": "Fraldas",
+        "toys": "Brinquedos",
+        "activities": "Atividades Infantis",
+        "familytrips": "Viagens em Família"
+      },
+      "businessexpenses": {
+        "name": "Despesas Comerciais",
+        "office": "Material de Escritório",
+        "marketing": "Marketing",
+        "travel": "Viagem de Negócios",
+        "equipment": "Equipamentos",
+        "software": "Software"
       },
       "bills": {
         "name": "Contas e Utilidades",
@@ -207,11 +288,12 @@
         "water": "Água",
         "gas": "Gás"
       },
-      "other": {
-        "name": "Outros",
+      "otherexpenses": {
+        "name": "Outras Despesas",
         "miscellaneous": "Diversos",
         "fees": "Taxas/Encargos",
-        "donations": "Doações/Caridade"
+        "unexpected": "Gastos Inesperados",
+        "emergency": "Emergências"
       }
     },
     "income": {
@@ -229,16 +311,41 @@
         "capital": "Ganho de Capital",
         "rental": "Renda de Aluguel"
       },
+      "selfemployment": {
+        "name": "Trabalho Autônomo",
+        "freelance": "Trabalho Freelance",
+        "consulting": "Consultoria",
+        "contracting": "Prestação de Serviços",
+        "commission": "Comissões"
+      },
       "business": {
         "name": "Renda de Negócios",
         "revenue": "Receita de Negócios",
-        "consulting": "Consultoria",
-        "freelance": "Trabalho Freelance"
+        "partnership": "Sociedade",
+        "royalties": "Royalties",
+        "licensing": "Licenciamento"
       },
-      "other": {
+      "governmentbenefits": {
+        "name": "Governo e Benefícios",
+        "unemployment": "Seguro Desemprego",
+        "retirement": "Aposentadoria",
+        "disability": "Auxílio Invalidez",
+        "social": "Auxílio Social",
+        "tax": "Restituição de Impostos"
+      },
+      "refundsreturns": {
+        "name": "Reembolsos e Devoluções",
+        "purchases": "Devolução de Compras",
+        "services": "Reembolso de Serviços",
+        "insurance": "Reembolso de Seguro",
+        "warranty": "Garantia",
+        "overpayment": "Pagamento Excessivo"
+      },
+      "otherincome": {
         "name": "Outras Receitas",
         "gifts": "Presentes",
-        "refunds": "Reembolsos",
+        "lottery": "Loteria",
+        "found": "Dinheiro Encontrado",
         "cashback": "Cashback",
         "miscellaneous": "Diversos"
       }
@@ -255,6 +362,27 @@
         "credit": "Pagamento de Cartão de Crédito",
         "loan": "Pagamento de Empréstimo",
         "mortgage": "Pagamento de Financiamento"
+      },
+      "savingsinvestments": {
+        "name": "Poupança e Investimentos",
+        "savings": "Conta Poupança",
+        "investment": "Conta de Investimento",
+        "retirement": "Previdência",
+        "emergency": "Fundo de Emergência"
+      },
+      "personaltransfers": {
+        "name": "Transferências Pessoais",
+        "family": "Família",
+        "friends": "Amigos",
+        "spouse": "Cônjuge",
+        "children": "Filhos"
+      },
+      "othertransfers": {
+        "name": "Outras Transferências",
+        "business": "Negócios",
+        "charity": "Caridade",
+        "miscellaneous": "Diversas",
+        "temporary": "Temporárias"
       }
     }
   },

@@ -134,6 +134,29 @@
       "apply": "Apply Filters"
     }
   },
+  "dashboardCategories": {
+    "expense": {
+      "housing": "Housing",
+      "transportation": "Transportation",
+      "fooddining": "Food & Dining",
+      "healthfitness": "Health & Fitness", 
+      "entertainmentshopping": "Entertainment & Shopping",
+      "billsfinancial": "Bills & Financial",
+      "travellifestyle": "Travel & Lifestyle",
+      "other": "Other"
+    },
+    "income": {
+      "employment": "Employment",
+      "investment": "Investment",
+      "governmentbenefits": "Government & Benefits",
+      "other": "Other Income"
+    },
+    "transfer": {
+      "accounts": "Account Transfers",
+      "debt": "Debt Payments", 
+      "other": "Other Transfers"
+    }
+  },
   "categories": {
     "expense": {
       "housing": {
@@ -161,13 +184,15 @@
         "coffee": "Coffee/Beverages",
         "delivery": "Food Delivery"
       },
-      "healthcare": {
-        "name": "Healthcare",
+      "healthfitness": {
+        "name": "Health & Fitness",
         "doctor": "Doctor Visits",
         "prescription": "Prescription Drugs",
         "dental": "Dental Care",
         "vision": "Vision Care",
-        "insurance": "Health Insurance"
+        "insurance": "Health Insurance",
+        "gym": "Gym/Fitness",
+        "sports": "Sports & Activities"
       },
       "entertainment": {
         "name": "Entertainment",
@@ -192,12 +217,68 @@
         "courses": "Online Courses",
         "training": "Professional Training"
       },
-      "travel": {
-        "name": "Travel",
+      "travelvacation": {
+        "name": "Travel & Vacation",
         "flights": "Flights",
         "hotels": "Hotels",
         "vacation": "Vacation",
         "business": "Business Travel"
+      },
+      "personalcare": {
+        "name": "Personal Care",
+        "hygiene": "Personal Hygiene",
+        "cosmetics": "Cosmetics",
+        "haircare": "Hair Care",
+        "skincare": "Skin Care",
+        "wellness": "Wellness"
+      },
+      "insurance": {
+        "name": "Insurance",
+        "home": "Home Insurance",
+        "auto": "Auto Insurance",
+        "health": "Health Insurance",
+        "life": "Life Insurance",
+        "disability": "Disability Insurance"
+      },
+      "financial": {
+        "name": "Financial",
+        "bankfees": "Bank Fees",
+        "investment": "Investment Fees",
+        "advisor": "Financial Advisor",
+        "taxes": "Taxes",
+        "accounting": "Accounting"
+      },
+      "giftdonations": {
+        "name": "Gifts & Donations",
+        "gifts": "Gifts",
+        "charity": "Charity",
+        "religious": "Religious Donations",
+        "political": "Political Donations",
+        "nonprofit": "Non-profit Organizations"
+      },
+      "pets": {
+        "name": "Pets",
+        "food": "Pet Food",
+        "veterinary": "Veterinary",
+        "grooming": "Pet Grooming",
+        "supplies": "Pet Supplies",
+        "insurance": "Pet Insurance"
+      },
+      "kidsfamily": {
+        "name": "Kids & Family",
+        "childcare": "Childcare",
+        "diapers": "Diapers",
+        "toys": "Toys",
+        "activities": "Kids Activities",
+        "familytrips": "Family Trips"
+      },
+      "businessexpenses": {
+        "name": "Business Expenses",
+        "office": "Office Supplies",
+        "marketing": "Marketing",
+        "travel": "Business Travel",
+        "equipment": "Equipment",
+        "software": "Software"
       },
       "bills": {
         "name": "Bills & Utilities",
@@ -207,11 +288,12 @@
         "water": "Water",
         "gas": "Gas"
       },
-      "other": {
-        "name": "Other",
+      "otherexpenses": {
+        "name": "Other Expenses",
         "miscellaneous": "Miscellaneous",
         "fees": "Fees/Charges",
-        "donations": "Donations/Charity"
+        "unexpected": "Unexpected Expenses",
+        "emergency": "Emergency Expenses"
       }
     },
     "income": {
@@ -229,16 +311,41 @@
         "capital": "Capital Gains",
         "rental": "Rental Income"
       },
+      "selfemployment": {
+        "name": "Self-Employment",
+        "freelance": "Freelance Work",
+        "consulting": "Consulting",
+        "contracting": "Contract Work",
+        "commission": "Commissions"
+      },
       "business": {
         "name": "Business Income",
         "revenue": "Business Revenue",
-        "consulting": "Consulting",
-        "freelance": "Freelance Work"
+        "partnership": "Partnership Income",
+        "royalties": "Royalties",
+        "licensing": "Licensing"
       },
-      "other": {
+      "governmentbenefits": {
+        "name": "Government & Benefits",
+        "unemployment": "Unemployment Benefits",
+        "retirement": "Retirement Benefits",
+        "disability": "Disability Benefits",
+        "social": "Social Security",
+        "tax": "Tax Refunds"
+      },
+      "refundsreturns": {
+        "name": "Refunds & Returns",
+        "purchases": "Purchase Returns",
+        "services": "Service Refunds",
+        "insurance": "Insurance Refunds",
+        "warranty": "Warranty Claims",
+        "overpayment": "Overpayment Refunds"
+      },
+      "otherincome": {
         "name": "Other Income",
         "gifts": "Gifts",
-        "refunds": "Refunds",
+        "lottery": "Lottery Winnings",
+        "found": "Found Money",
         "cashback": "Cashback",
         "miscellaneous": "Miscellaneous"
       }
@@ -255,6 +362,27 @@
         "credit": "Credit Card Payment",
         "loan": "Loan Payment",
         "mortgage": "Mortgage Payment"
+      },
+      "savingsinvestments": {
+        "name": "Savings & Investments",
+        "savings": "Savings Account",
+        "investment": "Investment Account",
+        "retirement": "Retirement Fund",
+        "emergency": "Emergency Fund"
+      },
+      "personaltransfers": {
+        "name": "Personal Transfers",
+        "family": "Family",
+        "friends": "Friends",
+        "spouse": "Spouse",
+        "children": "Children"
+      },
+      "othertransfers": {
+        "name": "Other Transfers",
+        "business": "Business",
+        "charity": "Charity",
+        "miscellaneous": "Miscellaneous",
+        "temporary": "Temporary"
       }
     }
   },

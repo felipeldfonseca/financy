@@ -36,6 +36,7 @@ import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { Transaction } from '../../services/transactionApi';
 import { useTransactions } from '../../contexts/TransactionContext';
+import { useDashboardCategories } from '../../hooks/useDashboardCategories';
 
 interface TransactionListProps {
   onEditTransaction: (transaction: Transaction) => void;
@@ -45,6 +46,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
   const { t } = useTranslation('transactions');
   const theme = useTheme();
   const { state, loadTransactions, deleteTransaction, confirmTransaction, cancelTransaction } = useTransactions();
+  const { mapToDisplayCategory } = useDashboardCategories();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
@@ -317,15 +319,22 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
                 
                 <TableCell sx={{ borderBottom: 'none' }}>
                   {transaction.category && (
-                    <Chip
-                      label={transaction.category}
-                      size="small"
-                      variant="outlined"
-                      sx={{
-                        borderColor: alpha(getTypeColor(transaction.type), 0.3),
-                        color: getTypeColor(transaction.type),
-                      }}
-                    />
+                    <Box>
+                      <Chip
+                        label={mapToDisplayCategory(transaction.type, transaction.category).name}
+                        size="small"
+                        variant="outlined"
+                        sx={{
+                          borderColor: alpha(getTypeColor(transaction.type), 0.3),
+                          color: getTypeColor(transaction.type),
+                        }}
+                      />
+                      {transaction.subcategory && (
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+                          {t(`categories.${transaction.type}.${transaction.category}.${transaction.subcategory}`)}
+                        </Typography>
+                      )}
+                    </Box>
                   )}
                 </TableCell>
                 
