@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -116,8 +116,11 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Memoize the resolver to avoid unnecessary re-creation
+  const resolver = useMemo(() => yupResolver(createTransactionSchema(t)), [t]);
+  
   const form = useForm<CreateTransactionData>({
-    resolver: yupResolver(createTransactionSchema(t)),
+    resolver,
     defaultValues: {
       amount: 0,
       description: '',
@@ -131,6 +134,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
       location: '',
       notes: '',
     },
+    mode: 'onChange',
   });
 
   const {
@@ -155,12 +159,8 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   // Get available subcategories based on selected category
   const availableSubcategories = (selectedCategory && availableCategories[selectedCategory as keyof typeof availableCategories]) || [];
 
-  // Update form resolver when translation function changes
-  useEffect(() => {
-    const newResolver = yupResolver(createTransactionSchema(t));
-    // @ts-ignore - accessing internal form method to update resolver
-    form._options.resolver = newResolver;
-  }, [t, form]);
+  // Note: Form resolver will automatically use the updated schema when validation is triggered
+  // since createTransactionSchema(t) is recreated on each render with the current translation function
 
   useEffect(() => {
     if (open) {
