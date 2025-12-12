@@ -15,6 +15,7 @@ import {
   Add as AddIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface UpcomingBill {
   id: string;
@@ -55,6 +56,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({
   goals = [],
   budgets = [],
 }) => {
+  const { t } = useTranslation('dashboard');
   const navigate = useNavigate();
 
 
@@ -76,7 +78,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({
                 <Box sx={{ height: 240, display: 'flex', flexDirection: 'column' }}>
                   <Box display="flex" alignItems="center" gap={1} mb={2}>
                     <CalendarIcon sx={{ fontSize: 24, color: '#f59e0b' }} />
-                    <Typography variant="h6" fontWeight={600}>Upcoming Bills</Typography>
+                    <Typography variant="h6" fontWeight={600}>{t('quickActions.upcomingBills.title')}</Typography>
                   </Box>
                   <Box sx={{
                     flex: 1,
@@ -107,7 +109,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({
                         },
                       }}
                     >
-                      Add Bills
+                      {t('quickActions.upcomingBills.button')}
                     </Button>
                   </Box>
                 </Box>
@@ -118,7 +120,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({
                 <Box sx={{ height: 240, display: 'flex', flexDirection: 'column' }}>
                   <Box display="flex" alignItems="center" gap={1} mb={2}>
                     <GoalIcon sx={{ fontSize: 24, color: '#10b981' }} />
-                    <Typography variant="h6" fontWeight={600}>Goal Progress</Typography>
+                    <Typography variant="h6" fontWeight={600}>{t('quickActions.goalProgress.title')}</Typography>
                   </Box>
                   <Box sx={{
                     flex: 1,
@@ -149,7 +151,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({
                         },
                       }}
                     >
-                      Add Goals
+                      {t('quickActions.goalProgress.button')}
                     </Button>
                   </Box>
                 </Box>
@@ -160,7 +162,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({
                 <Box sx={{ height: 240, display: 'flex', flexDirection: 'column' }}>
                   <Box display="flex" alignItems="center" gap={1} mb={2}>
                     <BudgetIcon sx={{ fontSize: 24, color: '#6366f1' }} />
-                    <Typography variant="h6" fontWeight={600}>Budget Status</Typography>
+                    <Typography variant="h6" fontWeight={600}>{t('quickActions.budgetStatus.title')}</Typography>
                   </Box>
                   <Box sx={{
                     flex: 1,
@@ -191,7 +193,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({
                         },
                       }}
                     >
-                      Add Budgets
+                      {t('quickActions.budgetStatus.button')}
                     </Button>
                   </Box>
                 </Box>
