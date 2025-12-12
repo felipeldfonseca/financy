@@ -1,0 +1,99 @@
+{
+  "title": "Telegram Integration",
+  "setup": {
+    "title": "Setup Your Telegram Bot",
+    "description": "Follow these simple steps to connect your personal finance bot and start tracking transactions instantly via Telegram.",
+    "backButton": "Back to Settings"
+  },
+  "steps": {
+    "authenticate": {
+      "title": "Authenticate Your Account",
+      "description": "We'll generate a secure token to link your Financy account with the Telegram bot."
+    },
+    "addBot": {
+      "title": "Add the Bot to Telegram",
+      "description": "Click the button below to start a conversation with your personal finance bot."
+    },
+    "activate": {
+      "title": "Activate Connection", 
+      "description": "Send the activation command to complete the setup."
+    }
+  },
+  "status": {
+    "connected": "Connected",
+    "notConnected": "Not Connected",
+    "pending": "Setup Pending",
+    "error": "Connection Error"
+  },
+  "token": {
+    "title": "Your Secure Token",
+    "description": "This token links your Financy account to the Telegram bot. Keep it private!",
+    "copyButton": "Copy Token",
+    "copied": "Copied!",
+    "regenerateButton": "Regenerate Token",
+    "expiresIn": "Expires in:",
+    "expired": "This token has expired. Please regenerate a new one."
+  },
+  "bot": {
+    "title": "Start Chat with Bot",
+    "description": "Click the button below to open Telegram and start a conversation with your personal finance bot.",
+    "openButton": "Open Telegram Bot",
+    "username": "@FinancyAIBot"
+  },
+  "activation": {
+    "title": "Activation Command",
+    "description": "Copy and send this command to the bot to complete the connection:",
+    "command": "/start {{token}}",
+    "copyButton": "Copy Command",
+    "copied": "Copied!",
+    "helpText": "Paste this command in your chat with @FinancyAIBot"
+  },
+  "features": {
+    "title": "What You Can Do",
+    "description": "Once connected, you'll be able to:",
+    "list": {
+      "textMessages": "Send text messages like 'Spent $50 on groceries'",
+      "voiceNotes": "Record voice notes describing your transactions",
+      "receiptPhotos": "Take photos of receipts for automatic processing",
+      "instantTracking": "Get instant confirmations and categorization",
+      "anywhere": "Track your finances from anywhere, anytime"
+    }
+  },
+  "troubleshooting": {
+    "title": "Having Trouble?",
+    "description": "Common issues and solutions:",
+    "issues": {
+      "tokenExpired": "If your token expired, generate a new one above",
+      "botNotResponding": "Make sure you're messaging the official @FinancyAIBot",
+      "commandFailed": "Try copying the full activation command again",
+      "stillNotWorking": "Contact support if you're still having issues"
+    }
+  },
+  "actions": {
+    "disconnect": "Disconnect Telegram",
+    "reconnect": "Reconnect",
+    "testConnection": "Test Connection"
+  },
+  "dialogs": {
+    "disconnect": {
+      "title": "Disconnect Telegram?",
+      "message": "This will remove the connection between your Financy account and Telegram bot. You can reconnect at any time.",
+      "confirmButton": "Disconnect",
+      "cancelButton": "Cancel"
+    },
+    "regenerateToken": {
+      "title": "Regenerate Token?",
+      "message": "This will invalidate your current token and create a new one. You'll need to reactivate the bot with the new token.",
+      "confirmButton": "Regenerate",
+      "cancelButton": "Cancel"
+    }
+  },
+  "messages": {
+    "tokenGenerated": "New token generated successfully!",
+    "connectionTested": "Connection test successful!",
+    "disconnected": "Telegram connection removed successfully.",
+    "errorTesting": "Failed to test connection. Please try again.",
+    "errorDisconnecting": "Failed to disconnect. Please try again.",
+    "errorGeneratingToken": "Failed to generate token. Please try again."
+  }
+}

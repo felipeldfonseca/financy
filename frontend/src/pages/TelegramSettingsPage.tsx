@@ -33,10 +33,12 @@ import {
   CameraAlt as PhotoIcon,
 } from '@mui/icons-material';
 import { QRCodeSVG } from 'qrcode.react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { authApi } from '../services/authApi';
 
 const TelegramSettingsPage: React.FC = () => {
+  const { t } = useTranslation('telegram');
   const { state: authState, refreshAuth } = useAuth();
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const [tokenExpiresAt, setTokenExpiresAt] = useState<string | null>(null);
@@ -183,7 +185,7 @@ const TelegramSettingsPage: React.FC = () => {
         if (authState.user?.isTelegramLinked) {
           setLinkToken(null);
           setTokenExpiresAt(null);
-          setSuccess('Telegram account linked successfully!');
+          setSuccess(t('messages.connectionTested'));
           clearInterval(pollInterval);
         }
       }, 2000);
@@ -195,10 +197,10 @@ const TelegramSettingsPage: React.FC = () => {
   return (
     <Box sx={{ py: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        Telegram Integration
+        {t('title')}
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        Link your Telegram account to track finances on the go with voice messages, text, and photos.
+        {t('setup.description')}
       </Typography>
 
       {error && (
@@ -218,7 +220,7 @@ const TelegramSettingsPage: React.FC = () => {
         <Grid item xs={12} md={isLinked ? 12 : 6}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
-              Connection Status
+              {t('status.connected')}
             </Typography>
             <Divider sx={{ mb: 2 }} />
 
@@ -229,7 +231,7 @@ const TelegramSettingsPage: React.FC = () => {
                   @{botUsername}
                 </Typography>
                 <Chip
-                  label={isLinked ? 'Connected' : 'Not Connected'}
+                  label={isLinked ? t('status.connected') : t('status.notConnected')}
                   size="small"
                   sx={isLinked
                     ? { bgcolor: 'success.main', color: 'white' }
@@ -244,8 +246,8 @@ const TelegramSettingsPage: React.FC = () => {
                 <Alert severity="success" sx={{ mb: 2 }}>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     {authState.user?.telegramUsername
-                      ? `Connected as @${authState.user.telegramUsername}`
-                      : 'Your Telegram account is connected'}
+                      ? `${t('status.connected')} @${authState.user.telegramUsername}`
+                      : t('status.connected')}
                   </Typography>
                 </Alert>
 
@@ -260,7 +262,7 @@ const TelegramSettingsPage: React.FC = () => {
                     '&:hover': { bgcolor: '#ef5350' },
                   }}
                 >
-                  Unlink Telegram Account
+                  {t('actions.disconnect')}
                 </Button>
               </>
             )}
@@ -268,7 +270,7 @@ const TelegramSettingsPage: React.FC = () => {
             {!isLinked && (
               <Alert severity="info">
                 <Typography variant="body2">
-                  Your Telegram account is not linked yet. Follow the instructions to connect.
+                  {t('status.notConnected')}
                 </Typography>
               </Alert>
             )}
@@ -280,16 +282,16 @@ const TelegramSettingsPage: React.FC = () => {
           <Grid item xs={12} md={6}>
             <Paper sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom>
-                How to Connect
+                {t('setup.title')}
               </Typography>
               <Divider sx={{ mb: 2 }} />
 
               <Stepper orientation="vertical">
                 <Step active>
-                  <StepLabel>Generate Link Token</StepLabel>
+                  <StepLabel>{t('steps.authenticate.title')}</StepLabel>
                   <StepContent>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      Click the button below to generate a secure link token (valid for 15 minutes).
+                      {t('steps.authenticate.description')}
                     </Typography>
                     <Button
                       variant="contained"
@@ -297,16 +299,16 @@ const TelegramSettingsPage: React.FC = () => {
                       disabled={isLoading || !!linkToken}
                       startIcon={isLoading ? <CircularProgress size={20} /> : <RefreshIcon />}
                     >
-                      {linkToken ? 'Token Generated' : 'Generate Token'}
+                      {linkToken ? t('token.regenerateButton') : t('token.copyButton')}
                     </Button>
                   </StepContent>
                 </Step>
 
                 <Step active={!!linkToken}>
-                  <StepLabel>Open Telegram Bot</StepLabel>
+                  <StepLabel>{t('steps.addBot.title')}</StepLabel>
                   <StepContent>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      Scan the QR code with your phone or click the button to open Telegram.
+                      {t('steps.addBot.description')}
                     </Typography>
 
                     {linkToken && (
@@ -328,7 +330,7 @@ const TelegramSettingsPage: React.FC = () => {
                         />
                         <Chip
                           icon={<QrCodeIcon />}
-                          label={`Expires in: ${getTimeRemaining()}`}
+                          label={`${t('token.expiresIn')} ${getTimeRemaining()}`}
                           color="primary"
                           variant="outlined"
                           size="small"
@@ -344,16 +346,16 @@ const TelegramSettingsPage: React.FC = () => {
                       sx={{ bgcolor: '#0088cc', '&:hover': { bgcolor: '#006699' } }}
                       fullWidth
                     >
-                      Open Telegram Bot
+                      {t('bot.openButton')}
                     </Button>
                   </StepContent>
                 </Step>
 
                 <Step active={!!linkToken}>
-                  <StepLabel>Complete Linking</StepLabel>
+                  <StepLabel>{t('steps.activate.title')}</StepLabel>
                   <StepContent>
                     <Typography variant="body2" color="text.secondary">
-                      The bot will automatically link your account. The page will update automatically once linking is complete.
+                      {t('steps.activate.description')}
                     </Typography>
                   </StepContent>
                 </Step>
@@ -367,7 +369,7 @@ const TelegramSettingsPage: React.FC = () => {
           <Grid item xs={12}>
             <Paper sx={{ p: 3, bgcolor: 'primary.main', color: 'white' }}>
               <Typography variant="h6" gutterBottom sx={{ color: 'white' }}>
-                What You Can Do with Telegram
+                {t('features.title')}
               </Typography>
               <Divider sx={{ my: 2, borderColor: 'rgba(255,255,255,0.2)' }} />
 
@@ -376,33 +378,33 @@ const TelegramSettingsPage: React.FC = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <TextIcon sx={{ color: 'white', fontSize: 20 }} />
                     <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'white' }}>
-                      Send Text Messages
+                      {t('features.list.textMessages').split(':')[0]}
                     </Typography>
                   </Box>
                   <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)' }}>
-                    "Spent $50 on groceries" or "Got paid $2000 salary"
+                    {t('features.list.textMessages').split(':')[1] || ''}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} md={4}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <VoiceIcon sx={{ color: 'white', fontSize: 20 }} />
                     <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'white' }}>
-                      Send Voice Messages
+                      {t('features.list.voiceNotes').split(':')[0]}
                     </Typography>
                   </Box>
                   <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)' }}>
-                    Just speak naturally about your income or expenses
+                    {t('features.list.voiceNotes').split(':')[1] || ''}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} md={4}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                     <PhotoIcon sx={{ color: 'white', fontSize: 20 }} />
                     <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'white' }}>
-                      Send Receipt Photos
+                      {t('features.list.receiptPhotos').split(':')[0]}
                     </Typography>
                   </Box>
                   <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)' }}>
-                    AI will extract the amount and details automatically
+                    {t('features.list.receiptPhotos').split(':')[1] || ''}
                   </Typography>
                 </Grid>
               </Grid>
@@ -418,7 +420,7 @@ const TelegramSettingsPage: React.FC = () => {
                     '&:hover': { borderColor: 'rgba(255,255,255,0.8)', bgcolor: 'rgba(255,255,255,0.1)' },
                   }}
                 >
-                  Open Telegram Bot
+                  {t('bot.openButton')}
                 </Button>
               </Box>
             </Paper>
@@ -428,24 +430,21 @@ const TelegramSettingsPage: React.FC = () => {
 
       {/* Unlink Confirmation Dialog */}
       <Dialog open={showUnlinkDialog} onClose={() => setShowUnlinkDialog(false)}>
-        <DialogTitle>Unlink Telegram Account?</DialogTitle>
+        <DialogTitle>{t('dialogs.disconnect.title')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to unlink your Telegram account{authState.user?.telegramUsername ? ` (@${authState.user.telegramUsername})` : ''}?
-            <br /><br />
-            You will no longer be able to track transactions via Telegram until you link again.
-            Your existing transactions will not be affected.
+            {t('dialogs.disconnect.message')}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowUnlinkDialog(false)}>Cancel</Button>
+          <Button onClick={() => setShowUnlinkDialog(false)}>{t('dialogs.disconnect.cancelButton')}</Button>
           <Button
             onClick={handleUnlinkTelegram}
             color="error"
             disabled={isUnlinking}
             startIcon={isUnlinking ? <CircularProgress size={20} /> : <UnlinkIcon />}
           >
-            Unlink
+            {t('dialogs.disconnect.confirmButton')}
           </Button>
         </DialogActions>
       </Dialog>

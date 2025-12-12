@@ -317,14 +317,13 @@ const SettingsPage: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
-              Currency Preferences
+              {t('currency.title')}
             </Typography>
             <Divider sx={{ mb: 2 }} />
 
             {successCurrency && (
               <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessCurrency(false)}>
-                Currency preference updated successfully! All your transactions will now be
-                displayed in {selectedCurrency}.
+                {t('currency.successMessage', { currency: selectedCurrency })}
               </Alert>
             )}
 
@@ -337,12 +336,12 @@ const SettingsPage: React.FC = () => {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <TextField
                 select
-                label="Default Currency"
+                label={t('currency.defaultCurrency')}
                 value={selectedCurrency}
                 onChange={(e) => setSelectedCurrency(e.target.value)}
                 fullWidth
                 variant="outlined"
-                helperText="All transactions will be converted to this currency for display and analytics"
+                helperText={t('currency.helper')}
               >
                 {SUPPORTED_CURRENCIES.map((currency) => (
                   <MenuItem key={currency} value={currency}>
@@ -353,12 +352,12 @@ const SettingsPage: React.FC = () => {
 
               <Box sx={{ mt: 1 }}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Current Currency: {authState.user?.defaultCurrency || 'USD'} (
+                  {t('currency.current')}: {authState.user?.defaultCurrency || 'USD'} (
                   {getCurrencySymbol(authState.user?.defaultCurrency || 'USD')})
                 </Typography>
                 {hasCurrencyChanges && (
                   <Typography variant="body2" color="primary" gutterBottom>
-                    New Currency: {selectedCurrency} ({getCurrencySymbol(selectedCurrency)})
+                    {t('currency.new')}: {selectedCurrency} ({getCurrencySymbol(selectedCurrency)})
                   </Typography>
                 )}
               </Box>
@@ -374,26 +373,25 @@ const SettingsPage: React.FC = () => {
                 {isLoadingCurrency ? (
                   <>
                     <CircularProgress size={20} sx={{ mr: 1 }} color="inherit" />
-                    Saving...
+                    {t('currency.saving')}
                   </>
                 ) : (
-                  'Save Currency Preference'
+                  t('currency.saveButton')
                 )}
               </Button>
 
               <Box sx={{ mt: 2, p: 2, bgcolor: 'info.lighter', borderRadius: 1 }}>
                 <Typography variant="caption" color="text.secondary">
-                  <strong>Note:</strong> When you change your default currency:
+                  <strong>{t('currency.note.title')}</strong> {t('currency.note.description')}
                   <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
                     <li>
-                      New transactions entered in different currencies will be automatically
-                      converted to {selectedCurrency}
+                      {t('currency.note.points.conversion', { currency: selectedCurrency })}
                     </li>
                     <li>
-                      Your dashboard and analytics will display all amounts in {selectedCurrency}
+                      {t('currency.note.points.display', { currency: selectedCurrency })}
                     </li>
-                    <li>Exchange rates are updated hourly for accuracy</li>
-                    <li>Original transaction amounts and currencies are preserved</li>
+                    <li>{t('currency.note.points.rates')}</li>
+                    <li>{t('currency.note.points.preservation')}</li>
                   </ul>
                 </Typography>
               </Box>
@@ -405,13 +403,13 @@ const SettingsPage: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
-              Change Password
+              {t('password.title')}
             </Typography>
             <Divider sx={{ mb: 2 }} />
 
             {successPassword && (
               <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessPassword(false)}>
-                Password changed successfully!
+                {t('password.successMessage')}
               </Alert>
             )}
 
@@ -423,7 +421,7 @@ const SettingsPage: React.FC = () => {
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <TextField
-                label="Current Password"
+                label={t('password.currentPassword')}
                 type={showCurrentPassword ? 'text' : 'password'}
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
@@ -443,13 +441,13 @@ const SettingsPage: React.FC = () => {
                 }}
               />
               <TextField
-                label="New Password"
+                label={t('password.newPassword')}
                 type={showNewPassword ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 fullWidth
                 variant="outlined"
-                helperText="Minimum 8 characters"
+                helperText={t('password.helper')}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
@@ -464,7 +462,7 @@ const SettingsPage: React.FC = () => {
                 }}
               />
               <TextField
-                label="Confirm New Password"
+                label={t('password.confirmPassword')}
                 type={showConfirmPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -495,10 +493,10 @@ const SettingsPage: React.FC = () => {
                 {isLoadingPassword ? (
                   <>
                     <CircularProgress size={20} sx={{ mr: 1 }} color="inherit" />
-                    Changing Password...
+                    {t('password.changing')}
                   </>
                 ) : (
-                  'Change Password'
+                  t('password.changeButton')
                 )}
               </Button>
             </Box>
@@ -509,7 +507,7 @@ const SettingsPage: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
-              Telegram Integration
+              {t('telegram.title')}
             </Typography>
             <Divider sx={{ mb: 2 }} />
 
@@ -518,11 +516,11 @@ const SettingsPage: React.FC = () => {
                 <TelegramIcon sx={{ fontSize: 40, color: '#0088cc' }} />
                 <Box>
                   <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                    Track finances via Telegram
+                    {t('telegram.description')}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                     <Chip
-                      label={isTelegramLinked ? 'Connected' : 'Not Connected'}
+                      label={isTelegramLinked ? t('telegram.connected') : t('telegram.notConnected')}
                       size="small"
                       sx={isTelegramLinked
                         ? { bgcolor: 'success.main', color: 'white' }
@@ -546,13 +544,13 @@ const SettingsPage: React.FC = () => {
                   '&:hover': { bgcolor: '#006699' },
                 }}
               >
-                {isTelegramLinked ? 'Manage Connection' : 'Connect Telegram'}
+                {isTelegramLinked ? t('telegram.manageButton') : t('telegram.connectButton')}
               </Button>
             </Box>
 
             {!isTelegramLinked && (
               <Alert severity="info" sx={{ mt: 2 }}>
-                Link your Telegram account to track transactions with text messages, voice notes, or photos on the go!
+                {t('telegram.infoMessage')}
               </Alert>
             )}
           </Paper>

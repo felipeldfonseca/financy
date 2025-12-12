@@ -9,6 +9,7 @@ import enSettings from './locales/en/settings.json';
 import enDashboard from './locales/en/dashboard.json';
 import enAuth from './locales/en/auth.json';
 import enTransactions from './locales/en/transactions.json';
+import enTelegram from './locales/en/telegram.json';
 
 import ptCommon from './locales/pt/common.json';
 import ptOnboarding from './locales/pt/onboarding.json';
@@ -17,6 +18,7 @@ import ptSettings from './locales/pt/settings.json';
 import ptDashboard from './locales/pt/dashboard.json';
 import ptAuth from './locales/pt/auth.json';
 import ptTransactions from './locales/pt/transactions.json';
+import ptTelegram from './locales/pt/telegram.json';
 
 const resources = {
   en: {
@@ -27,6 +29,7 @@ const resources = {
     dashboard: enDashboard,
     auth: enAuth,
     transactions: enTransactions,
+    telegram: enTelegram,
   },
   pt: {
     common: ptCommon,
@@ -36,6 +39,7 @@ const resources = {
     dashboard: ptDashboard,
     auth: ptAuth,
     transactions: ptTransactions,
+    telegram: ptTelegram,
   },
 };
 
@@ -72,7 +76,7 @@ i18n
 
     // Namespace configuration
     defaultNS: 'common',
-    ns: ['common', 'onboarding', 'navigation', 'settings', 'dashboard', 'auth', 'transactions'],
+    ns: ['common', 'onboarding', 'navigation', 'settings', 'dashboard', 'auth', 'transactions', 'telegram'],
 
     // Debug mode for development
     debug: process.env.NODE_ENV === 'development',
