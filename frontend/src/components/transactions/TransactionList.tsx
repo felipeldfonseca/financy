@@ -33,6 +33,7 @@ import {
   SwapHorizontalCircle as TransferIcon,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { Transaction } from '../../services/transactionApi';
 import { useTransactions } from '../../contexts/TransactionContext';
 
@@ -41,6 +42,7 @@ interface TransactionListProps {
 }
 
 export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransaction }) => {
+  const { t } = useTranslation('transactions');
   const theme = useTheme();
   const { state, loadTransactions, deleteTransaction, confirmTransaction, cancelTransaction } = useTransactions();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -201,7 +203,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
           >
             <ReceiptIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
             <Typography variant="h6" color="text.secondary" gutterBottom>
-              No transactions found
+              {t('list.emptyState.title')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Add your first transaction to get started
@@ -229,49 +231,49 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
                 color: 'text.primary',
                 borderBottom: '1px solid rgba(255,255,255,0.1)',
                 backgroundColor: 'rgba(255,255,255,0.05)',
-              }}>Type</TableCell>
+              }}>{t('list.headers.type')}</TableCell>
               <TableCell sx={{ 
                 fontWeight: 600, 
                 color: 'text.primary',
                 borderBottom: '1px solid rgba(255,255,255,0.1)',
                 backgroundColor: 'rgba(255,255,255,0.05)',
-              }}>Description</TableCell>
+              }}>{t('list.headers.description')}</TableCell>
               <TableCell sx={{ 
                 fontWeight: 600, 
                 color: 'text.primary',
                 borderBottom: '1px solid rgba(255,255,255,0.1)',
                 backgroundColor: 'rgba(255,255,255,0.05)',
-              }}>Category</TableCell>
+              }}>{t('list.headers.category')}</TableCell>
               <TableCell sx={{ 
                 fontWeight: 600, 
                 color: 'text.primary',
                 borderBottom: '1px solid rgba(255,255,255,0.1)',
                 backgroundColor: 'rgba(255,255,255,0.05)',
-              }}>Amount</TableCell>
+              }}>{t('list.headers.amount')}</TableCell>
               <TableCell sx={{ 
                 fontWeight: 600, 
                 color: 'text.primary',
                 borderBottom: '1px solid rgba(255,255,255,0.1)',
                 backgroundColor: 'rgba(255,255,255,0.05)',
-              }}>Date</TableCell>
+              }}>{t('list.headers.date')}</TableCell>
               <TableCell sx={{ 
                 fontWeight: 600, 
                 color: 'text.primary',
                 borderBottom: '1px solid rgba(255,255,255,0.1)',
                 backgroundColor: 'rgba(255,255,255,0.05)',
-              }}>Status</TableCell>
+              }}>{t('list.headers.status')}</TableCell>
               <TableCell sx={{ 
                 fontWeight: 600, 
                 color: 'text.primary',
                 borderBottom: '1px solid rgba(255,255,255,0.1)',
                 backgroundColor: 'rgba(255,255,255,0.05)',
-              }}>Merchant</TableCell>
+              }}>{t('list.headers.merchant')}</TableCell>
               <TableCell align="right" sx={{ 
                 fontWeight: 600, 
                 color: 'text.primary',
                 borderBottom: '1px solid rgba(255,255,255,0.1)',
                 backgroundColor: 'rgba(255,255,255,0.05)',
-              }}>Actions</TableCell>
+              }}>{t('list.headers.actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -295,7 +297,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
                   <Box display="flex" alignItems="center" gap={1}>
                     {getTypeIcon(transaction.type)}
                     <Typography variant="body2" textTransform="capitalize">
-                      {transaction.type}
+                      {t(`form.type.${transaction.type}`)}
                     </Typography>
                   </Box>
                 </TableCell>
@@ -337,7 +339,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
                 
                 <TableCell sx={{ borderBottom: 'none' }}>
                   <Chip
-                    label={transaction.status}
+                    label={t(`list.status.${transaction.status}`)}
                     size="small"
                     color={getStatusColor(transaction.status) as any}
                     variant={transaction.status === 'confirmed' ? 'filled' : 'outlined'}
@@ -356,7 +358,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
                 </TableCell>
                 
                 <TableCell align="right" sx={{ borderBottom: 'none' }}>
-                  <Tooltip title="More actions">
+                  <Tooltip title={t('list.actions.moreActions')}>
                     <IconButton
                       size="small"
                       onClick={(e) => handleMenuOpen(e, transaction)}
@@ -392,7 +394,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
           <ListItemIcon>
             <EditIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Edit</ListItemText>
+          <ListItemText>{t('list.actions.edit')}</ListItemText>
         </MenuItem>
 
         {selectedTransaction?.status === 'pending' && (
@@ -400,7 +402,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
             <ListItemIcon>
               <CheckIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>Confirm</ListItemText>
+            <ListItemText>{t('list.actions.confirm')}</ListItemText>
           </MenuItem>
         )}
 
@@ -409,7 +411,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
             <ListItemIcon>
               <CancelIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>Cancel</ListItemText>
+            <ListItemText>{t('list.actions.cancel')}</ListItemText>
           </MenuItem>
         )}
 
@@ -417,7 +419,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
           <ListItemIcon>
             <DeleteIcon fontSize="small" color="error" />
           </ListItemIcon>
-          <ListItemText>Delete</ListItemText>
+          <ListItemText>{t('list.actions.delete')}</ListItemText>
         </MenuItem>
       </Menu>
     </Card>
