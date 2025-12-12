@@ -1,0 +1,25 @@
+{
+  "title": "Financial Planning",
+  "description": "Plan your finances with recurring bills, savings goals, and category budgets.",
+  "comingSoon": "Coming Soon",
+  "upcomingBills": {
+    "title": "Upcoming Bills",
+    "description": "Track recurring bills and set reminders so you never miss a payment deadline.",
+    "features": "Features: Bill reminders • Payment tracking • Auto-categorization"
+  },
+  "savingsGoals": {
+    "title": "Savings Goals",
+    "description": "Set financial goals and track your progress with visual milestones and target dates.",
+    "features": "Features: Goal tracking • Progress visualization • Target deadlines"
+  },
+  "budgetManagement": {
+    "title": "Budget Management",
+    "description": "Create spending limits by category and get alerts when approaching your budget.",
+    "features": "Features: Category limits • Spending alerts • Budget insights"
+  },
+  "helpBanner": {
+    "title": "Help Shape These Features",
+    "description": "We're working on bringing you powerful planning tools. Your feedback matters!",
+    "note": "Stay tuned for updates as we roll out these features."
+  }
+}

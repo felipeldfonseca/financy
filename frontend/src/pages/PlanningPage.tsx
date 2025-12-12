@@ -13,6 +13,7 @@ import {
   TrackChanges as GoalIcon,
   Savings as BudgetIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 // SVG Icons for empty states
 const ComingSoonIcon: React.FC<{ sx?: any }> = ({ sx }) => (
@@ -31,6 +32,8 @@ const ComingSoonIcon: React.FC<{ sx?: any }> = ({ sx }) => (
 );
 
 const PlanningPage: React.FC = () => {
+  const { t } = useTranslation('planning');
+
   return (
     <Box sx={{ py: 4 }}>
       {/* Header */}
@@ -44,10 +47,10 @@ const PlanningPage: React.FC = () => {
             fontSize: '2.5rem',
           }}
         >
-          Financial Planning
+          {t('title')}
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Plan your finances with recurring bills, savings goals, and category budgets.
+          {t('description')}
         </Typography>
       </Box>
 
@@ -66,7 +69,7 @@ const PlanningPage: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                 <CalendarIcon sx={{ fontSize: 32, color: '#f59e0b' }} />
                 <Typography variant="h5" fontWeight={600}>
-                  Upcoming Bills
+                  {t('upcomingBills.title')}
                 </Typography>
               </Box>
 
@@ -81,10 +84,10 @@ const PlanningPage: React.FC = () => {
                 <ComingSoonIcon sx={{ fontSize: 64, color: '#f59e0b', mb: 3, opacity: 0.6 }} />
 
                 <Typography variant="h6" gutterBottom fontWeight={600}>
-                  Coming Soon
+                  {t('comingSoon')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 300 }}>
-                  Track recurring bills and set reminders so you never miss a payment deadline.
+                  {t('upcomingBills.description')}
                 </Typography>
 
                 <Box sx={{
@@ -95,7 +98,7 @@ const PlanningPage: React.FC = () => {
                   width: '100%',
                 }}>
                   <Typography variant="caption" color="text.secondary">
-                    Features: Bill reminders • Payment tracking • Auto-categorization
+                    {t('upcomingBills.features')}
                   </Typography>
                 </Box>
               </Box>
@@ -117,7 +120,7 @@ const PlanningPage: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                 <GoalIcon sx={{ fontSize: 32, color: '#10b981' }} />
                 <Typography variant="h5" fontWeight={600}>
-                  Savings Goals
+                  {t('savingsGoals.title')}
                 </Typography>
               </Box>
 
@@ -132,10 +135,10 @@ const PlanningPage: React.FC = () => {
                 <ComingSoonIcon sx={{ fontSize: 64, color: '#10b981', mb: 3, opacity: 0.6 }} />
 
                 <Typography variant="h6" gutterBottom fontWeight={600}>
-                  Coming Soon
+                  {t('comingSoon')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 300 }}>
-                  Set financial goals and track your progress with visual milestones and target dates.
+                  {t('savingsGoals.description')}
                 </Typography>
 
                 <Box sx={{
@@ -146,7 +149,7 @@ const PlanningPage: React.FC = () => {
                   width: '100%',
                 }}>
                   <Typography variant="caption" color="text.secondary">
-                    Features: Goal tracking • Progress visualization • Target deadlines
+                    {t('savingsGoals.features')}
                   </Typography>
                 </Box>
               </Box>
@@ -168,7 +171,7 @@ const PlanningPage: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                 <BudgetIcon sx={{ fontSize: 32, color: '#6366f1' }} />
                 <Typography variant="h5" fontWeight={600}>
-                  Budget Management
+                  {t('budgetManagement.title')}
                 </Typography>
               </Box>
 
@@ -183,10 +186,10 @@ const PlanningPage: React.FC = () => {
                 <ComingSoonIcon sx={{ fontSize: 64, color: '#6366f1', mb: 3, opacity: 0.6 }} />
 
                 <Typography variant="h6" gutterBottom fontWeight={600}>
-                  Coming Soon
+                  {t('comingSoon')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 300 }}>
-                  Create spending limits by category and get alerts when approaching your budget.
+                  {t('budgetManagement.description')}
                 </Typography>
 
                 <Box sx={{
@@ -197,7 +200,7 @@ const PlanningPage: React.FC = () => {
                   width: '100%',
                 }}>
                   <Typography variant="caption" color="text.secondary">
-                    Features: Category limits • Spending alerts • Budget insights
+                    {t('budgetManagement.features')}
                   </Typography>
                 </Box>
               </Box>
@@ -216,13 +219,13 @@ const PlanningPage: React.FC = () => {
         textAlign: 'center',
       }}>
         <Typography variant="h6" gutterBottom fontWeight={600}>
-          Help Shape These Features
+          {t('helpBanner.title')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          We're working on bringing you powerful planning tools. Your feedback matters!
+          {t('helpBanner.description')}
         </Typography>
         <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-          Stay tuned for updates as we roll out these features.
+          {t('helpBanner.note')}
         </Typography>
       </Box>
     </Box>

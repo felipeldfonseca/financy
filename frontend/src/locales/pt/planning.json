@@ -1,0 +1,25 @@
+{
+  "title": "Planejamento Financeiro",
+  "description": "Planeje suas finanças com contas recorrentes, metas de economia e orçamentos por categoria.",
+  "comingSoon": "Em Breve",
+  "upcomingBills": {
+    "title": "Próximas Contas",
+    "description": "Acompanhe contas recorrentes e configure lembretes para nunca perder um prazo de pagamento.",
+    "features": "Funcionalidades: Lembretes de contas • Rastreamento de pagamentos • Categorização automática"
+  },
+  "savingsGoals": {
+    "title": "Metas de Economia",
+    "description": "Defina objetivos financeiros e acompanhe seu progresso com marcos visuais e prazos definidos.",
+    "features": "Funcionalidades: Acompanhamento de metas • Visualização de progresso • Prazos limite"
+  },
+  "budgetManagement": {
+    "title": "Gestão de Orçamento",
+    "description": "Crie limites de gastos por categoria e receba alertas ao se aproximar do seu orçamento.",
+    "features": "Funcionalidades: Limites por categoria • Alertas de gastos • Insights de orçamento"
+  },
+  "helpBanner": {
+    "title": "Ajude a Moldar Essas Funcionalidades",
+    "description": "Estamos trabalhando para trazer ferramentas de planejamento poderosas. Sua opinião importa!",
+    "note": "Fique atento às atualizações conforme lançamos essas funcionalidades."
+  }
+}
