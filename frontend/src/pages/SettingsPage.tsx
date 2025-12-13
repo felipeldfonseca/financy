@@ -33,8 +33,6 @@ const getLanguageOptions = (t: any) => [
   { code: 'en', name: t('languages.en') },
   { code: 'es', name: t('languages.es') },
   { code: 'pt', name: t('languages.pt') },
-  { code: 'fr', name: t('languages.fr') },
-  { code: 'de', name: t('languages.de') },
 ];
 
 // Get timezone options with translations
