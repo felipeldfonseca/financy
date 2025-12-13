@@ -73,7 +73,11 @@
       "progress": "Progresso",
       "cashFlow": "Fluxo de Caixa",
       "savingsRate": "Taxa de Poupança",
-      "netAmount": "Valor Líquido"
+      "netAmount": "Valor Líquido",
+      "income": "Receita",
+      "expenses": "Despesas",
+      "saved": "Poupado",
+      "spent": "Gasto"
     }
   },
   "contextSwitcher": {

@@ -10,6 +10,7 @@ import {
   Typography,
   Chip,
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { SvgIcon } from '@mui/material';
 
 // Clean minimal SVG icons
@@ -61,6 +62,7 @@ const ContextSwitcher: React.FC<ContextSwitcherProps> = ({
   onContextTypeChange,
   onGroupSelect,
 }) => {
+  const { t } = useTranslation('dashboard');
   const [showGroupDropdown, setShowGroupDropdown] = useState(contextType === 'groups');
 
   // Mock data for demonstration
@@ -144,7 +146,7 @@ const ContextSwitcher: React.FC<ContextSwitcherProps> = ({
             <GroupIcon sx={{ mr: 1, fontSize: 22 }} />
             GROUPS
             <Chip
-              label="Coming soon"
+              label={t('contextSwitcher.comingSoon')}
               size="small"
               sx={{
                 ml: 1,
@@ -207,7 +209,7 @@ const ContextSwitcher: React.FC<ContextSwitcherProps> = ({
                         {group.name}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        <Typography component="span" variant="numeric">{group.memberCount}</Typography> members
+                        {t('contextSwitcher.members', { count: group.memberCount })}
                       </Typography>
                     </Box>
                   </Box>

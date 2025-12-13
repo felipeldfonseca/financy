@@ -75,7 +75,11 @@
       "progress": "Progreso",
       "cashFlow": "Flujo de Efectivo",
       "savingsRate": "Tasa de Ahorro",
-      "netAmount": "Cantidad Neta"
+      "netAmount": "Cantidad Neta",
+      "income": "Ingresos",
+      "expenses": "Gastos",
+      "saved": "Ahorrado",
+      "spent": "Gastado"
     }
   },
   "contextSwitcher": {

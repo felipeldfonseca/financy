@@ -9,6 +9,7 @@ import {
   LinearProgress,
   SvgIcon,
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import {
   LineChart,
   Line,
@@ -127,6 +128,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
   totalExpenses = 0,
   transactionCount = 0,
 }) => {
+  const { t } = useTranslation('dashboard');
   // Require at least 10 transactions for charts to show
   const MIN_TRANSACTIONS = 10;
   const hasEnoughTransactions = transactionCount >= MIN_TRANSACTIONS;
@@ -222,7 +224,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
             {label}
           </Typography>
           <Typography variant="body2" sx={{ color: payload[0].color }}>
-            Cash Flow: <Typography component="span" variant="numeric">{formatCurrency(payload[0].value)}</Typography>
+            {t('charts.labels.cashFlow')}: <Typography component="span" variant="numeric">{formatCurrency(payload[0].value)}</Typography>
           </Typography>
         </Box>
       );
@@ -247,7 +249,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
             {label}
           </Typography>
           <Typography variant="body2" sx={{ color: payload[0].color }}>
-            Savings Rate: <Typography component="span" variant="numeric">{payload[0].value.toFixed(1)}%</Typography>
+            {t('charts.labels.savingsRate')}: <Typography component="span" variant="numeric">{payload[0].value.toFixed(1)}%</Typography>
           </Typography>
         </Box>
       );
@@ -276,14 +278,14 @@ const ChartSection: React.FC<ChartSectionProps> = ({
 
           <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: 'text.primary' }}>
             {transactionCount === 0
-              ? 'Start Tracking to Unlock Insights'
-              : 'Unlock Powerful Financial Analytics'
+              ? t('charts.emptyState.title')
+              : t('charts.emptyState.subtitle')
             }
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 600, mt: 2 }}>
             {transactionCount === 0
-              ? 'Track your transactions to unlock beautiful visualizations that help you understand spending patterns, identify savings opportunities, and make smarter financial decisions.'
-              : `Just ${transactionsRemaining} more transaction${transactionsRemaining === 1 ? '' : 's'} to unlock interactive charts showing your income trends, spending breakdown, and financial health insights.`
+              ? t('charts.emptyState.description')
+              : t('charts.emptyState.progress', { count: transactionsRemaining })
             }
           </Typography>
 
@@ -291,7 +293,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
             <Box sx={{ width: '100%', maxWidth: 400, mt: 4 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                  Progress
+                  {t('charts.labels.progress')}
                 </Typography>
                 <Typography variant="body2" color="primary" fontWeight={600}>
                   {transactionCount}/{MIN_TRANSACTIONS}
@@ -325,7 +327,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
           }}>
             <InsightIcon sx={{ fontSize: 24, color: 'primary.main' }} />
             <Typography variant="body2" color="text.secondary">
-              Use the Telegram bot or add transactions manually to unlock insights faster
+              {t('charts.emptyState.tip')}
             </Typography>
           </Box>
         </Box>
@@ -335,14 +337,14 @@ const ChartSection: React.FC<ChartSectionProps> = ({
 
   // Prepare data for simple charts that work with minimal data
   const incomeVsExpensesData = [
-    { name: 'Income', value: totalIncome, fill: '#10b981' },
-    { name: 'Expenses', value: Math.abs(totalExpenses), fill: '#ef4444' },
+    { name: t('charts.labels.income'), value: totalIncome, fill: '#10b981' },
+    { name: t('charts.labels.expenses'), value: Math.abs(totalExpenses), fill: '#ef4444' },
   ];
 
   const netAmount = totalIncome - Math.abs(totalExpenses);
   const financialHealthData = [
-    { name: 'Saved', value: netAmount > 0 ? netAmount : 0, fill: '#10b981' },
-    { name: 'Spent', value: Math.abs(totalExpenses), fill: '#4657D8' },
+    { name: t('charts.labels.saved'), value: netAmount > 0 ? netAmount : 0, fill: '#10b981' },
+    { name: t('charts.labels.spent'), value: Math.abs(totalExpenses), fill: '#4657D8' },
   ];
 
   // Top 5 categories for bar chart
@@ -355,7 +357,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
       {/* Income vs Expenses - Always show if there's any transaction */}
       {hasAnyTransactions && (
         <Grid item xs={12} lg={6}>
-          <ChartCard title="Income vs Expenses" isLoading={isLoading}>
+          <ChartCard title={t('charts.incomeVsExpenses')} isLoading={isLoading}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={incomeVsExpensesData}>
                 <CartesianGrid strokeDasharray="5 5" stroke="rgba(255,255,255,0.1)" />
@@ -391,7 +393,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
       {/* Financial Health - Show saved vs spent */}
       {hasAnyTransactions && netAmount > 0 && (
         <Grid item xs={12} lg={6}>
-          <ChartCard title="Financial Health" isLoading={isLoading}>
+          <ChartCard title={t('charts.financialHealth')} isLoading={isLoading}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -421,7 +423,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
       {/* Top Spending Categories */}
       {topCategories.length > 0 && (
         <Grid item xs={12} lg={6}>
-          <ChartCard title="Top Spending Categories" isLoading={isLoading}>
+          <ChartCard title={t('charts.topSpendingCategories')} isLoading={isLoading}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={topCategories}>
                 <CartesianGrid strokeDasharray="5 5" stroke="rgba(255,255,255,0.1)" />
@@ -460,7 +462,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
       {/* Spending by Category */}
       {hasCategoryData && (
         <Grid item xs={12} lg={6}>
-          <ChartCard title="Spending Distribution" isLoading={isLoading}>
+          <ChartCard title={t('charts.spendingDistribution')} isLoading={isLoading}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -490,7 +492,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
       {/* Cash Flow Trend */}
       {hasMonthlyData && (
         <Grid item xs={12} lg={6}>
-          <ChartCard title="Cash Flow Trend" isLoading={isLoading}>
+          <ChartCard title={t('charts.cashFlowTrend')} isLoading={isLoading}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="5 5" stroke="rgba(255,255,255,0.1)" />
@@ -529,7 +531,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
       {/* Savings Rate Over Time */}
       {hasMonthlyData && (
         <Grid item xs={12} lg={6}>
-          <ChartCard title="Savings Rate Over Time" isLoading={isLoading}>
+          <ChartCard title={t('charts.savingsRateOverTime')} isLoading={isLoading}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="5 5" stroke="rgba(255,255,255,0.1)" />
@@ -556,7 +558,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
                   strokeWidth={3}
                   dot={{ fill: '#10b981', strokeWidth: 0, r: 5 }}
                   activeDot={{ r: 8, stroke: '#10b981', strokeWidth: 2, fill: '#ffffff' }}
-                  name="Savings Rate"
+                  name={t('charts.labels.savingsRate')}
                   strokeDasharray="0"
                 />
               </LineChart>

@@ -487,7 +487,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
         <Grid container spacing={2} sx={{ mb: 2 }}>
           <Grid item xs={12} sm={6} md={3}>
             <TextField
-              label="Search"
+              label={t('filters.search.placeholder')}
               fullWidth
               size="small"
               value={filters.search || ''}
@@ -502,7 +502,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
               <Select
                 value={filters.type || ''}
                 onChange={(e) => handleFilterChange('type', e.target.value || undefined)}
-                label="Type"
+                label={t('filters.type.label')}
               >
                 <MenuItem value="">{t('filters.type.all')}</MenuItem>
                 <MenuItem value="expense">{t('filters.type.expense')}</MenuItem>
@@ -518,7 +518,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
               <Select
                 value={filters.status || ''}
                 onChange={(e) => handleFilterChange('status', e.target.value || undefined)}
-                label="Status"
+                label={t('filters.status.label')}
               >
                 <MenuItem value="">{t('filters.status.all')}</MenuItem>
                 <MenuItem value="pending">{t('filters.status.pending')}</MenuItem>

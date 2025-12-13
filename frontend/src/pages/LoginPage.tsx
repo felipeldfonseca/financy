@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Container,
   Paper,
@@ -12,6 +13,7 @@ import { LoginForm } from '../components/auth/LoginForm';
 import { RegisterForm } from '../components/auth/RegisterForm';
 
 const LoginPage: React.FC = () => {
+  const { t } = useTranslation('auth');
   const [tab, setTab] = useState(0);
   const navigate = useNavigate();
 
@@ -24,8 +26,8 @@ const LoginPage: React.FC = () => {
       <Paper elevation={3} sx={{ p: 4 }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
           <Tabs value={tab} onChange={(_, newValue) => setTab(newValue)} centered>
-            <Tab label="Sign In" />
-            <Tab label="Sign Up" />
+            <Tab label={t('tabs.login')} />
+            <Tab label={t('tabs.register')} />
           </Tabs>
         </Box>
 
@@ -37,7 +39,7 @@ const LoginPage: React.FC = () => {
 
         <Box sx={{ mt: 3, textAlign: 'center' }}>
           <Link component={RouterLink} to="/" variant="body2">
-            ← Back to Home
+            {t('navigation.backToHome')}
           </Link>
         </Box>
       </Paper>

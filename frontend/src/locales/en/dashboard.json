@@ -73,7 +73,11 @@
       "progress": "Progress",
       "cashFlow": "Cash Flow",
       "savingsRate": "Savings Rate",
-      "netAmount": "Net Amount"
+      "netAmount": "Net Amount",
+      "income": "Income",
+      "expenses": "Expenses",
+      "saved": "Saved",
+      "spent": "Spent"
     }
   },
   "contextSwitcher": {
