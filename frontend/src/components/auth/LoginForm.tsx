@@ -26,6 +26,27 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const { state, login, clearError } = useAuth();
   const navigate = useNavigate();
 
+  // Helper function to translate auth error messages
+  const translateAuthError = (error: string): string => {
+    if (error.includes('Invalid credentials')) {
+      return t('errors.invalidCredentials');
+    }
+    if (error.includes('Login failed')) {
+      return t('errors.loginFailed');
+    }
+    if (error.includes('User not found')) {
+      return t('errors.userNotFound');
+    }
+    if (error.includes('Invalid token')) {
+      return t('errors.invalidToken');
+    }
+    if (error.includes('Network Error')) {
+      return t('errors.networkError');
+    }
+    // For any unknown errors, return the original message or a generic fallback
+    return error || t('errors.loginFailed');
+  };
+
   const {
     register,
     handleSubmit,
@@ -57,7 +78,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
 
       {state.error && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {state.error}
+          {translateAuthError(state.error)}
         </Alert>
       )}
 
