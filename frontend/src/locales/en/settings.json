@@ -61,9 +61,7 @@
   "languages": {
     "en": "English",
     "es": "Español",
-    "pt": "Português",
-    "fr": "Français",
-    "de": "Deutsch"
+    "pt": "Português"
   },
   "timezones": {
     "America/New_York": "Eastern Time (ET)",
