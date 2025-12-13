@@ -22,6 +22,16 @@ import ptTransactions from './locales/pt/transactions.json';
 import ptTelegram from './locales/pt/telegram.json';
 import ptPlanning from './locales/pt/planning.json';
 
+import esCommon from './locales/es/common.json';
+import esOnboarding from './locales/es/onboarding.json';
+import esNavigation from './locales/es/navigation.json';
+import esSettings from './locales/es/settings.json';
+import esDashboard from './locales/es/dashboard.json';
+import esAuth from './locales/es/auth.json';
+import esTransactions from './locales/es/transactions.json';
+import esTelegram from './locales/es/telegram.json';
+import esPlanning from './locales/es/planning.json';
+
 const resources = {
   en: {
     common: enCommon,
@@ -44,6 +54,17 @@ const resources = {
     transactions: ptTransactions,
     telegram: ptTelegram,
     planning: ptPlanning,
+  },
+  es: {
+    common: esCommon,
+    onboarding: esOnboarding,
+    navigation: esNavigation,
+    settings: esSettings,
+    dashboard: esDashboard,
+    auth: esAuth,
+    transactions: esTransactions,
+    telegram: esTelegram,
+    planning: esPlanning,
   },
 };
 

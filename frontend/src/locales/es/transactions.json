@@ -1,0 +1,418 @@
+{
+  "title": "Transacciones",
+  "addTransaction": "Agregar Transacción",
+  "summary": {
+    "totalIncome": "Total de Ingresos",
+    "totalExpenses": "Total de Gastos",
+    "netAmount": "Cantidad Neta",
+    "totalTransactions": "Total de Transacciones"
+  },
+  "form": {
+    "addTitle": "Agregar Nueva Transacción",
+    "editTitle": "Editar Transacción",
+    "amount": {
+      "label": "Cantidad",
+      "required": "La cantidad es requerida",
+      "invalid": "Por favor ingresa una cantidad válida",
+      "minValue": "La cantidad debe ser mayor que 0"
+    },
+    "type": {
+      "label": "Tipo",
+      "required": "El tipo es requerido",
+      "invalid": "Tipo de transacción inválido",
+      "expense": "Gasto",
+      "income": "Ingreso", 
+      "transfer": "Transferencia"
+    },
+    "description": {
+      "label": "Descripción",
+      "required": "La descripción es requerida",
+      "placeholder": "¿En qué gastaste?",
+      "maxLength": "La descripción debe tener menos de 500 caracteres"
+    },
+    "category": {
+      "label": "Categoría",
+      "required": "La categoría es requerida"
+    },
+    "subcategory": {
+      "label": "Subcategoría"
+    },
+    "date": {
+      "label": "Fecha",
+      "required": "La fecha es requerida"
+    },
+    "time": {
+      "label": "Hora"
+    },
+    "merchant": {
+      "label": "Comerciante",
+      "maxLength": "El nombre del comerciante debe tener menos de 200 caracteres"
+    },
+    "location": {
+      "label": "Ubicación",
+      "maxLength": "La ubicación debe tener menos de 300 caracteres"
+    },
+    "currency": {
+      "label": "Moneda"
+    },
+    "notes": {
+      "label": "Notas",
+      "placeholder": "Notas adicionales...",
+      "maxLength": "Las notas deben tener menos de 1000 caracteres"
+    },
+    "buttons": {
+      "cancel": "Cancelar",
+      "add": "Agregar Transacción",
+      "update": "Actualizar Transacción",
+      "saving": "Guardando..."
+    }
+  },
+  "filters": {
+    "title": "Filtros",
+    "active": "activo",
+    "search": {
+      "placeholder": "Descripción, comerciante, notas..."
+    },
+    "timePeriod": {
+      "label": "Período de Tiempo",
+      "today": "Hoy",
+      "yesterday": "Ayer",
+      "last7days": "Últimos 7 Días",
+      "last30days": "Últimos 30 Días",
+      "thisMonth": "Este Mes",
+      "lastMonth": "Mes Pasado",
+      "thisYear": "Este Año",
+      "allTime": "Todo el Tiempo",
+      "customRange": "Rango Personalizado"
+    },
+    "type": {
+      "label": "Tipo",
+      "all": "Todos los Tipos",
+      "expense": "Gastos",
+      "income": "Ingresos",
+      "transfer": "Transferencias"
+    },
+    "status": {
+      "label": "Estado", 
+      "all": "Todos los Estados",
+      "pending": "Pendiente",
+      "confirmed": "Confirmado",
+      "cancelled": "Cancelado"
+    },
+    "category": {
+      "label": "Categoría",
+      "all": "Todas las Categorías"
+    },
+    "merchant": {
+      "label": "Comerciante",
+      "all": "Todos los Comerciantes"
+    },
+    "currency": {
+      "label": "Moneda",
+      "all": "Todas las Monedas"
+    },
+    "amount": {
+      "min": "Cantidad Mínima",
+      "max": "Cantidad Máxima"
+    },
+    "sort": {
+      "label": "Ordenar Por",
+      "order": "Orden",
+      "date": "Fecha",
+      "amount": "Cantidad",
+      "description": "Descripción",
+      "created": "Creado",
+      "newest": "Más Recientes",
+      "oldest": "Más Antiguos"
+    },
+    "dates": {
+      "start": "Fecha de Inicio",
+      "end": "Fecha de Fin"
+    },
+    "buttons": {
+      "clearAll": "Limpiar Todo",
+      "apply": "Aplicar Filtros"
+    }
+  },
+  "dashboardCategories": {
+    "expense": {
+      "housing": "Vivienda",
+      "transportation": "Transporte",
+      "fooddining": "Comida y Restaurantes",
+      "healthfitness": "Salud y Bienestar", 
+      "entertainmentshopping": "Entretenimiento y Compras",
+      "billsfinancial": "Facturas y Financiero",
+      "travellifestyle": "Viajes y Estilo de Vida",
+      "other": "Otros"
+    },
+    "income": {
+      "employment": "Empleo",
+      "investment": "Inversiones",
+      "governmentbenefits": "Gobierno y Beneficios",
+      "other": "Otros Ingresos"
+    },
+    "transfer": {
+      "accounts": "Transferencias de Cuenta",
+      "debt": "Pagos de Deudas", 
+      "other": "Otras Transferencias"
+    }
+  },
+  "categories": {
+    "expense": {
+      "housing": {
+        "name": "Vivienda",
+        "rent": "Alquiler/Hipoteca",
+        "utilities": "Servicios Públicos",
+        "maintenance": "Mantenimiento del Hogar",
+        "insurance": "Seguro de Hogar",
+        "furniture": "Muebles y Electrodomésticos"
+      },
+      "transportation": {
+        "name": "Transporte",
+        "fuel": "Combustible/Gasolina",
+        "maintenance": "Mantenimiento del Auto",
+        "insurance": "Seguro del Auto",
+        "parking": "Estacionamiento",
+        "public": "Transporte Público",
+        "rideshare": "Taxi/Uber"
+      },
+      "food": {
+        "name": "Comida y Restaurantes",
+        "groceries": "Comestibles",
+        "restaurants": "Restaurantes",
+        "fastfood": "Comida Rápida",
+        "coffee": "Café/Bebidas",
+        "delivery": "Entrega de Comida"
+      },
+      "healthfitness": {
+        "name": "Salud y Bienestar",
+        "doctor": "Visitas al Médico",
+        "prescription": "Medicamentos",
+        "dental": "Cuidado Dental",
+        "vision": "Cuidado Visual",
+        "insurance": "Seguro de Salud",
+        "gym": "Gimnasio/Fitness",
+        "sports": "Deportes y Actividades"
+      },
+      "entertainment": {
+        "name": "Entretenimiento",
+        "movies": "Cine/Teatro",
+        "sports": "Eventos Deportivos",
+        "hobbies": "Pasatiempos",
+        "subscriptions": "Servicios de Streaming",
+        "gaming": "Juegos"
+      },
+      "shopping": {
+        "name": "Compras",
+        "clothing": "Ropa",
+        "electronics": "Electrónicos",
+        "gifts": "Regalos",
+        "books": "Libros/Medios",
+        "personal": "Cuidado Personal"
+      },
+      "education": {
+        "name": "Educación",
+        "tuition": "Matrícula",
+        "books": "Libros/Materiales",
+        "courses": "Cursos en Línea",
+        "training": "Capacitación Profesional"
+      },
+      "travelvacation": {
+        "name": "Viajes y Vacaciones",
+        "flights": "Vuelos",
+        "hotels": "Hoteles",
+        "vacation": "Vacaciones",
+        "business": "Viajes de Negocios"
+      },
+      "personalcare": {
+        "name": "Cuidado Personal",
+        "hygiene": "Higiene Personal",
+        "cosmetics": "Cosméticos",
+        "haircare": "Cuidado del Cabello",
+        "skincare": "Cuidado de la Piel",
+        "wellness": "Bienestar"
+      },
+      "insurance": {
+        "name": "Seguros",
+        "home": "Seguro de Hogar",
+        "auto": "Seguro de Auto",
+        "health": "Seguro de Salud",
+        "life": "Seguro de Vida",
+        "disability": "Seguro de Discapacidad"
+      },
+      "financial": {
+        "name": "Financiero",
+        "bankfees": "Comisiones Bancarias",
+        "investment": "Comisiones de Inversión",
+        "advisor": "Asesor Financiero",
+        "taxes": "Impuestos",
+        "accounting": "Contabilidad"
+      },
+      "giftdonations": {
+        "name": "Regalos y Donaciones",
+        "gifts": "Regalos",
+        "charity": "Caridad",
+        "religious": "Donaciones Religiosas",
+        "political": "Donaciones Políticas",
+        "nonprofit": "Organizaciones Sin Fines de Lucro"
+      },
+      "pets": {
+        "name": "Mascotas",
+        "food": "Comida para Mascotas",
+        "veterinary": "Veterinario",
+        "grooming": "Peluquería de Mascotas",
+        "supplies": "Suministros para Mascotas",
+        "insurance": "Seguro de Mascotas"
+      },
+      "kidsfamily": {
+        "name": "Niños y Familia",
+        "childcare": "Cuidado de Niños",
+        "diapers": "Pañales",
+        "toys": "Juguetes",
+        "activities": "Actividades para Niños",
+        "familytrips": "Viajes Familiares"
+      },
+      "businessexpenses": {
+        "name": "Gastos Comerciales",
+        "office": "Suministros de Oficina",
+        "marketing": "Marketing",
+        "travel": "Viajes de Negocios",
+        "equipment": "Equipos",
+        "software": "Software"
+      },
+      "bills": {
+        "name": "Facturas y Servicios",
+        "phone": "Factura de Teléfono",
+        "internet": "Internet",
+        "electricity": "Electricidad",
+        "water": "Agua",
+        "gas": "Gas"
+      },
+      "otherexpenses": {
+        "name": "Otros Gastos",
+        "miscellaneous": "Varios",
+        "fees": "Comisiones/Cargos",
+        "unexpected": "Gastos Inesperados",
+        "emergency": "Gastos de Emergencia"
+      }
+    },
+    "income": {
+      "employment": {
+        "name": "Ingresos por Empleo",
+        "salary": "Salario",
+        "bonus": "Bonificación",
+        "overtime": "Horas Extra",
+        "commission": "Comisión"
+      },
+      "investment": {
+        "name": "Ingresos por Inversiones",
+        "dividends": "Dividendos",
+        "interest": "Intereses",
+        "capital": "Ganancias de Capital",
+        "rental": "Ingresos por Alquiler"
+      },
+      "selfemployment": {
+        "name": "Trabajo Independiente",
+        "freelance": "Trabajo Freelance",
+        "consulting": "Consultoría",
+        "contracting": "Trabajo por Contrato",
+        "commission": "Comisiones"
+      },
+      "business": {
+        "name": "Ingresos Comerciales",
+        "revenue": "Ingresos del Negocio",
+        "partnership": "Ingresos de Sociedad",
+        "royalties": "Regalías",
+        "licensing": "Licencias"
+      },
+      "governmentbenefits": {
+        "name": "Gobierno y Beneficios",
+        "unemployment": "Beneficios por Desempleo",
+        "retirement": "Beneficios de Jubilación",
+        "disability": "Beneficios por Discapacidad",
+        "social": "Seguridad Social",
+        "tax": "Devoluciones de Impuestos"
+      },
+      "refundsreturns": {
+        "name": "Reembolsos y Devoluciones",
+        "purchases": "Devoluciones de Compras",
+        "services": "Reembolsos de Servicios",
+        "insurance": "Reembolsos de Seguros",
+        "warranty": "Reclamos de Garantía",
+        "overpayment": "Reembolsos por Sobrepago"
+      },
+      "otherincome": {
+        "name": "Otros Ingresos",
+        "gifts": "Regalos",
+        "lottery": "Ganancias de Lotería",
+        "found": "Dinero Encontrado",
+        "cashback": "Cashback",
+        "miscellaneous": "Varios"
+      }
+    },
+    "transfer": {
+      "accounts": {
+        "name": "Transferencias de Cuenta",
+        "checking": "A Cuenta Corriente",
+        "savings": "A Ahorros",
+        "investment": "A Inversiones"
+      },
+      "debt": {
+        "name": "Pagos de Deudas",
+        "credit": "Pago de Tarjeta de Crédito",
+        "loan": "Pago de Préstamo",
+        "mortgage": "Pago de Hipoteca"
+      },
+      "savingsinvestments": {
+        "name": "Ahorros e Inversiones",
+        "savings": "Cuenta de Ahorros",
+        "investment": "Cuenta de Inversión",
+        "retirement": "Fondo de Jubilación",
+        "emergency": "Fondo de Emergencia"
+      },
+      "personaltransfers": {
+        "name": "Transferencias Personales",
+        "family": "Familia",
+        "friends": "Amigos",
+        "spouse": "Cónyuge",
+        "children": "Hijos"
+      },
+      "othertransfers": {
+        "name": "Otras Transferencias",
+        "business": "Negocios",
+        "charity": "Caridad",
+        "miscellaneous": "Varios",
+        "temporary": "Temporal"
+      }
+    }
+  },
+  "list": {
+    "headers": {
+      "type": "Tipo",
+      "description": "Descripción", 
+      "category": "Categoría",
+      "amount": "Cantidad",
+      "date": "Fecha",
+      "status": "Estado",
+      "merchant": "Comerciante",
+      "actions": "Acciones"
+    },
+    "actions": {
+      "edit": "Editar",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar", 
+      "delete": "Eliminar",
+      "moreActions": "Más acciones"
+    },
+    "status": {
+      "confirmed": "Confirmado",
+      "pending": "Pendiente",
+      "cancelled": "Cancelado"
+    },
+    "emptyState": {
+      "title": "No se encontraron transacciones",
+      "subtitle": "Agrega tu primera transacción para comenzar",
+      "button": "Agregar Transacción"
+    }
+  }
+}

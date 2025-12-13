@@ -1,0 +1,25 @@
+{
+  "title": "Planificación Financiera",
+  "description": "Planifica tus finanzas con facturas recurrentes, metas de ahorro y presupuestos por categoría.",
+  "comingSoon": "Próximamente",
+  "upcomingBills": {
+    "title": "Facturas Próximas",
+    "description": "Rastrea facturas recurrentes y configura recordatorios para que nunca pierdas una fecha de pago.",
+    "features": "Funcionalidades: Recordatorios de facturas • Rastreo de pagos • Auto-categorización"
+  },
+  "savingsGoals": {
+    "title": "Metas de Ahorro",
+    "description": "Establece objetivos financieros y rastrea tu progreso con hitos visuales y fechas objetivo.",
+    "features": "Funcionalidades: Rastreo de metas • Visualización de progreso • Fechas límite"
+  },
+  "budgetManagement": {
+    "title": "Gestión de Presupuesto",
+    "description": "Crea límites de gasto por categoría y recibe alertas al acercarte a tu presupuesto.",
+    "features": "Funcionalidades: Límites por categoría • Alertas de gasto • Perspectivas de presupuesto"
+  },
+  "helpBanner": {
+    "title": "Ayuda a Dar Forma a Estas Funcionalidades",
+    "description": "Estamos trabajando para traerte herramientas de planificación poderosas. ¡Tu opinión importa!",
+    "note": "Mantente atento a las actualizaciones mientras lanzamos estas funcionalidades."
+  }
+}

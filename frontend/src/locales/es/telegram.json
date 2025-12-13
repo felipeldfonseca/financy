@@ -1,0 +1,99 @@
+{
+  "title": "Integración con Telegram",
+  "setup": {
+    "title": "Configura Tu Bot de Telegram",
+    "description": "Sigue estos simples pasos para conectar tu bot de finanzas personales y comenzar a rastrear transacciones instantáneamente vía Telegram.",
+    "backButton": "Volver a Configuración"
+  },
+  "steps": {
+    "authenticate": {
+      "title": "Autentica Tu Cuenta",
+      "description": "Generaremos un token seguro para vincular tu cuenta de Financy con el bot de Telegram."
+    },
+    "addBot": {
+      "title": "Agregar el Bot a Telegram",
+      "description": "Haz clic en el botón de abajo para comenzar una conversación con tu bot de finanzas personales."
+    },
+    "activate": {
+      "title": "Activar Conexión", 
+      "description": "Envía el comando de activación para completar la configuración."
+    }
+  },
+  "status": {
+    "connected": "Conectado",
+    "notConnected": "No Conectado",
+    "pending": "Configuración Pendiente",
+    "error": "Error de Conexión"
+  },
+  "token": {
+    "title": "Tu Token Seguro",
+    "description": "Este token vincula tu cuenta de Financy con el bot de Telegram. ¡Mantenlo privado!",
+    "copyButton": "Copiar Token",
+    "copied": "¡Copiado!",
+    "regenerateButton": "Regenerar Token",
+    "expiresIn": "Expira en:",
+    "expired": "Este token ha expirado. Por favor regenera uno nuevo."
+  },
+  "bot": {
+    "title": "Iniciar Chat con el Bot",
+    "description": "Haz clic en el botón de abajo para abrir Telegram e iniciar una conversación con tu bot de finanzas personales.",
+    "openButton": "Abrir Bot de Telegram",
+    "username": "@FinancyAIBot"
+  },
+  "activation": {
+    "title": "Comando de Activación",
+    "description": "Copia y envía este comando al bot para completar la conexión:",
+    "command": "/start {{token}}",
+    "copyButton": "Copiar Comando",
+    "copied": "¡Copiado!",
+    "helpText": "Pega este comando en tu chat con @FinancyAIBot"
+  },
+  "features": {
+    "title": "Lo Que Puedes Hacer",
+    "description": "Una vez conectado, podrás:",
+    "list": {
+      "textMessages": "Enviar mensajes de texto como 'Gasté $50 en comestibles'",
+      "voiceNotes": "Grabar notas de voz describiendo tus transacciones",
+      "receiptPhotos": "Tomar fotos de recibos para procesamiento automático",
+      "instantTracking": "Obtener confirmaciones y categorización instantáneas",
+      "anywhere": "Rastrear tus finanzas desde cualquier lugar, en cualquier momento"
+    }
+  },
+  "troubleshooting": {
+    "title": "¿Tienes Problemas?",
+    "description": "Problemas comunes y soluciones:",
+    "issues": {
+      "tokenExpired": "Si tu token expiró, genera uno nuevo arriba",
+      "botNotResponding": "Asegúrate de estar enviando mensajes al @FinancyAIBot oficial",
+      "commandFailed": "Intenta copiar el comando de activación completo nuevamente",
+      "stillNotWorking": "Contacta al soporte si aún tienes problemas"
+    }
+  },
+  "actions": {
+    "disconnect": "Desconectar Telegram",
+    "reconnect": "Reconectar",
+    "testConnection": "Probar Conexión"
+  },
+  "dialogs": {
+    "disconnect": {
+      "title": "¿Desconectar Telegram?",
+      "message": "Esto eliminará la conexión entre tu cuenta de Financy y el bot de Telegram. Puedes reconectar en cualquier momento.",
+      "confirmButton": "Desconectar",
+      "cancelButton": "Cancelar"
+    },
+    "regenerateToken": {
+      "title": "¿Regenerar Token?",
+      "message": "Esto invalidará tu token actual y creará uno nuevo. Necesitarás reactivar el bot con el nuevo token.",
+      "confirmButton": "Regenerar",
+      "cancelButton": "Cancelar"
+    }
+  },
+  "messages": {
+    "tokenGenerated": "¡Nuevo token generado exitosamente!",
+    "connectionTested": "¡Prueba de conexión exitosa!",
+    "disconnected": "Conexión de Telegram eliminada exitosamente.",
+    "errorTesting": "Error al probar la conexión. Por favor intenta de nuevo.",
+    "errorDisconnecting": "Error al desconectar. Por favor intenta de nuevo.",
+    "errorGeneratingToken": "Error al generar token. Por favor intenta de nuevo."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "menu": {
+    "home": "Inicio",
+    "transactions": "Transacciones",
+    "groups": "Grupos",
+    "planning": "Planificación",
+    "settings": "Configuración"
+  },
+  "brand": {
+    "name": "financy",
+    "tagline": "tú hablas. tu dinero escucha."
+  },
+  "header": {
+    "searchPlaceholder": "Buscar transacciones...",
+    "profile": "Perfil",
+    "logout": "Cerrar Sesión"
+  }
+}

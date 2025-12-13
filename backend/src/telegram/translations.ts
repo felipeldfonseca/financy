@@ -124,6 +124,58 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       review: '✏️ Revisar',
       cancelAll: '❌ Cancelar Todas'
     }
+  },
+  es: {
+    conversation: {
+      investment: [
+        '¡Excelente trabajo construyendo esas inversiones! 🎯',
+        '¡Buena jugada de inversión! 📈',
+        '¡Inversión inteligente! 💪',
+        '¡Me encanta ver esas contribuciones a la inversión! 🚀'
+      ],
+      savings: [
+        '¡Excelente trabajo con esos ahorros! 💰',
+        '¡Buen trabajo ahorrando dinero! 🎯',
+        '¡Movimiento inteligente de ahorro! 📈',
+        '¡Me encanta ver crecer esos ahorros! 💪'
+      ],
+      income: [
+        '¡Genial! Parece que llegaron algunos ingresos 💰',
+        '¡Qué bien! Dinero entrando 🎉',
+        '¡Perfecto! Ingresos detectados 💵',
+        '¡Increíble! Parece que te pagaron 🙌'
+      ],
+      transfer: [
+        '¡Entendido! Movimiento de dinero detectado 💸',
+        'Veo esa transferencia 💰',
+        '¡Capturé esa transferencia! 📱',
+        '¡Transferencia registrada! 🔄'
+      ],
+      expense: [
+        '¡Oye! Capturé ese gasto 💸',
+        '¡Entendido! Gasto rastreado 📝',
+        'Veo esa compra 🛒',
+        '¡Gasto registrado! 💳'
+      ]
+    },
+    confirmation: [
+      '¿Se ve bien así?',
+      '¿Debo guardar esta transacción?',
+      '¿Te parece correcto?',
+      '¿Listo para confirmar?',
+      '¿Todo listo para guardar?'
+    ],
+    logged: 'Tengo esto registrado:',
+    context: 'Contexto:',
+    multipleDetected: 'Múltiples Transacciones Detectadas',
+    buttons: {
+      confirm: '✅ Confirmar',
+      edit: '✏️ Editar',
+      cancel: '❌ Cancelar',
+      confirmAll: '✅ Confirmar Todo',
+      review: '✏️ Revisar',
+      cancelAll: '❌ Cancelar Todo'
+    }
   }
 };
 

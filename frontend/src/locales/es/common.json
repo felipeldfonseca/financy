@@ -1,0 +1,60 @@
+{
+  "buttons": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Agregar",
+    "create": "Crear",
+    "submit": "Enviar",
+    "confirm": "Confirmar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "skip": "Omitir",
+    "continue": "Continuar",
+    "finish": "Finalizar",
+    "close": "Cerrar",
+    "ok": "OK",
+    "yes": "Sí",
+    "no": "No"
+  },
+  "labels": {
+    "name": "Nombre",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "language": "Idioma",
+    "currency": "Moneda",
+    "timezone": "Zona Horaria",
+    "amount": "Cantidad",
+    "description": "Descripción",
+    "category": "Categoría",
+    "date": "Fecha",
+    "type": "Tipo",
+    "status": "Estado"
+  },
+  "placeholders": {
+    "search": "Buscar...",
+    "enterAmount": "Ingresa la cantidad",
+    "enterDescription": "Ingresa la descripción",
+    "selectCategory": "Selecciona la categoría",
+    "selectCurrency": "Selecciona la moneda"
+  },
+  "messages": {
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "success": "¡Éxito!",
+    "noData": "No hay datos disponibles",
+    "confirmDelete": "¿Estás seguro de que quieres eliminar este elemento?",
+    "unsavedChanges": "Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?"
+  },
+  "currencies": {
+    "USD": "Dólar Estadounidense",
+    "EUR": "Euro",
+    "BRL": "Real Brasileño",
+    "GBP": "Libra Esterlina",
+    "JPY": "Yen Japonés"
+  }
+}
