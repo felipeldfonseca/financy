@@ -33,6 +33,8 @@ import {
   Send as SendIcon,
   CheckCircle as CheckCircleIcon,
   AttachMoney as MoneyIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material';
 import ChartSection from '../components/dashboard/ChartSection';
 import { useTranslation } from 'react-i18next';
@@ -43,6 +45,8 @@ const LandingPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [expandedFAQ, setExpandedFAQ] = useState<string | false>(false);
+  const [activeContext, setActiveContext] = useState(0);
+  const [contextKey, setContextKey] = useState(0); // For re-triggering animations
 
   // Animations
   const heroControls = useAnimation();
@@ -67,6 +71,30 @@ const LandingPage: React.FC = () => {
   const handleFAQChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
     setExpandedFAQ(isExpanded ? panel : false);
   };
+
+  const nextContext = () => {
+    setActiveContext((prev) => (prev + 1) % contextScenarios.length);
+    setContextKey(prev => prev + 1);
+  };
+
+  const prevContext = () => {
+    setActiveContext((prev) => (prev - 1 + contextScenarios.length) % contextScenarios.length);
+    setContextKey(prev => prev + 1);
+  };
+
+  const goToContext = (index: number) => {
+    setActiveContext(index);
+    setContextKey(prev => prev + 1);
+  };
+
+  // Auto-rotate contexts every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      nextContext();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [activeContext]); // Reset timer when activeContext changes
 
   // Animation variants
   const fadeInUp = {
@@ -220,20 +248,70 @@ const LandingPage: React.FC = () => {
     },
   ];
 
-  const contextMessages = {
-    family: [
-      { id: 1, text: "Groceries $120 at Whole Foods", isUser: true, user: "Sarah", time: "10:30 AM" },
-      { id: 2, text: "✅ Added to Family Budget!\n💰 $120.00 - Groceries\n👥 Context: Family", isUser: false, time: "10:30 AM" },
-      { id: 3, text: "Kids movie tickets $28", isUser: true, user: "Mike", time: "2:15 PM" },
-      { id: 4, text: "✅ Recorded for Family!\n🎬 Entertainment: $28.00", isUser: false, time: "2:15 PM" },
-    ],
-    travel: [
-      { id: 1, text: "Hotel booking €450 for 3 nights", isUser: true, user: "Alex", time: "9:00 AM" },
-      { id: 2, text: "✅ Trip expense added!\n🏨 Accommodation: €450.00\n✈️ Context: Europe Trip", isUser: false, time: "9:00 AM" },
-      { id: 3, text: "Dinner €65 at local restaurant", isUser: true, user: "Emma", time: "8:30 PM" },
-      { id: 4, text: "✅ Shared expense recorded!\n🍽️ Food: €65.00\n👥 Split between 4 people", isUser: false, time: "8:30 PM" },
-    ],
-  };
+  const contextScenarios = [
+    {
+      id: 'family',
+      title: '👨‍👩‍👧‍👦 Family Budget',
+      subtitle: 'Sarah, Mike, and 2 kids • Shared household expenses',
+      gradient: 'linear-gradient(135deg, #ff9a8b 0%, #ad5389 100%)',
+      messages: [
+        { id: 1, text: "Groceries $120 at Whole Foods", isUser: true, user: "Sarah", time: "10:30 AM" },
+        { id: 2, text: "✅ Added to Family Budget!\n💰 $120.00 - Groceries\n👥 Context: Family", isUser: false, time: "10:30 AM" },
+        { id: 3, text: "Kids movie tickets $28", isUser: true, user: "Mike", time: "2:15 PM" },
+        { id: 4, text: "✅ Recorded for Family!\n🎬 Entertainment: $28.00", isUser: false, time: "2:15 PM" },
+      ]
+    },
+    {
+      id: 'friends',
+      title: '👥 Friends Group',
+      subtitle: 'Jessica, Tom, Maria, David • Weekend activities',
+      gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+      messages: [
+        { id: 1, text: "Dinner at Thai restaurant $85", isUser: true, user: "Jessica", time: "7:45 PM" },
+        { id: 2, text: "✅ Group expense added!\n🍜 Food: $85.00\n👥 Split 4 ways: $21.25 each", isUser: false, time: "7:45 PM" },
+        { id: 3, text: "Uber to the club $18", isUser: true, user: "Tom", time: "9:30 PM" },
+        { id: 4, text: "✅ Shared ride recorded!\n🚗 Transportation: $18.00", isUser: false, time: "9:30 PM" },
+      ]
+    },
+    {
+      id: 'travel',
+      title: '✈️ Europe Trip 2024',
+      subtitle: 'Alex, Emma, James, Lisa • Travel expenses',
+      gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+      messages: [
+        { id: 1, text: "Hotel booking €450 for 3 nights", isUser: true, user: "Alex", time: "9:00 AM" },
+        { id: 2, text: "✅ Trip expense added!\n🏨 Accommodation: €450.00\n✈️ Context: Europe Trip", isUser: false, time: "9:00 AM" },
+        { id: 3, text: "Dinner €65 at local restaurant", isUser: true, user: "Emma", time: "8:30 PM" },
+        { id: 4, text: "✅ Shared expense recorded!\n🍽️ Food: €65.00\n👥 Split between 4 people", isUser: false, time: "8:30 PM" },
+      ]
+    },
+    {
+      id: 'business',
+      title: '🏢 Marketing Team',
+      subtitle: 'Team budget • Client meetings & events',
+      gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      messages: [
+        { id: 1, text: "Client lunch meeting $180", isUser: true, user: "Manager", time: "1:15 PM" },
+        { id: 2, text: "✅ Business expense logged!\n🍽️ Client Entertainment: $180.00\n🏢 Context: Marketing Team", isUser: false, time: "1:15 PM" },
+        { id: 3, text: "Conference supplies $75", isUser: true, user: "Assistant", time: "3:00 PM" },
+        { id: 4, text: "✅ Office expense added!\n📋 Supplies: $75.00", isUser: false, time: "3:00 PM" },
+      ]
+    },
+    {
+      id: 'project',
+      title: '🎯 Website Redesign',
+      subtitle: 'Project team • Development & design costs',
+      gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      messages: [
+        { id: 1, text: "Adobe Creative Suite license $52.99", isUser: true, user: "Designer", time: "10:00 AM" },
+        { id: 2, text: "✅ Project expense tracked!\n💻 Software: $52.99\n🎯 Context: Website Redesign", isUser: false, time: "10:00 AM" },
+        { id: 3, text: "Stock photos bundle $149", isUser: true, user: "Developer", time: "2:30 PM" },
+        { id: 4, text: "✅ Asset purchase recorded!\n📸 Resources: $149.00", isUser: false, time: "2:30 PM" },
+      ]
+    }
+  ];
+
+  const currentContext = contextScenarios[activeContext];
 
   return (
     <Box sx={{ minHeight: '100vh', overflow: 'hidden' }}>
@@ -685,43 +763,91 @@ const LandingPage: React.FC = () => {
             </motion.div>
           </Box>
 
-          <Grid container spacing={6}>
-            {/* Family Context */}
-            <Grid item xs={12} md={6}>
+          {/* Context Carousel */}
+          <Box sx={{ maxWidth: '700px', mx: 'auto', position: 'relative', display: 'flex', alignItems: 'center', gap: 3 }}>
+            {/* Left Arrow */}
+            <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+              <motion.div 
+                whileHover={{ scale: 1.05, x: -2 }} 
+                whileTap={{ scale: 0.95 }}
+              >
+                <Box
+                  onClick={prevContext}
+                  sx={{
+                    width: 56,
+                    height: 56,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    borderRadius: '16px',
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    '&:hover': {
+                      background: 'rgba(255, 255, 255, 0.25)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)',
+                      transform: 'translateX(-2px)',
+                    },
+                  }}
+                >
+                  <ChevronLeftIcon 
+                    sx={{ 
+                      fontSize: 32, 
+                      color: 'rgba(69, 184, 215, 0.8)',
+                      filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2))'
+                    }} 
+                  />
+                </Box>
+              </motion.div>
+            </Box>
+
+            {/* Chat Card Container */}
+            <Box sx={{ flex: 1, maxWidth: '600px' }}>
+
+              {/* Context Card */}
               <motion.div
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                viewport={{ once: true }}
+                key={`${currentContext.id}-${contextKey}`}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
               >
                 <Card
                   sx={{
-                    height: 400,
-                    background: 'linear-gradient(135deg, #ff9a8b 0%, #ad5389 100%)',
+                    height: 480,
+                    background: currentContext.gradient,
                     borderRadius: '20px',
                     overflow: 'hidden',
+                    position: 'relative',
                   }}
                 >
                   <CardContent sx={{ p: 0, height: '100%' }}>
+                    {/* Header */}
                     <Box sx={{ p: 3, borderBottom: '1px solid rgba(255, 255, 255, 0.2)' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                         <Typography variant="h5" sx={{ color: 'white', fontWeight: 700 }}>
-                          👨‍👩‍👧‍👦 Family Budget
+                          {currentContext.title}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.8)', fontWeight: 500 }}>
+                          {activeContext + 1} / {contextScenarios.length}
                         </Typography>
                       </Box>
                       <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                        Sarah, Mike, and 2 kids • Shared household expenses
+                        {currentContext.subtitle}
                       </Typography>
                     </Box>
                     
-                    <Box sx={{ p: 2, height: 'calc(100% - 100px)', overflowY: 'auto' }}>
-                      {contextMessages.family.map((message, index) => (
+                    {/* Messages */}
+                    <Box sx={{ p: 2, height: 'calc(100% - 160px)', overflowY: 'auto' }}>
+                      {currentContext.messages.map((message, index) => (
                         <motion.div
-                          key={message.id}
+                          key={`${message.id}-${contextKey}`}
                           initial={{ opacity: 0, y: 20 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.4, delay: index * 0.6 }}
-                          viewport={{ once: true, margin: "-50px" }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.4, delay: index * 0.3 }}
                         >
                           <Box sx={{ mb: 2, display: 'flex', justifyContent: message.isUser ? 'flex-end' : 'flex-start' }}>
                             <Paper
@@ -733,6 +859,8 @@ const LandingPage: React.FC = () => {
                                   ? 'rgba(255, 255, 255, 0.95)'
                                   : 'rgba(255, 255, 255, 0.15)',
                                 color: message.isUser ? 'text.primary' : 'white',
+                                backdropFilter: 'blur(10px)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
                               }}
                             >
                               {message.isUser && (
@@ -754,79 +882,78 @@ const LandingPage: React.FC = () => {
                   </CardContent>
                 </Card>
               </motion.div>
-            </Grid>
+            </Box>
 
-            {/* Travel Context */}
-            <Grid item xs={12} md={6}>
-              <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                viewport={{ once: true }}
+            {/* Right Arrow */}
+            <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+              <motion.div 
+                whileHover={{ scale: 1.05, x: 2 }} 
+                whileTap={{ scale: 0.95 }}
               >
-                <Card
+                <Box
+                  onClick={nextContext}
                   sx={{
-                    height: 400,
-                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                    borderRadius: '20px',
-                    overflow: 'hidden',
+                    width: 56,
+                    height: 56,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    borderRadius: '16px',
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    '&:hover': {
+                      background: 'rgba(255, 255, 255, 0.25)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)',
+                      transform: 'translateX(2px)',
+                    },
                   }}
                 >
-                  <CardContent sx={{ p: 0, height: '100%' }}>
-                    <Box sx={{ p: 3, borderBottom: '1px solid rgba(255, 255, 255, 0.2)' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                        <Typography variant="h5" sx={{ color: 'white', fontWeight: 700 }}>
-                          ✈️ Europe Trip 2024
-                        </Typography>
-                      </Box>
-                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                        Alex, Emma, James, Lisa • Travel expenses
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ p: 2, height: 'calc(100% - 100px)', overflowY: 'auto' }}>
-                      {contextMessages.travel.map((message, index) => (
-                        <motion.div
-                          key={message.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.4, delay: index * 0.6 }}
-                          viewport={{ once: true, margin: "-50px" }}
-                        >
-                          <Box sx={{ mb: 2, display: 'flex', justifyContent: message.isUser ? 'flex-end' : 'flex-start' }}>
-                            <Paper
-                              sx={{
-                                p: 1.5,
-                                maxWidth: '85%',
-                                borderRadius: message.isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                                background: message.isUser
-                                  ? 'rgba(255, 255, 255, 0.95)'
-                                  : 'rgba(255, 255, 255, 0.15)',
-                                color: message.isUser ? 'text.primary' : 'white',
-                              }}
-                            >
-                              {message.isUser && (
-                                <Typography variant="caption" sx={{ fontWeight: 600, color: 'primary.main' }}>
-                                  {(message as any).user}
-                                </Typography>
-                              )}
-                              <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
-                                {message.text}
-                              </Typography>
-                              <Typography variant="caption" sx={{ opacity: 0.7, fontSize: '0.7rem', mt: 0.5, display: 'block' }}>
-                                {message.time}
-                              </Typography>
-                            </Paper>
-                          </Box>
-                        </motion.div>
-                      ))}
-                    </Box>
-                  </CardContent>
-                </Card>
+                  <ChevronRightIcon 
+                    sx={{ 
+                      fontSize: 32, 
+                      color: 'rgba(69, 184, 215, 0.8)',
+                      filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2))'
+                    }} 
+                  />
+                </Box>
               </motion.div>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
 
+            {/* Dots Indicator */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 3 }}>
+              {contextScenarios.map((_, index) => (
+                <motion.div
+                  key={index}
+                  whileHover={{ scale: 1.2 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <Box
+                    onClick={() => goToContext(index)}
+                    sx={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: '50%',
+                      cursor: 'pointer',
+                      background: index === activeContext 
+                        ? 'linear-gradient(45deg, #45b8d7, #10b981)' 
+                        : 'rgba(0, 0, 0, 0.2)',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        background: index === activeContext 
+                          ? 'linear-gradient(45deg, #45b8d7, #10b981)' 
+                          : 'rgba(0, 0, 0, 0.4)',
+                      },
+                    }}
+                  />
+                </motion.div>
+              ))}
+            </Box>
           <Box sx={{ textAlign: 'center', mt: 8 }}>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -841,23 +968,41 @@ const LandingPage: React.FC = () => {
               </Typography>
               
               <Box sx={{ display: 'flex', justifyContent: 'center', gap: 4, flexWrap: 'wrap', mb: 4 }}>
-                {[
-                  { icon: '👨‍👩‍👧‍👦', label: 'Family' },
-                  { icon: '👥', label: 'Friends' },
-                  { icon: '✈️', label: 'Travel' },
-                  { icon: '🏢', label: 'Business' },
-                  { icon: '🎯', label: 'Projects' },
-                ].map((context, index) => (
+                {contextScenarios.map((scenario, index) => (
                   <motion.div
-                    key={context.label}
+                    key={scenario.id}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: index * 0.1 }}
                     viewport={{ once: true }}
                   >
-                    <Box sx={{ textAlign: 'center' }}>
-                      <Typography variant="h4" sx={{ mb: 1 }}>{context.icon}</Typography>
-                      <Typography variant="body2" color="text.secondary">{context.label}</Typography>
+                    <Box 
+                      sx={{ 
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        p: 2,
+                        borderRadius: '12px',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          background: 'rgba(69, 184, 215, 0.1)',
+                          transform: 'translateY(-4px)',
+                        },
+                      }}
+                      onClick={() => goToContext(index)}
+                    >
+                      <Typography 
+                        variant="h4" 
+                        sx={{ 
+                          mb: 1,
+                          fontSize: index === activeContext ? '2.5rem' : '2rem',
+                          transition: 'font-size 0.3s ease',
+                        }}
+                      >
+                        {scenario.title.split(' ')[0]}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {scenario.title.split(' ').slice(1).join(' ')}
+                      </Typography>
                     </Box>
                   </motion.div>
                 ))}
