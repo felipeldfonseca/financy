@@ -40,7 +40,7 @@ import ChartSection from '../components/dashboard/ChartSection';
 import { useTranslation } from 'react-i18next';
 
 const LandingPage: React.FC = () => {
-  const { t } = useTranslation(['common', 'auth']);
+  const { t } = useTranslation(['common', 'auth', 'landing']);
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -129,20 +129,20 @@ const LandingPage: React.FC = () => {
   const features = [
     {
       icon: <ChatIcon sx={{ fontSize: 40 }} />,
-      title: "Conversational Input",
-      description: "Send messages, photos, or voice notes in natural language",
+      title: t('landing:features.conversational.title'),
+      description: t('landing:features.conversational.description'),
       color: "#45b8d7",
     },
     {
       icon: <AIIcon sx={{ fontSize: 40 }} />,
-      title: "AI-Powered Intelligence",
-      description: "Advanced AI automatically categorizes and organizes your expenses",
+      title: t('landing:features.ai.title'),
+      description: t('landing:features.ai.description'),
       color: "#10b981",
     },
     {
       icon: <GroupIcon sx={{ fontSize: 40 }} />,
-      title: "Collaborative Contexts",
-      description: "Share financial tracking with family, friends, or teams",
+      title: t('landing:features.collaborative.title'),
+      description: t('landing:features.collaborative.description'),
       color: "#6366f1",
     },
   ];
@@ -151,98 +151,98 @@ const LandingPage: React.FC = () => {
     {
       step: 1,
       icon: <ChatIcon sx={{ fontSize: 30 }} />,
-      title: "Send Message",
-      description: "Type, speak, or snap a photo of your expense",
+      title: t('landing:howItWorks.steps.send.title'),
+      description: t('landing:howItWorks.steps.send.description'),
     },
     {
       step: 2,
       icon: <AIIcon sx={{ fontSize: 30 }} />,
-      title: "AI Processing",
-      description: "Our AI extracts amount, category, and context",
+      title: t('landing:howItWorks.steps.process.title'),
+      description: t('landing:howItWorks.steps.process.description'),
     },
     {
       step: 3,
       icon: <TrendingIcon sx={{ fontSize: 30 }} />,
-      title: "Organized Data",
-      description: "View insights and analytics in your dashboard",
+      title: t('landing:howItWorks.steps.organize.title'),
+      description: t('landing:howItWorks.steps.organize.description'),
     },
   ];
 
   const faqs = [
     {
-      question: "How secure is my financial data?",
-      answer: "We use bank-level encryption and never store your banking credentials. All data is encrypted in transit and at rest."
+      question: t('landing:faq.items.security.question'),
+      answer: t('landing:faq.items.security.answer')
     },
     {
-      question: "Which messaging platforms do you support?",
-      answer: "Currently we support Telegram and WhatsApp, with more platforms coming soon. You can also use our web interface."
+      question: t('landing:faq.items.platforms.question'),
+      answer: t('landing:faq.items.platforms.answer')
     },
     {
-      question: "Can I share expenses with family?",
-      answer: "Yes! Create shared contexts for family, roommates, or project teams. Everyone can add expenses and see real-time updates."
+      question: t('landing:faq.items.family.question'),
+      answer: t('landing:faq.items.family.answer')
     },
     {
-      question: "How accurate is the AI parsing?",
-      answer: "Our AI achieves 85%+ accuracy and continuously learns from corrections. It handles multiple languages and various input formats."
+      question: t('landing:faq.items.accuracy.question'),
+      answer: t('landing:faq.items.accuracy.answer')
     },
     {
-      question: "Is there a mobile app?",
-      answer: "You can use Financy through your favorite messaging app or our responsive web interface. Native mobile apps are coming in 2025."
+      question: t('landing:faq.items.mobile.question'),
+      answer: t('landing:faq.items.mobile.answer')
     },
   ];
 
   // Mock data for demo charts
   const mockExpenseData = [
-    { name: 'Food & Dining', value: 450, color: '#ff6b6b' },
-    { name: 'Transportation', value: 280, color: '#4ecdc4' },
-    { name: 'Shopping', value: 320, color: '#45b7d1' },
-    { name: 'Bills & Utilities', value: 180, color: '#96ceb4' },
-    { name: 'Entertainment', value: 150, color: '#feca57' },
+    { name: t('landing:charts.categories.foodAndDining'), value: 450, color: '#ff6b6b' },
+    { name: t('landing:charts.categories.transportation'), value: 280, color: '#4ecdc4' },
+    { name: t('landing:charts.categories.shopping'), value: 320, color: '#45b7d1' },
+    { name: t('landing:charts.categories.billsAndUtilities'), value: 180, color: '#96ceb4' },
+    { name: t('landing:charts.categories.entertainment'), value: 150, color: '#feca57' },
   ];
 
   const mockMonthlyData = [
-    { month: 'Jan', income: 3500, expenses: 2800, netAmount: 700, savingsRate: 20 },
-    { month: 'Feb', income: 3200, expenses: 2600, netAmount: 600, savingsRate: 18.8 },
-    { month: 'Mar', income: 3800, expenses: 3100, netAmount: 700, savingsRate: 18.4 },
-    { month: 'Apr', income: 3600, expenses: 2900, netAmount: 700, savingsRate: 19.4 },
-    { month: 'May', income: 4000, expenses: 3200, netAmount: 800, savingsRate: 20 },
-    { month: 'Jun', income: 3700, expenses: 2850, netAmount: 850, savingsRate: 23 },
+    { month: t('landing:charts.months.jan'), income: 3500, expenses: 2800, netAmount: 700, savingsRate: 20 },
+    { month: t('landing:charts.months.feb'), income: 3200, expenses: 2600, netAmount: 600, savingsRate: 18.8 },
+    { month: t('landing:charts.months.mar'), income: 3800, expenses: 3100, netAmount: 700, savingsRate: 18.4 },
+    { month: t('landing:charts.months.apr'), income: 3600, expenses: 2900, netAmount: 700, savingsRate: 19.4 },
+    { month: t('landing:charts.months.may'), income: 4000, expenses: 3200, netAmount: 800, savingsRate: 20 },
+    { month: t('landing:charts.months.jun'), income: 3700, expenses: 2850, netAmount: 850, savingsRate: 23 },
   ];
 
   const mockChatMessages = [
     { 
       id: 1, 
-      text: "Spent $45 on lunch at Italian restaurant", 
+      text: t('landing:chatDemo.messages.lunch'), 
       isUser: true, 
       time: "2:34 PM" 
     },
     { 
       id: 2, 
-      text: "✅ Transaction recorded!\n💰 Amount: $45.00\n🍽️ Category: Food & Dining\n📍 Location: Restaurant", 
+      text: t('landing:chatDemo.messages.lunchConfirm'), 
       isUser: false, 
       time: "2:34 PM" 
     },
     { 
       id: 3, 
-      text: "Gas $60 at Shell station", 
+      text: t('landing:chatDemo.messages.gas'), 
       isUser: true, 
       time: "3:15 PM" 
     },
     { 
       id: 4, 
-      text: "✅ Transaction recorded!\n💰 Amount: $60.00\n🚗 Category: Transportation\n📍 Location: Shell Station", 
+      text: t('landing:chatDemo.messages.gasConfirm'), 
       isUser: false, 
       time: "3:15 PM" 
     },
     { 
       id: 5, 
-      text: "Coffee $4.50", 
+      text: t('landing:chatDemo.messages.coffee'), 
       isUser: true, 
       time: "4:20 PM" 
     },
     { 
       id: 6, 
-      text: "✅ Transaction recorded!\n💰 Amount: $4.50\n☕ Category: Food & Dining\n📍 Location: Coffee Shop", 
+      text: t('landing:chatDemo.messages.coffeeConfirm'), 
       isUser: false, 
       time: "4:20 PM" 
     },
@@ -251,62 +251,62 @@ const LandingPage: React.FC = () => {
   const contextScenarios = [
     {
       id: 'family',
-      title: '👨‍👩‍👧‍👦 Family Budget',
-      subtitle: 'Sarah, Mike, and 2 kids • Shared household expenses',
+      title: t('landing:contexts.family.title'),
+      subtitle: t('landing:contexts.family.subtitle'),
       gradient: 'linear-gradient(135deg, #ff9a8b 0%, #ad5389 100%)',
       messages: [
-        { id: 1, text: "Groceries $120 at Whole Foods", isUser: true, user: "Sarah", time: "10:30 AM" },
-        { id: 2, text: "✅ Added to Family Budget!\n💰 $120.00 - Groceries\n👥 Context: Family", isUser: false, time: "10:30 AM" },
-        { id: 3, text: "Kids movie tickets $28", isUser: true, user: "Mike", time: "2:15 PM" },
-        { id: 4, text: "✅ Recorded for Family!\n🎬 Entertainment: $28.00", isUser: false, time: "2:15 PM" },
+        { id: 1, text: t('landing:contexts.family.messages.groceries'), isUser: true, user: "Sarah", time: "10:30 AM" },
+        { id: 2, text: t('landing:contexts.family.messages.groceriesConfirm'), isUser: false, time: "10:30 AM" },
+        { id: 3, text: t('landing:contexts.family.messages.movieTickets'), isUser: true, user: "Mike", time: "2:15 PM" },
+        { id: 4, text: t('landing:contexts.family.messages.movieConfirm'), isUser: false, time: "2:15 PM" },
       ]
     },
     {
       id: 'friends',
-      title: '👥 Friends Group',
-      subtitle: 'Jessica, Tom, Maria, David • Weekend activities',
+      title: t('landing:contexts.friends.title'),
+      subtitle: t('landing:contexts.friends.subtitle'),
       gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
       messages: [
-        { id: 1, text: "Dinner at Thai restaurant $85", isUser: true, user: "Jessica", time: "7:45 PM" },
-        { id: 2, text: "✅ Group expense added!\n🍜 Food: $85.00\n👥 Split 4 ways: $21.25 each", isUser: false, time: "7:45 PM" },
-        { id: 3, text: "Uber to the club $18", isUser: true, user: "Tom", time: "9:30 PM" },
-        { id: 4, text: "✅ Shared ride recorded!\n🚗 Transportation: $18.00", isUser: false, time: "9:30 PM" },
+        { id: 1, text: t('landing:contexts.friends.messages.dinner'), isUser: true, user: "Jessica", time: "7:45 PM" },
+        { id: 2, text: t('landing:contexts.friends.messages.dinnerConfirm'), isUser: false, time: "7:45 PM" },
+        { id: 3, text: t('landing:contexts.friends.messages.uber'), isUser: true, user: "Tom", time: "9:30 PM" },
+        { id: 4, text: t('landing:contexts.friends.messages.uberConfirm'), isUser: false, time: "9:30 PM" },
       ]
     },
     {
       id: 'travel',
-      title: '✈️ Europe Trip 2024',
-      subtitle: 'Alex, Emma, James, Lisa • Travel expenses',
+      title: t('landing:contexts.travel.title'),
+      subtitle: t('landing:contexts.travel.subtitle'),
       gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
       messages: [
-        { id: 1, text: "Hotel booking €450 for 3 nights", isUser: true, user: "Alex", time: "9:00 AM" },
-        { id: 2, text: "✅ Trip expense added!\n🏨 Accommodation: €450.00\n✈️ Context: Europe Trip", isUser: false, time: "9:00 AM" },
-        { id: 3, text: "Dinner €65 at local restaurant", isUser: true, user: "Emma", time: "8:30 PM" },
-        { id: 4, text: "✅ Shared expense recorded!\n🍽️ Food: €65.00\n👥 Split between 4 people", isUser: false, time: "8:30 PM" },
+        { id: 1, text: t('landing:contexts.travel.messages.hotel'), isUser: true, user: "Alex", time: "9:00 AM" },
+        { id: 2, text: t('landing:contexts.travel.messages.hotelConfirm'), isUser: false, time: "9:00 AM" },
+        { id: 3, text: t('landing:contexts.travel.messages.dinner'), isUser: true, user: "Emma", time: "8:30 PM" },
+        { id: 4, text: t('landing:contexts.travel.messages.dinnerConfirm'), isUser: false, time: "8:30 PM" },
       ]
     },
     {
       id: 'business',
-      title: '🏢 Marketing Team',
-      subtitle: 'Team budget • Client meetings & events',
+      title: t('landing:contexts.business.title'),
+      subtitle: t('landing:contexts.business.subtitle'),
       gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       messages: [
-        { id: 1, text: "Client lunch meeting $180", isUser: true, user: "Manager", time: "1:15 PM" },
-        { id: 2, text: "✅ Business expense logged!\n🍽️ Client Entertainment: $180.00\n🏢 Context: Marketing Team", isUser: false, time: "1:15 PM" },
-        { id: 3, text: "Conference supplies $75", isUser: true, user: "Assistant", time: "3:00 PM" },
-        { id: 4, text: "✅ Office expense added!\n📋 Supplies: $75.00", isUser: false, time: "3:00 PM" },
+        { id: 1, text: t('landing:contexts.business.messages.clientLunch'), isUser: true, user: "Manager", time: "1:15 PM" },
+        { id: 2, text: t('landing:contexts.business.messages.clientLunchConfirm'), isUser: false, time: "1:15 PM" },
+        { id: 3, text: t('landing:contexts.business.messages.supplies'), isUser: true, user: "Assistant", time: "3:00 PM" },
+        { id: 4, text: t('landing:contexts.business.messages.suppliesConfirm'), isUser: false, time: "3:00 PM" },
       ]
     },
     {
       id: 'project',
-      title: '🎯 Website Redesign',
-      subtitle: 'Project team • Development & design costs',
+      title: t('landing:contexts.project.title'),
+      subtitle: t('landing:contexts.project.subtitle'),
       gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
       messages: [
-        { id: 1, text: "Adobe Creative Suite license $52.99", isUser: true, user: "Designer", time: "10:00 AM" },
-        { id: 2, text: "✅ Project expense tracked!\n💻 Software: $52.99\n🎯 Context: Website Redesign", isUser: false, time: "10:00 AM" },
-        { id: 3, text: "Stock photos bundle $149", isUser: true, user: "Developer", time: "2:30 PM" },
-        { id: 4, text: "✅ Asset purchase recorded!\n📸 Resources: $149.00", isUser: false, time: "2:30 PM" },
+        { id: 1, text: t('landing:contexts.project.messages.adobe'), isUser: true, user: "Designer", time: "10:00 AM" },
+        { id: 2, text: t('landing:contexts.project.messages.adobeConfirm'), isUser: false, time: "10:00 AM" },
+        { id: 3, text: t('landing:contexts.project.messages.photos'), isUser: true, user: "Developer", time: "2:30 PM" },
+        { id: 4, text: t('landing:contexts.project.messages.photosConfirm'), isUser: false, time: "2:30 PM" },
       ]
     }
   ];
@@ -338,20 +338,19 @@ const LandingPage: React.FC = () => {
                   WebkitTextFillColor: 'transparent',
                 }}
               >
-                Welcome to Financy
+{t('landing:hero.title')}
               </Typography>
             </motion.div>
             
             <motion.div variants={fadeInUp}>
               <Typography variant="h4" color="text.secondary" paragraph sx={{ maxWidth: '600px', mx: 'auto', mb: 3 }}>
-                Your conversational financial assistant
+                {t('landing:hero.subtitle')}
               </Typography>
             </motion.div>
 
             <motion.div variants={fadeInUp}>
               <Typography variant="h6" color="text.secondary" paragraph sx={{ maxWidth: '800px', mx: 'auto', mb: 6 }}>
-                Transform natural language messages into structured financial intelligence. 
-                Track expenses through chat, voice, and photos with AI-powered categorization.
+                {t('landing:hero.description')}
               </Typography>
             </motion.div>
 
@@ -376,7 +375,7 @@ const LandingPage: React.FC = () => {
                       },
                     }}
                   >
-                    Get Started Free
+{t('landing:hero.getStarted')}
                   </Button>
                 </motion.div>
                 
@@ -399,7 +398,7 @@ const LandingPage: React.FC = () => {
                       },
                     }}
                   >
-                    Learn More
+{t('landing:hero.learnMore')}
                   </Button>
                 </motion.div>
               </Box>
@@ -435,7 +434,7 @@ const LandingPage: React.FC = () => {
         >
           <motion.div variants={fadeInUp}>
             <Typography variant="h3" textAlign="center" gutterBottom sx={{ mb: 6, fontWeight: 600 }}>
-              Powerful Features for Modern Finance
+              {t('landing:features.title')}
             </Typography>
           </motion.div>
 
@@ -520,13 +519,13 @@ const LandingPage: React.FC = () => {
       <Box sx={{ py: 8, background: 'linear-gradient(135deg, rgba(69, 184, 215, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%)' }}>
         <Container maxWidth="lg">
           <Typography variant="h3" textAlign="center" gutterBottom sx={{ mb: 8, fontWeight: 600 }}>
-            How It Works
+            {t('landing:howItWorks.title')}
           </Typography>
 
-          <Grid container spacing={4} alignItems="center">
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: { xs: 4, md: 2 }, flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
             {howItWorksSteps.map((step, index) => (
               <React.Fragment key={step.step}>
-                <Grid item xs={12} md={4}>
+                <Box sx={{ flex: { xs: '1 1 100%', md: '0 0 auto' }, maxWidth: { xs: 'none', md: '280px' }, textAlign: 'center' }}>
                   <motion.div
                     initial={{ opacity: 0, y: 50 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -558,31 +557,49 @@ const LandingPage: React.FC = () => {
                       </Typography>
                     </Box>
                   </motion.div>
-                </Grid>
+                </Box>
                 
-                {index < howItWorksSteps.length - 1 && !isMobile && (
-                  <Grid item xs={12} md={1}>
-                    <Box textAlign="center">
-                      <motion.div
-                        animate={{
-                          x: [0, 10, 0],
-                        }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          ease: [0.4, 0, 0.2, 1],
+                {index < howItWorksSteps.length - 1 && (
+                  <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', justifyContent: 'center', minWidth: '80px' }}>
+                    <motion.div
+                      animate={{
+                        x: [0, 8, 0],
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: [0.4, 0, 0.2, 1],
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: '12px',
+                          background: 'rgba(255, 255, 255, 0.1)',
+                          backdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(255, 255, 255, 0.2)',
+                          boxShadow: '0 8px 32px rgba(69, 184, 215, 0.15)',
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                         }}
                       >
-                        <Typography variant="h4" color="primary.main" sx={{ opacity: 0.6 }}>
-                          →
-                        </Typography>
-                      </motion.div>
-                    </Box>
-                  </Grid>
+                        <ChevronRightIcon 
+                          sx={{ 
+                            fontSize: 28, 
+                            color: 'rgba(69, 184, 215, 0.8)',
+                            filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1))'
+                          }} 
+                        />
+                      </Box>
+                    </motion.div>
+                  </Box>
                 )}
               </React.Fragment>
             ))}
-          </Grid>
+          </Box>
         </Container>
       </Box>
 
@@ -596,11 +613,10 @@ const LandingPage: React.FC = () => {
             viewport={{ once: true }}
           >
             <Typography variant="h3" gutterBottom sx={{ fontWeight: 600 }}>
-              💬 Conversational Interface
+              {t('landing:demo.conversational.title')}
             </Typography>
             <Typography variant="h6" color="text.secondary" sx={{ maxWidth: '600px', mx: 'auto' }}>
-              Just send a message about your expense. Our AI automatically extracts the amount, 
-              category, and context - no complex forms to fill.
+              {t('landing:demo.conversational.description')}
             </Typography>
           </motion.div>
         </Box>
@@ -716,11 +732,10 @@ const LandingPage: React.FC = () => {
             viewport={{ once: true }}
           >
             <Typography variant="h3" gutterBottom sx={{ fontWeight: 600 }}>
-              📊 Beautiful Financial Insights
+              {t('landing:demo.charts.title')}
             </Typography>
             <Typography variant="h6" color="text.secondary" sx={{ maxWidth: '600px', mx: 'auto' }}>
-              Transform your conversation into stunning charts and analytics. 
-              Get instant insights into your spending patterns and financial health.
+              {t('landing:demo.charts.description')}
             </Typography>
           </motion.div>
         </Box>
@@ -754,11 +769,10 @@ const LandingPage: React.FC = () => {
               viewport={{ once: true }}
             >
               <Typography variant="h3" gutterBottom sx={{ fontWeight: 600 }}>
-                👥 Collaborative Financial Management
+                {t('landing:demo.collaborative.title')}
               </Typography>
               <Typography variant="h6" color="text.secondary" sx={{ maxWidth: '700px', mx: 'auto' }}>
-                Share expenses seamlessly with family, friends, or colleagues. 
-                Create contexts for trips, projects, households, and more.
+                {t('landing:demo.collaborative.description')}
               </Typography>
             </motion.div>
           </Box>
@@ -962,9 +976,7 @@ const LandingPage: React.FC = () => {
               viewport={{ once: true }}
             >
               <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: '700px', mx: 'auto' }}>
-                Whether it's splitting dinner with friends, managing household expenses with family, 
-                or tracking project costs with colleagues - Financy makes collaborative financial 
-                management simple and transparent.
+                {t('landing:collaborative.description')}
               </Typography>
               
               <Box sx={{ display: 'flex', justifyContent: 'center', gap: 4, flexWrap: 'wrap', mb: 4 }}>
@@ -1025,7 +1037,7 @@ const LandingPage: React.FC = () => {
                   },
                 }}
               >
-                Start Collaborating Today
+{t('landing:collaborative.button')}
               </Button>
             </motion.div>
           </Box>
@@ -1035,7 +1047,7 @@ const LandingPage: React.FC = () => {
       {/* Trust/Social Proof Section */}
       <Container maxWidth="lg" sx={{ py: 8 }}>
         <Typography variant="h4" textAlign="center" gutterBottom sx={{ mb: 6, fontWeight: 600 }}>
-          Trusted & Secure
+          {t('landing:trust.title')}
         </Typography>
         
         <Grid container spacing={4} justifyContent="center">
@@ -1043,10 +1055,10 @@ const LandingPage: React.FC = () => {
             <Box>
               <SecurityIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
               <Typography variant="h6" gutterBottom>
-                Bank-Level Security
+                {t('landing:trust.security.title')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                End-to-end encryption and secure data handling
+                {t('landing:trust.security.description')}
               </Typography>
             </Box>
           </Grid>
@@ -1055,10 +1067,10 @@ const LandingPage: React.FC = () => {
             <Box>
               <SpeedIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
               <Typography variant="h6" gutterBottom>
-                Lightning Fast
+                {t('landing:trust.speed.title')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Process messages in under 3 seconds
+                {t('landing:trust.speed.description')}
               </Typography>
             </Box>
           </Grid>
@@ -1067,10 +1079,10 @@ const LandingPage: React.FC = () => {
             <Box>
               <CloudIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
               <Typography variant="h6" gutterBottom>
-                Multi-Platform
+                {t('landing:trust.multiplatform.title')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Works on Telegram, WhatsApp, and Web
+                {t('landing:trust.multiplatform.description')}
               </Typography>
             </Box>
           </Grid>
@@ -1120,7 +1132,7 @@ const LandingPage: React.FC = () => {
       <Box sx={{ py: 8, background: 'rgba(69, 184, 215, 0.02)' }}>
         <Container maxWidth="md">
           <Typography variant="h3" textAlign="center" gutterBottom sx={{ mb: 6, fontWeight: 600 }}>
-            Frequently Asked Questions
+            {t('landing:faq.title')}
           </Typography>
 
           <Box>
@@ -1226,12 +1238,11 @@ const LandingPage: React.FC = () => {
             viewport={{ once: true }}
           >
             <Typography variant="h3" gutterBottom sx={{ fontWeight: 700, mb: 3 }}>
-              Ready to Transform Your Financial Management?
+              {t('landing:cta.title')}
             </Typography>
             
             <Typography variant="h6" sx={{ mb: 6, opacity: 0.9, maxWidth: '600px', mx: 'auto' }}>
-              Join thousands of users who've simplified their expense tracking with conversational AI. 
-              Start your journey to better financial insights today.
+              {t('landing:cta.description')}
             </Typography>
 
             <motion.div
@@ -1258,12 +1269,12 @@ const LandingPage: React.FC = () => {
                   },
                 }}
               >
-                Start Free Trial
+{t('landing:cta.button')}
               </Button>
             </motion.div>
 
             <Typography variant="body2" sx={{ mt: 3, opacity: 0.8 }}>
-              No credit card required • Setup in 2 minutes • Cancel anytime
+              {t('landing:cta.guarantee')}
             </Typography>
           </motion.div>
         </Container>

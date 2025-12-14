@@ -1,0 +1,184 @@
+{
+  "hero": {
+    "title": "Bem-vindo ao Financy",
+    "subtitle": "Seu assistente financeiro conversacional",
+    "description": "Transforme suas mensagens em inteligência financeira estruturada. Acompanhe gastos através de chat, voz e fotos com categorização por IA.",
+    "getStarted": "Comece Grátis",
+    "learnMore": "Saiba Mais"
+  },
+  "features": {
+    "title": "Recursos Poderosos para Finanças Modernas",
+    "conversational": {
+      "title": "Entrada Conversacional",
+      "description": "Envie mensagens, fotos ou notas de voz em linguagem natural"
+    },
+    "ai": {
+      "title": "Inteligência Alimentada por IA",
+      "description": "IA avançada categoriza e organiza automaticamente suas despesas"
+    },
+    "collaborative": {
+      "title": "Contextos Colaborativos",
+      "description": "Compartilhe controle financeiro com família, amigos ou equipes"
+    }
+  },
+  "howItWorks": {
+    "title": "Como Funciona",
+    "steps": {
+      "send": {
+        "title": "Enviar Mensagem",
+        "description": "Digite, fale ou tire uma foto de sua despesa"
+      },
+      "process": {
+        "title": "Processamento IA",
+        "description": "Nossa IA extrai valor, categoria e contexto"
+      },
+      "organize": {
+        "title": "Dados Organizados",
+        "description": "Visualize insights e análises em seu painel"
+      }
+    }
+  },
+  "demo": {
+    "conversational": {
+      "title": "💬 Interface Conversacional",
+      "description": "Apenas envie uma mensagem sobre sua despesa. Nossa IA automaticamente extrai o valor, categoria e contexto - sem formulários complexos para preencher."
+    },
+    "charts": {
+      "title": "📊 Insights Financeiros Belos",
+      "description": "Transforme sua conversa em gráficos e análises deslumbrantes. Obtenha insights instantâneos sobre seus padrões de gastos e saúde financeira."
+    },
+    "collaborative": {
+      "title": "👥 Gestão Financeira Colaborativa",
+      "description": "Compartilhe despesas perfeitamente com família, amigos ou colegas. Crie contextos para viagens, projetos, residências e mais."
+    }
+  },
+  "contexts": {
+    "family": {
+      "title": "👨‍👩‍👧‍👦 Orçamento Familiar",
+      "subtitle": "Sarah, Mike e 2 filhos • Despesas domésticas compartilhadas",
+      "messages": {
+        "groceries": "Compras $120 no supermercado",
+        "groceriesConfirm": "✅ Adicionado ao Orçamento Familiar!\n💰 $120,00 - Compras\n👥 Contexto: Família",
+        "movieTickets": "Ingressos cinema crianças $28",
+        "movieConfirm": "✅ Registrado para Família!\n🎬 Entretenimento: $28,00"
+      }
+    },
+    "friends": {
+      "title": "👥 Grupo de Amigos",
+      "subtitle": "Jessica, Tom, Maria, David • Atividades de fim de semana",
+      "messages": {
+        "dinner": "Jantar no restaurante tailandês $85",
+        "dinnerConfirm": "✅ Despesa em grupo adicionada!\n🍜 Comida: $85,00\n👥 Dividido entre 4: $21,25 cada",
+        "uber": "Uber para a balada $18",
+        "uberConfirm": "✅ Corrida compartilhada registrada!\n🚗 Transporte: $18,00"
+      }
+    },
+    "travel": {
+      "title": "✈️ Viagem Europa 2024",
+      "subtitle": "Alex, Emma, James, Lisa • Despesas de viagem",
+      "messages": {
+        "hotel": "Reserva hotel €450 por 3 noites",
+        "hotelConfirm": "✅ Despesa de viagem adicionada!\n🏨 Hospedagem: €450,00\n✈️ Contexto: Viagem Europa",
+        "dinner": "Jantar €65 no restaurante local",
+        "dinnerConfirm": "✅ Despesa compartilhada registrada!\n🍽️ Comida: €65,00\n👥 Dividido entre 4 pessoas"
+      }
+    },
+    "business": {
+      "title": "🏢 Equipe de Marketing",
+      "subtitle": "Orçamento da equipe • Reuniões com clientes e eventos",
+      "messages": {
+        "clientLunch": "Almoço com cliente $180",
+        "clientLunchConfirm": "✅ Despesa empresarial registrada!\n🍽️ Entretenimento Cliente: $180,00\n🏢 Contexto: Equipe Marketing",
+        "supplies": "Materiais conferência $75",
+        "suppliesConfirm": "✅ Despesa do escritório adicionada!\n📋 Materiais: $75,00"
+      }
+    },
+    "project": {
+      "title": "🎯 Redesign do Site",
+      "subtitle": "Equipe do projeto • Custos de desenvolvimento e design",
+      "messages": {
+        "adobe": "Licença Adobe Creative Suite $52,99",
+        "adobeConfirm": "✅ Despesa do projeto rastreada!\n💻 Software: $52,99\n🎯 Contexto: Redesign Site",
+        "photos": "Pacote fotos de banco $149",
+        "photosConfirm": "✅ Compra de assets registrada!\n📸 Recursos: $149,00"
+      }
+    }
+  },
+  "trust": {
+    "title": "Confiável & Seguro",
+    "security": {
+      "title": "Segurança Nível Bancário",
+      "description": "Criptografia ponta a ponta e tratamento seguro de dados"
+    },
+    "speed": {
+      "title": "Ultrarrápido",
+      "description": "Processa mensagens em menos de 3 segundos"
+    },
+    "multiplatform": {
+      "title": "Multiplataforma",
+      "description": "Funciona no Telegram, WhatsApp e Web"
+    }
+  },
+  "faq": {
+    "title": "Perguntas Frequentes",
+    "items": {
+      "security": {
+        "question": "Quão seguros são meus dados financeiros?",
+        "answer": "Usamos criptografia nível bancário e nunca armazenamos suas credenciais bancárias. Todos os dados são criptografados em trânsito e em repouso."
+      },
+      "platforms": {
+        "question": "Quais plataformas de mensagens vocês suportam?",
+        "answer": "Atualmente suportamos Telegram e WhatsApp, com mais plataformas chegando em breve. Você também pode usar nossa interface web."
+      },
+      "family": {
+        "question": "Posso compartilhar despesas com a família?",
+        "answer": "Sim! Crie contextos compartilhados para família, colegas de casa ou equipes de projeto. Todos podem adicionar despesas e ver atualizações em tempo real."
+      },
+      "accuracy": {
+        "question": "Qual a precisão da análise por IA?",
+        "answer": "Nossa IA atinge +85% de precisão e aprende continuamente com correções. Ela lida com múltiplos idiomas e vários formatos de entrada."
+      },
+      "mobile": {
+        "question": "Existe um app móvel?",
+        "answer": "Você pode usar o Financy através de seu app de mensagens favorito ou nossa interface web responsiva. Apps móveis nativos chegam em 2025."
+      }
+    }
+  },
+  "cta": {
+    "title": "Pronto para Transformar sua Gestão Financeira?",
+    "description": "Junte-se a milhares de usuários que simplificaram o controle de gastos com IA conversacional. Comece hoje sua jornada para melhores insights financeiros.",
+    "button": "Começar Teste Grátis",
+    "guarantee": "Sem cartão de crédito • Configuração em 2 minutos • Cancele a qualquer hora"
+  },
+  "collaborative": {
+    "description": "Seja dividindo as despesas com amigos em uma viagem especial, gerenciando despesas domésticas com a família, ou acompanhando custos de projetos dentro da sua empresa - Financy torna a gestão financeira colaborativa simples e transparente.",
+    "button": "Comece a Colaborar Hoje"
+  },
+  "chatDemo": {
+    "messages": {
+      "lunch": "Gastei R$ 45 no almoço no restaurante italiano",
+      "lunchConfirm": "✅ Transação registrada!\n💰 Valor: R$ 45,00\n🍽️ Categoria: Alimentação\n📍 Local: Restaurante",
+      "gas": "Combustível R$ 60 no posto Shell",
+      "gasConfirm": "✅ Transação registrada!\n💰 Valor: R$ 60,00\n🚗 Categoria: Transporte\n📍 Local: Posto Shell",
+      "coffee": "Café R$ 4,50",
+      "coffeeConfirm": "✅ Transação registrada!\n💰 Valor: R$ 4,50\n☕ Categoria: Alimentação\n📍 Local: Cafeteria"
+    }
+  },
+  "charts": {
+    "categories": {
+      "foodAndDining": "Alimentação",
+      "transportation": "Transporte",
+      "shopping": "Compras",
+      "billsAndUtilities": "Contas e Serviços",
+      "entertainment": "Entretenimento"
+    },
+    "months": {
+      "jan": "Jan",
+      "feb": "Fev",
+      "mar": "Mar",
+      "apr": "Abr",
+      "may": "Mai",
+      "jun": "Jun"
+    }
+  }
+}

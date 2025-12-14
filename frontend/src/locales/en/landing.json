@@ -1,0 +1,184 @@
+{
+  "hero": {
+    "title": "Welcome to Financy",
+    "subtitle": "Your conversational financial assistant",
+    "description": "Transform your messages into structured financial intelligence. Track expenses through chat, voice, and photos with AI-powered categorization.",
+    "getStarted": "Get Started Free",
+    "learnMore": "Learn More"
+  },
+  "features": {
+    "title": "Powerful Features for Modern Finance",
+    "conversational": {
+      "title": "Conversational Input",
+      "description": "Send messages, photos, or voice notes in natural language"
+    },
+    "ai": {
+      "title": "AI-Powered Intelligence",
+      "description": "Advanced AI automatically categorizes and organizes your expenses"
+    },
+    "collaborative": {
+      "title": "Collaborative Contexts",
+      "description": "Share financial tracking with family, friends, or teams"
+    }
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "steps": {
+      "send": {
+        "title": "Send Message",
+        "description": "Type, speak, or snap a photo of your expense"
+      },
+      "process": {
+        "title": "AI Processing",
+        "description": "Our AI extracts amount, category, and context"
+      },
+      "organize": {
+        "title": "Organized Data",
+        "description": "View insights and analytics in your dashboard"
+      }
+    }
+  },
+  "demo": {
+    "conversational": {
+      "title": "💬 Conversational Interface",
+      "description": "Just send a message about your expense. Our AI automatically extracts the amount, category, and context - no complex forms to fill."
+    },
+    "charts": {
+      "title": "📊 Beautiful Financial Insights",
+      "description": "Transform your conversation into stunning charts and analytics. Get instant insights into your spending patterns and financial health."
+    },
+    "collaborative": {
+      "title": "👥 Collaborative Financial Management",
+      "description": "Share expenses seamlessly with family, friends, or colleagues. Create contexts for trips, projects, households, and more."
+    }
+  },
+  "contexts": {
+    "family": {
+      "title": "👨‍👩‍👧‍👦 Family Budget",
+      "subtitle": "Sarah, Mike, and 2 kids • Shared household expenses",
+      "messages": {
+        "groceries": "Groceries $120 at Whole Foods",
+        "groceriesConfirm": "✅ Added to Family Budget!\n💰 $120.00 - Groceries\n👥 Context: Family",
+        "movieTickets": "Kids movie tickets $28",
+        "movieConfirm": "✅ Recorded for Family!\n🎬 Entertainment: $28.00"
+      }
+    },
+    "friends": {
+      "title": "👥 Friends Group",
+      "subtitle": "Jessica, Tom, Maria, David • Weekend activities",
+      "messages": {
+        "dinner": "Dinner at Thai restaurant $85",
+        "dinnerConfirm": "✅ Group expense added!\n🍜 Food: $85.00\n👥 Split 4 ways: $21.25 each",
+        "uber": "Uber to the club $18",
+        "uberConfirm": "✅ Shared ride recorded!\n🚗 Transportation: $18.00"
+      }
+    },
+    "travel": {
+      "title": "✈️ Europe Trip 2024",
+      "subtitle": "Alex, Emma, James, Lisa • Travel expenses",
+      "messages": {
+        "hotel": "Hotel booking €450 for 3 nights",
+        "hotelConfirm": "✅ Trip expense added!\n🏨 Accommodation: €450.00\n✈️ Context: Europe Trip",
+        "dinner": "Dinner €65 at local restaurant",
+        "dinnerConfirm": "✅ Shared expense recorded!\n🍽️ Food: €65.00\n👥 Split between 4 people"
+      }
+    },
+    "business": {
+      "title": "🏢 Marketing Team",
+      "subtitle": "Team budget • Client meetings & events",
+      "messages": {
+        "clientLunch": "Client lunch meeting $180",
+        "clientLunchConfirm": "✅ Business expense logged!\n🍽️ Client Entertainment: $180.00\n🏢 Context: Marketing Team",
+        "supplies": "Conference supplies $75",
+        "suppliesConfirm": "✅ Office expense added!\n📋 Supplies: $75.00"
+      }
+    },
+    "project": {
+      "title": "🎯 Website Redesign",
+      "subtitle": "Project team • Development & design costs",
+      "messages": {
+        "adobe": "Adobe Creative Suite license $52.99",
+        "adobeConfirm": "✅ Project expense tracked!\n💻 Software: $52.99\n🎯 Context: Website Redesign",
+        "photos": "Stock photos bundle $149",
+        "photosConfirm": "✅ Asset purchase recorded!\n📸 Resources: $149.00"
+      }
+    }
+  },
+  "trust": {
+    "title": "Trusted & Secure",
+    "security": {
+      "title": "Bank-Level Security",
+      "description": "End-to-end encryption and secure data handling"
+    },
+    "speed": {
+      "title": "Lightning Fast",
+      "description": "Process messages in under 3 seconds"
+    },
+    "multiplatform": {
+      "title": "Multi-Platform",
+      "description": "Works on Telegram, WhatsApp, and Web"
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "items": {
+      "security": {
+        "question": "How secure is my financial data?",
+        "answer": "We use bank-level encryption and never store your banking credentials. All data is encrypted in transit and at rest."
+      },
+      "platforms": {
+        "question": "Which messaging platforms do you support?",
+        "answer": "Currently we support Telegram and WhatsApp, with more platforms coming soon. You can also use our web interface."
+      },
+      "family": {
+        "question": "Can I share expenses with family?",
+        "answer": "Yes! Create shared contexts for family, roommates, or project teams. Everyone can add expenses and see real-time updates."
+      },
+      "accuracy": {
+        "question": "How accurate is the AI parsing?",
+        "answer": "Our AI achieves 85%+ accuracy and continuously learns from corrections. It handles multiple languages and various input formats."
+      },
+      "mobile": {
+        "question": "Is there a mobile app?",
+        "answer": "You can use Financy through your favorite messaging app or our responsive web interface. Native mobile apps are coming in 2025."
+      }
+    }
+  },
+  "cta": {
+    "title": "Ready to Transform Your Financial Management?",
+    "description": "Join thousands of users who've simplified their expense tracking with conversational AI. Start your journey to better financial insights today.",
+    "button": "Start Free Trial",
+    "guarantee": "No credit card required • Setup in 2 minutes • Cancel anytime"
+  },
+  "collaborative": {
+    "description": "Whether it's splitting expenses with friends on a special trip, managing household expenses with family, or tracking project costs within your company - Financy makes collaborative financial management simple and transparent.",
+    "button": "Start Collaborating Today"
+  },
+  "chatDemo": {
+    "messages": {
+      "lunch": "Spent $45 on lunch at Italian restaurant",
+      "lunchConfirm": "✅ Transaction recorded!\n💰 Amount: $45.00\n🍽️ Category: Food & Dining\n📍 Location: Restaurant",
+      "gas": "Gas $60 at Shell station",
+      "gasConfirm": "✅ Transaction recorded!\n💰 Amount: $60.00\n🚗 Category: Transportation\n📍 Location: Shell Station",
+      "coffee": "Coffee $4.50",
+      "coffeeConfirm": "✅ Transaction recorded!\n💰 Amount: $4.50\n☕ Category: Food & Dining\n📍 Location: Coffee Shop"
+    }
+  },
+  "charts": {
+    "categories": {
+      "foodAndDining": "Food & Dining",
+      "transportation": "Transportation",
+      "shopping": "Shopping",
+      "billsAndUtilities": "Bills & Utilities",
+      "entertainment": "Entertainment"
+    },
+    "months": {
+      "jan": "Jan",
+      "feb": "Feb",
+      "mar": "Mar",
+      "apr": "Apr",
+      "may": "May",
+      "jun": "Jun"
+    }
+  }
+}
