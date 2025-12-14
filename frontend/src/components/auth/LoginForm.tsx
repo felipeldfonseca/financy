@@ -60,7 +60,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       if (onSuccess) {
         onSuccess();
       } else {
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (error) {
       // Error is handled by the auth context

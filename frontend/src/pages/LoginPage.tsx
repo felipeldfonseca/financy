@@ -20,7 +20,7 @@ const LoginPage: React.FC = () => {
   const { clearError } = useAuth();
 
   const handleAuthSuccess = () => {
-    navigate('/');
+    navigate('/dashboard');
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -46,7 +46,7 @@ const LoginPage: React.FC = () => {
 
         <Box sx={{ mt: 3, textAlign: 'center' }}>
           <Link component={RouterLink} to="/" variant="body2">
-            {t('navigation.backToHome')}
+            ← Back to Home
           </Link>
         </Box>
       </Paper>
