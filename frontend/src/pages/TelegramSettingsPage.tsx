@@ -8,8 +8,6 @@ import {
   CircularProgress,
   Divider,
   Chip,
-  IconButton,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -22,8 +20,6 @@ import {
   Grid,
 } from '@mui/material';
 import {
-  ContentCopy as CopyIcon,
-  CheckCircle as CheckIcon,
   LinkOff as UnlinkIcon,
   Refresh as RefreshIcon,
   Telegram as TelegramIcon,
@@ -44,7 +40,6 @@ const TelegramSettingsPage: React.FC = () => {
   const [tokenExpiresAt, setTokenExpiresAt] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isUnlinking, setIsUnlinking] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showUnlinkDialog, setShowUnlinkDialog] = useState(false);
@@ -69,22 +64,6 @@ const TelegramSettingsPage: React.FC = () => {
       setError(errorMessage);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleCopyToken = () => {
-    if (linkToken) {
-      navigator.clipboard.writeText(linkToken);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const handleCopyCommand = () => {
-    if (linkToken) {
-      navigator.clipboard.writeText(`/link ${linkToken}`);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -148,6 +127,7 @@ const TelegramSettingsPage: React.FC = () => {
 
       return () => clearInterval(interval);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tokenExpiresAt]);
 
   // Auto-refresh auth state when user returns to page (to check if linking was successful)
@@ -192,6 +172,7 @@ const TelegramSettingsPage: React.FC = () => {
 
       return () => clearInterval(pollInterval);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [linkToken, isLinked, refreshAuth, authState.user?.isTelegramLinked]);
 
   return (

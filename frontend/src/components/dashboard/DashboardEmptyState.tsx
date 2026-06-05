@@ -18,7 +18,6 @@ import {
   Mic as VoiceIcon,
   CameraAlt as PhotoIcon,
   Edit as EditIcon,
-  CheckCircle as CheckIcon,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 

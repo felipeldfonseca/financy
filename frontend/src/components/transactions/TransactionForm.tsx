@@ -23,7 +23,6 @@ import * as yup from 'yup';
 import { useTranslation } from 'react-i18next';
 import { CreateTransactionData, UpdateTransactionData, Transaction } from '../../services/transactionApi';
 import { useTransactions } from '../../contexts/TransactionContext';
-import { getDashboardCategory } from '../../utils/categoryMapping';
 
 interface TransactionFormProps {
   open: boolean;
@@ -418,6 +417,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
         });
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, mode, transaction, reset]);
 
   // Auto-select first category and subcategory when type changes

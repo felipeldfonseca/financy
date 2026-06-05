@@ -14,8 +14,6 @@ import {
   AccordionDetails,
   Paper,
   Chip,
-  useTheme,
-  useMediaQuery,
 } from '@mui/material';
 import {
   Chat as ChatIcon,
@@ -28,11 +26,7 @@ import {
   AccountBalanceWallet as WalletIcon,
   TrendingUp as TrendingIcon,
   Photo as PhotoIcon,
-  Mic as MicIcon,
   Phone as PhoneIcon,
-  Send as SendIcon,
-  CheckCircle as CheckCircleIcon,
-  AttachMoney as MoneyIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material';
@@ -42,8 +36,6 @@ import { useTranslation } from 'react-i18next';
 const LandingPage: React.FC = () => {
   const { t } = useTranslation(['common', 'auth', 'landing']);
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [expandedFAQ, setExpandedFAQ] = useState<string | false>(false);
   const [activeContext, setActiveContext] = useState(0);
   const [contextKey, setContextKey] = useState(0); // For re-triggering animations
@@ -94,6 +86,7 @@ const LandingPage: React.FC = () => {
     }, 10000);
 
     return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeContext]); // Reset timer when activeContext changes
 
   // Animation variants

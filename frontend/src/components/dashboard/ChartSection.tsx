@@ -79,8 +79,6 @@ interface ChartSectionProps {
   transactionCount?: number;
 }
 
-const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
-
 const ChartCard: React.FC<{
   title: string;
   children: React.ReactNode;

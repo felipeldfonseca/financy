@@ -153,6 +153,7 @@ const DashboardPage: React.FC = () => {
     if (state.isAuthenticated) {
       loadDashboardData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.isAuthenticated]);
 
   const handleAddTransaction = () => {

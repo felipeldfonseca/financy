@@ -17,7 +17,6 @@ import {
 import {
   Telegram as TelegramIcon,
   ArrowForward as ArrowIcon,
-  CheckCircle as CheckIcon,
   Visibility,
   VisibilityOff,
 } from '@mui/icons-material';
