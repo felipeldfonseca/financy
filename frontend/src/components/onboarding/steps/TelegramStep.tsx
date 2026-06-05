@@ -23,7 +23,7 @@ const TelegramStep: React.FC = () => {
   const { t } = useTranslation('onboarding');
   const { state: { user } } = useAuth();
   const isLinked = !!user?.isTelegramLinked;
-  const botUsername = process.env.REACT_APP_TELEGRAM_BOT_USERNAME || 'FinancyApp_bot';
+  const botUsername = process.env.REACT_APP_TELEGRAM_BOT_USERNAME || 'Financy_Official_Bot';
 
   const handleOpenTelegram = () => {
     window.open(`https://t.me/${botUsername}`, '_blank');

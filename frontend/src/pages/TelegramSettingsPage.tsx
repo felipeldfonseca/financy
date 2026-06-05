@@ -50,7 +50,7 @@ const TelegramSettingsPage: React.FC = () => {
   const [showUnlinkDialog, setShowUnlinkDialog] = useState(false);
   const [, setTick] = useState(0); // Force re-render for timer updates
 
-  const botUsername = process.env.REACT_APP_TELEGRAM_BOT_USERNAME || 'FinancyApp_bot';
+  const botUsername = process.env.REACT_APP_TELEGRAM_BOT_USERNAME || 'Financy_Official_Bot';
   const isLinked = !!authState.user?.isTelegramLinked;
 
   const handleGenerateToken = async () => {
