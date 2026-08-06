@@ -28,6 +28,7 @@ This document provides a comprehensive testing checklist for validating the Fina
 - [x] Database connection stable (no connection errors)
 
 **Status**: ✅ **PASSED** - All infrastructure components working correctly
+**Re-validated 2026-08-06**: health endpoint OK (uptime 61.8 days — process running untouched since the 2026-06-05 deploy), frontend loading, Telegram bot responding with DB-backed replies.
 
 ---
 
@@ -100,12 +101,12 @@ This document provides a comprehensive testing checklist for validating the Fina
 ## **Phase 4: Telegram Bot Integration**
 
 ### 🤖 **Bot Setup Testing**
-- [ ] Find your bot: @YourBotUsername (check bot token)
-- [ ] Send `/start` command to bot
-- [ ] Bot responds with welcome message
+- [x] Find your bot: @Financy_Official_Bot
+- [x] Send a message to the bot
+- [x] Bot responds (unlinked accounts receive the "create an account first" onboarding message — verified 2026-08-06)
 - [ ] No errors in Railway logs under "TelegramService"
 
-**Bot Token**: `8334271666:AAF78G650-1UGZjAwOM3j6J70VcsR3wmoyY`
+**Bot Token**: stored in Railway env var `TELEGRAM_BOT_TOKEN` — never commit the value here (see Open Security Actions)
 **Webhook URL**: `https://web-production-c74f6.up.railway.app/api/v1/webhooks/telegram`
 
 ### 🤖 **Transaction Processing**
@@ -213,6 +214,10 @@ This document provides a comprehensive testing checklist for validating the Fina
 
 ## **Known Issues & Fixes**
 
+### 🚨 **Open Security Actions**
+1. **Bot token exposure (found 2026-08-06)**: the Telegram bot token was committed to this file while the repository is public. The value is redacted from the doc now, but it persists in git history — **rotate the token via @BotFather**, update `TELEGRAM_BOT_TOKEN` in Railway, and let the service restart (the webhook re-registers automatically on boot via `TelegramService.onModuleInit`).
+2. **Webhook accepts unauthenticated POSTs**: `setupWebhook()` does not set Telegram's `secret_token`, so `/api/v1/webhooks/telegram` cannot distinguish genuine Telegram updates from forged ones. Add `secret_token` to the `setWebhook` call and validate the `X-Telegram-Bot-Api-Secret-Token` header in the controller (Phase 6 item).
+
 ### ✅ **Resolved Issues**
 1. **Database Connection**: Fixed DATABASE_URL configuration in TypeORM
 2. **Docker Build**: Corrected path to `dist/src/main.js`
@@ -250,7 +255,7 @@ This document provides a comprehensive testing checklist for validating the Fina
 - [x] `JWT_SECRET=[secure-random-string]`
 - [x] `JWT_EXPIRES_IN=7d`
 - [x] `DATABASE_URL=[railway-provided]`
-- [x] `TELEGRAM_BOT_TOKEN=8334271666:AAF78G650-1UGZjAwOM3j6J70VcsR3wmoyY`
+- [x] `TELEGRAM_BOT_TOKEN=[configured in Railway — must be rotated after the 2026-08 public exposure, see Open Security Actions]`
 - [x] `TELEGRAM_WEBHOOK_URL=https://web-production-c74f6.up.railway.app/api/v1/webhooks/telegram`
 - [x] `OPENROUTER_API_KEY=[configured]`
 - [x] `PRIMARY_MODEL=deepseek/deepseek-chat-v3.1:free`
@@ -287,6 +292,6 @@ This document provides a comprehensive testing checklist for validating the Fina
 
 ---
 
-**Last Updated**: October 25, 2025  
-**Current Status**: Phase 2 (Authentication) - Registration ✅, Login pending  
-**Next Priority**: Complete authentication flow and test transaction management
+**Last Updated**: August 6, 2026  
+**Current Status**: Phase 2 (Authentication) - Registration ✅, Login pending; infrastructure re-validated 2026-08-06 after 2 months idle  
+**Next Priority**: Rotate the exposed Telegram bot token, then complete the authentication flow and test transaction management
