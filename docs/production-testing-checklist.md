@@ -36,10 +36,12 @@ This document provides a comprehensive testing checklist for validating the Fina
 
 ### 🔐 **User Registration**
 - [x] Navigate to Register page
-- [x] Create new account with valid email/password
-- [x] Registration succeeds without errors
+- [ ] Create new account with valid email/password — **broken in production, regression found 2026-08-06 (see below)**
+- [ ] Registration succeeds without errors
 - [ ] Redirected to dashboard after registration
 - [ ] JWT token stored properly
+
+**Regression (found 2026-08-06)**: registration fails in the browser with `net::ERR_FAILED`. Commit `051bed1` (2025-12-11) hardcoded the CORS origin to `http://localhost:3000`, dropping the `FRONTEND_URL` lookup, and the 2026-06-05 deploy shipped it — every browser request from the Vercel origin is blocked by CORS (the October pass predates the regression). Fix restores env-driven CORS origins in `backend/src/main.ts`; pending merge to main + Railway redeploy.
 
 **Registration Requirements** (validated):
 - Email: Valid format
@@ -64,7 +66,7 @@ This document provides a comprehensive testing checklist for validating the Fina
 - [ ] Login redirects work properly
 - [ ] JWT token refresh works
 
-**Status**: 🟡 **IN PROGRESS** - Registration working, login flow needs testing
+**Status**: 🔴 **BLOCKED** - CORS regression blocks all browser API calls (registration and login); fix ready, pending deploy
 
 ---
 
@@ -222,7 +224,7 @@ This document provides a comprehensive testing checklist for validating the Fina
 1. **Database Connection**: Fixed DATABASE_URL configuration in TypeORM
 2. **Docker Build**: Corrected path to `dist/src/main.js`
 3. **Table Creation**: Added `TYPEORM_SYNCHRONIZE=true` for initial setup
-4. **CORS Configuration**: Properly configured for Vercel ↔ Railway communication
+4. **CORS Configuration**: Properly configured for Vercel ↔ Railway communication *(regressed by `051bed1` on 2025-12-11 — see the Phase 2 regression note; fix pending deploy)*
 
 ### ⚠️ **Troubleshooting Guide**
 
@@ -293,5 +295,5 @@ This document provides a comprehensive testing checklist for validating the Fina
 ---
 
 **Last Updated**: August 6, 2026  
-**Current Status**: Phase 2 (Authentication) - Registration ✅, Login pending; infrastructure re-validated 2026-08-06 after 2 months idle  
-**Next Priority**: Rotate the exposed Telegram bot token, then complete the authentication flow and test transaction management
+**Current Status**: Phase 2 blocked by CORS regression (fix ready, pending deploy); infrastructure re-validated 2026-08-06 after 2 months idle  
+**Next Priority**: Rotate the exposed Telegram bot token, merge + deploy the CORS fix, then complete the authentication flow
