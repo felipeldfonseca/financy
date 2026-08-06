@@ -36,9 +36,9 @@ This document provides a comprehensive testing checklist for validating the Fina
 
 ### 🔐 **User Registration**
 - [x] Navigate to Register page
-- [ ] Create new account with valid email/password — **broken in production, regression found 2026-08-06 (see below)**
-- [ ] Registration succeeds without errors
-- [ ] Redirected to dashboard after registration
+- [x] Create new account with valid email/password — **re-verified in production 2026-08-06 via API (201 + JWT) after fixing the regressions below**
+- [x] Registration succeeds without errors
+- [ ] Redirected to dashboard after registration (browser flow pending)
 - [ ] JWT token stored properly
 
 **Regression 1 (found 2026-08-06, fixed)**: registration failed in the browser with `net::ERR_FAILED`. Commit `051bed1` (2025-12-11) hardcoded the CORS origin to `http://localhost:3000`, dropping the `FRONTEND_URL` lookup, and the 2026-06-05 deploy shipped it — every browser request from the Vercel origin was blocked by CORS. Fixed by restoring env-driven CORS origins in `backend/src/main.ts` (deployed 2026-08-06).
@@ -68,7 +68,7 @@ This document provides a comprehensive testing checklist for validating the Fina
 - [ ] Login redirects work properly
 - [ ] JWT token refresh works
 
-**Status**: 🔴 **BLOCKED** - CORS regression blocks all browser API calls (registration and login); fix ready, pending deploy
+**Status**: 🟡 **IN PROGRESS** - Both 2026-08-06 regressions fixed and deployed; API registration confirmed 201 in production; browser flows (register/login/logout) pending
 
 ---
 
@@ -297,5 +297,5 @@ This document provides a comprehensive testing checklist for validating the Fina
 ---
 
 **Last Updated**: August 6, 2026  
-**Current Status**: Phase 2 blocked by CORS regression (fix ready, pending deploy); infrastructure re-validated 2026-08-06 after 2 months idle  
-**Next Priority**: Rotate the exposed Telegram bot token, merge + deploy the CORS fix, then complete the authentication flow
+**Current Status**: Production repaired 2026-08-06 — bot token rotated, CORS restored, schema migrations now run on boot, API registration confirmed 201 in production  
+**Next Priority**: Complete the browser authentication flow, then transactions/dashboard, then first-ever Telegram linking test (chat_contexts now exists)
