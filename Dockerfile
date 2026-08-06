@@ -4,23 +4,22 @@ FROM node:18-alpine
 # Set working directory
 WORKDIR /app
 
-# Copy backend package files for dependency installation
-COPY backend/package*.json ./
+# Install dependencies with versions pinned by the root workspace lockfile
+COPY package.json package-lock.json ./
+COPY backend/package.json backend/
+COPY frontend/package.json frontend/
+COPY shared/package.json shared/
 
-# Install all dependencies (needed for build)
-RUN npm install
+RUN npm ci --workspace backend --no-audit --no-fund
 
 # Copy backend source code
-COPY backend/ ./
+COPY backend/ backend/
 
 # Build the application
-RUN npm run build
-
-# Remove dev dependencies after build
-RUN npm prune --production
+RUN npm run build --workspace backend
 
 # Expose the port
 EXPOSE 3000
 
 # Start the application
-CMD ["node", "dist/src/main.js"]
+CMD ["node", "backend/dist/src/main.js"]

@@ -41,7 +41,9 @@ This document provides a comprehensive testing checklist for validating the Fina
 - [ ] Redirected to dashboard after registration
 - [ ] JWT token stored properly
 
-**Regression (found 2026-08-06)**: registration fails in the browser with `net::ERR_FAILED`. Commit `051bed1` (2025-12-11) hardcoded the CORS origin to `http://localhost:3000`, dropping the `FRONTEND_URL` lookup, and the 2026-06-05 deploy shipped it — every browser request from the Vercel origin is blocked by CORS (the October pass predates the regression). Fix restores env-driven CORS origins in `backend/src/main.ts`; pending merge to main + Railway redeploy.
+**Regression 1 (found 2026-08-06, fixed)**: registration failed in the browser with `net::ERR_FAILED`. Commit `051bed1` (2025-12-11) hardcoded the CORS origin to `http://localhost:3000`, dropping the `FRONTEND_URL` lookup, and the 2026-06-05 deploy shipped it — every browser request from the Vercel origin was blocked by CORS. Fixed by restoring env-driven CORS origins in `backend/src/main.ts` (deployed 2026-08-06).
+
+**Regression 2 (found 2026-08-06)**: with CORS fixed, registration still fails — now `401 {"message":"Registration failed"}`, reproduced via curl with a fresh email. The auth service catch-all masked the real error as 401 without logging it (fixed: now logs the cause and returns 500). Prime suspect: the Docker build ran unpinned `npm install` (backend has no own lockfile), so the 2026-08-06 rebuild pulled 2 months of newer dependencies than the working June build — notably typeorm 0.3.27→0.3.31 and pg 8.16→8.22, the exact layer where registration's INSERT runs. Fixed by switching the Dockerfile to `npm ci` against the root workspace lockfile (pins typeorm 0.3.27 / pg 8.16.3). If registration still fails after this deploy, Railway logs now show `Registration failed: <root cause>`.
 
 **Registration Requirements** (validated):
 - Email: Valid format
