@@ -4,22 +4,26 @@ export class AddDashboardCategory1734034800000 implements MigrationInterface {
   name = 'AddDashboardCategory1734034800000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Add dashboardCategory column to transactions table
-    await queryRunner.addColumn(
-      'transactions',
-      new TableColumn({
-        name: 'dashboardCategory',
-        type: 'varchar',
-        isNullable: true,
-      })
-    );
+    // Add dashboardCategory column to transactions table. Guarded so a
+    // database that already has the column (e.g. synced in development)
+    // only re-runs the idempotent category backfill below.
+    if (!(await queryRunner.hasColumn('transactions', 'dashboardCategory'))) {
+      await queryRunner.addColumn(
+        'transactions',
+        new TableColumn({
+          name: 'dashboardCategory',
+          type: 'varchar',
+          isNullable: true,
+        })
+      );
+    }
 
     // Map existing categories to dashboard categories for data consistency
     // This ensures existing data works with the new two-tier system
     
     // EXPENSE category mappings
     await queryRunner.query(`
-      UPDATE transactions SET dashboardCategory = 'housing' 
+      UPDATE transactions SET "dashboardCategory" ='housing' 
       WHERE type = 'expense' AND (
         category = 'Housing' OR 
         category ILIKE '%housing%' OR
@@ -30,7 +34,7 @@ export class AddDashboardCategory1734034800000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      UPDATE transactions SET dashboardCategory = 'transportation' 
+      UPDATE transactions SET "dashboardCategory" ='transportation' 
       WHERE type = 'expense' AND (
         category = 'Transportation' OR
         category ILIKE '%transport%' OR
@@ -42,7 +46,7 @@ export class AddDashboardCategory1734034800000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      UPDATE transactions SET dashboardCategory = 'fooddining' 
+      UPDATE transactions SET "dashboardCategory" ='fooddining' 
       WHERE type = 'expense' AND (
         category = 'Food & Dining' OR
         category = 'Food' OR
@@ -55,7 +59,7 @@ export class AddDashboardCategory1734034800000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      UPDATE transactions SET dashboardCategory = 'healthfitness' 
+      UPDATE transactions SET "dashboardCategory" ='healthfitness' 
       WHERE type = 'expense' AND (
         category = 'Health & Fitness' OR
         category = 'Healthcare' OR
@@ -68,7 +72,7 @@ export class AddDashboardCategory1734034800000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      UPDATE transactions SET dashboardCategory = 'entertainmentshopping' 
+      UPDATE transactions SET "dashboardCategory" ='entertainmentshopping' 
       WHERE type = 'expense' AND (
         category = 'Entertainment' OR
         category = 'Shopping' OR
@@ -82,7 +86,7 @@ export class AddDashboardCategory1734034800000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      UPDATE transactions SET dashboardCategory = 'billsfinancial' 
+      UPDATE transactions SET "dashboardCategory" ='billsfinancial' 
       WHERE type = 'expense' AND (
         category = 'Bills & Utilities' OR
         category = 'Financial' OR
@@ -96,7 +100,7 @@ export class AddDashboardCategory1734034800000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      UPDATE transactions SET dashboardCategory = 'travellifestyle' 
+      UPDATE transactions SET "dashboardCategory" ='travellifestyle' 
       WHERE type = 'expense' AND (
         category = 'Travel & Vacation' OR
         category = 'Pets' OR
@@ -110,13 +114,13 @@ export class AddDashboardCategory1734034800000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      UPDATE transactions SET dashboardCategory = 'other' 
-      WHERE type = 'expense' AND dashboardCategory IS NULL
+      UPDATE transactions SET "dashboardCategory" ='other' 
+      WHERE type = 'expense' AND "dashboardCategory" IS NULL
     `);
 
     // INCOME category mappings
     await queryRunner.query(`
-      UPDATE transactions SET dashboardCategory = 'employment' 
+      UPDATE transactions SET "dashboardCategory" ='employment' 
       WHERE type = 'income' AND (
         category = 'Employment Income' OR
         category = 'Employment' OR
@@ -129,7 +133,7 @@ export class AddDashboardCategory1734034800000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      UPDATE transactions SET dashboardCategory = 'investment' 
+      UPDATE transactions SET "dashboardCategory" ='investment' 
       WHERE type = 'income' AND (
         category = 'Investment Income' OR
         category = 'Investment' OR
@@ -142,7 +146,7 @@ export class AddDashboardCategory1734034800000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      UPDATE transactions SET dashboardCategory = 'governmentbenefits' 
+      UPDATE transactions SET "dashboardCategory" ='governmentbenefits' 
       WHERE type = 'income' AND (
         category = 'Government & Benefits' OR
         category = 'Refunds & Returns' OR
@@ -154,13 +158,13 @@ export class AddDashboardCategory1734034800000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      UPDATE transactions SET dashboardCategory = 'other' 
-      WHERE type = 'income' AND dashboardCategory IS NULL
+      UPDATE transactions SET "dashboardCategory" ='other' 
+      WHERE type = 'income' AND "dashboardCategory" IS NULL
     `);
 
     // TRANSFER category mappings
     await queryRunner.query(`
-      UPDATE transactions SET dashboardCategory = 'accounts' 
+      UPDATE transactions SET "dashboardCategory" ='accounts' 
       WHERE type = 'transfer' AND (
         category = 'Account Transfers' OR
         category = 'Savings & Investments' OR
@@ -171,7 +175,7 @@ export class AddDashboardCategory1734034800000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      UPDATE transactions SET dashboardCategory = 'debt' 
+      UPDATE transactions SET "dashboardCategory" ='debt' 
       WHERE type = 'transfer' AND (
         category = 'Debt Payments' OR
         category ILIKE '%debt%' OR
@@ -182,8 +186,8 @@ export class AddDashboardCategory1734034800000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      UPDATE transactions SET dashboardCategory = 'other' 
-      WHERE type = 'transfer' AND dashboardCategory IS NULL
+      UPDATE transactions SET "dashboardCategory" ='other' 
+      WHERE type = 'transfer' AND "dashboardCategory" IS NULL
     `);
   }
 

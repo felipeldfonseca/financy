@@ -5,6 +5,7 @@ import { User } from '../users/entities/user.entity';
 import { Transaction } from '../transactions/entities/transaction.entity';
 import { Context } from '../contexts/entities/context.entity';
 import { ContextMember } from '../contexts/entities/context-member.entity';
+import { ChatContext } from '../telegram/entities/chat-context.entity';
 
 export const typeOrmConfig = (
   configService: ConfigService,
@@ -15,14 +16,15 @@ export const typeOrmConfig = (
     return {
       type: 'postgres',
       url: databaseUrl,
-      entities: [User, Transaction, Context, ContextMember],
+      entities: [User, Transaction, Context, ContextMember, ChatContext],
       migrations: [__dirname + '/../migrations/*{.ts,.js}'],
+      migrationsRun: configService.get('NODE_ENV') === 'production',
       synchronize: configService.get('NODE_ENV') === 'development' || configService.get('TYPEORM_SYNCHRONIZE') === 'true',
       logging: configService.get('NODE_ENV') === 'development',
       ssl: configService.get('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
     };
   }
-  
+
   return {
     type: 'postgres',
     host: configService.get('DATABASE_HOST', 'localhost'),
@@ -30,8 +32,9 @@ export const typeOrmConfig = (
     username: configService.get('DATABASE_USER', 'financy_user'),
     password: configService.get('DATABASE_PASSWORD', 'financy_pass'),
     database: configService.get('DATABASE_NAME', 'financy_dev'),
-    entities: [User, Transaction, Context, ContextMember],
+    entities: [User, Transaction, Context, ContextMember, ChatContext],
     migrations: [__dirname + '/../migrations/*{.ts,.js}'],
+    migrationsRun: configService.get('NODE_ENV') === 'production',
     synchronize: configService.get('NODE_ENV') === 'development',
     logging: configService.get('NODE_ENV') === 'development',
     ssl: configService.get('NODE_ENV') === 'production',
@@ -45,7 +48,7 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DATABASE_USER || 'financy_user',
   password: process.env.DATABASE_PASSWORD || 'financy_pass',
   database: process.env.DATABASE_NAME || 'financy_dev',
-  entities: [User, Transaction, Context, ContextMember],
+  entities: [User, Transaction, Context, ContextMember, ChatContext],
   migrations: [__dirname + '/../migrations/*{.ts,.js}'],
   synchronize: false,
   logging: process.env.NODE_ENV === 'development',
