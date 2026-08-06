@@ -23,6 +23,7 @@ import * as yup from 'yup';
 import { useTranslation } from 'react-i18next';
 import { CreateTransactionData, UpdateTransactionData, Transaction } from '../../services/transactionApi';
 import { useTransactions } from '../../contexts/TransactionContext';
+import { getDashboardCategory } from '../../utils/categoryMapping';
 
 interface TransactionFormProps {
   open: boolean;
@@ -163,18 +164,9 @@ const getTranslatedDashboardCategories = (t: any, type: string) => {
   }, {} as Record<string, string>);
 };
 
-// Helper function to get translated subcategory names for dashboard categories
-const getTranslatedSubcategories = (t: any, type: string, dashboardCategory: string): { key: string; name: string }[] => {
-  const config = getDashboardCategoryConfig(t)[type as keyof ReturnType<typeof getDashboardCategoryConfig>] || {};
-  const subcategories = config[dashboardCategory as keyof typeof config] as string[] || [];
-  
-  return subcategories.map((sub: string) => {
-    // Try to find the translation from the appropriate detailed category
-    // For now, we'll create a generic mapping - this can be refined
-    let translationKey = '';
-    
-    // Map subcategories to their translation paths
-    const subcategoryMapping: Record<string, string> = {
+// Map subcategories to their translation paths. The third path segment is the
+// detailed category each subcategory belongs to (categories.{type}.{detailed}.{sub}).
+const subcategoryTranslationPaths: Record<string, string> = {
       // Housing
       'rent': 'categories.expense.housing.rent',
       'utilities': 'categories.expense.housing.utilities', 
@@ -304,10 +296,27 @@ const getTranslatedSubcategories = (t: any, type: string, dashboardCategory: str
       'spouse': 'categories.transfer.personaltransfers.spouse',
       'children': 'categories.transfer.personaltransfers.children',
       'temporary': 'categories.transfer.othertransfers.temporary'
-    };
-    
-    translationKey = subcategoryMapping[sub] || `categories.${type}.other.${sub}`;
-    
+};
+
+// Derives the detailed category key (e.g. 'food') a subcategory belongs to
+// from its translation path, so transactions store the detailed key that the
+// list, translations, and dashboard mapping all expect.
+const getDetailedCategoryForSubcategory = (type: string, subcategory?: string): string | undefined => {
+  if (!subcategory) return undefined;
+  const path = subcategoryTranslationPaths[subcategory];
+  if (!path) return undefined;
+  const segments = path.split('.');
+  return segments[1] === type ? segments[2] : undefined;
+};
+
+// Helper function to get translated subcategory names for dashboard categories
+const getTranslatedSubcategories = (t: any, type: string, dashboardCategory: string): { key: string; name: string }[] => {
+  const config = getDashboardCategoryConfig(t)[type as keyof ReturnType<typeof getDashboardCategoryConfig>] || {};
+  const subcategories = config[dashboardCategory as keyof typeof config] as string[] || [];
+
+  return subcategories.map((sub: string) => {
+    const translationKey = subcategoryTranslationPaths[sub] || `categories.${type}.other.${sub}`;
+
     return {
       key: sub,
       name: t(translationKey, sub) // Fallback to key if translation missing
@@ -386,7 +395,11 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
           amount: Number(transaction.amount),
           description: transaction.description,
           type: transaction.type,
-          category: transaction.category || '',
+          // Stored category is the detailed key; the dropdown works with
+          // dashboard category keys, so map it back for editing.
+          category: transaction.category
+            ? getDashboardCategory(transaction.type, transaction.category)
+            : '',
           subcategory: transaction.subcategory || '',
           currency: transaction.currency,
           date: transaction.date,
@@ -449,11 +462,14 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
       setIsSubmitting(true);
       setError(null);
 
-      // Store both category (detailed) and dashboardCategory (for analytics)
+      // The form's category dropdown holds the dashboard category key; the
+      // stored category must be the detailed key derived from the subcategory
+      // (e.g. 'groceries' -> 'food') so list translations and dashboard
+      // grouping resolve correctly.
       const enhancedData = {
         ...data,
-        category: data.category, // This is already a dashboard category key
-        dashboardCategory: data.category // Same as category for simplified system
+        category: getDetailedCategoryForSubcategory(data.type, data.subcategory) || data.category,
+        dashboardCategory: data.category,
       };
 
       if (mode === 'create') {

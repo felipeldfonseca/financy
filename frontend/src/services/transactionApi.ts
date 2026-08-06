@@ -34,6 +34,7 @@ export interface CreateTransactionData {
   type: 'expense' | 'income' | 'transfer';
   category?: string;
   subcategory?: string;
+  dashboardCategory?: string;
   currency?: string;
   date?: string;
   time?: string;
@@ -62,6 +63,7 @@ export interface TransactionFilters {
   status?: 'pending' | 'confirmed' | 'cancelled';
   category?: string;
   subcategory?: string;
+  dashboardCategory?: string;
   currency?: string;
   merchantName?: string;
   search?: string;

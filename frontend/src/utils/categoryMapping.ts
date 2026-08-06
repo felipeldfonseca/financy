@@ -82,10 +82,18 @@ export const dashboardCategoryMapping: DashboardCategoryMapping = {
  */
 export const getDashboardCategory = (type: string, detailedCategory: string): string => {
   const mapping = dashboardCategoryMapping[type];
-  if (!mapping || !mapping[detailedCategory]) {
-    return 'other'; // Fallback to 'other' for unknown categories
+  if (!mapping) {
+    return 'other';
   }
-  return mapping[detailedCategory];
+  if (mapping[detailedCategory]) {
+    return mapping[detailedCategory];
+  }
+  // Accept values that are already dashboard category keys (legacy rows
+  // stored the dashboard key directly in category).
+  if (Object.values(mapping).includes(detailedCategory)) {
+    return detailedCategory;
+  }
+  return 'other'; // Fallback to 'other' for unknown categories
 };
 
 /**

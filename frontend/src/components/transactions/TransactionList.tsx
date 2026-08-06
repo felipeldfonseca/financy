@@ -331,7 +331,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
                       />
                       {transaction.subcategory && (
                         <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
-                          {t(`categories.${transaction.type}.${transaction.category}.${transaction.subcategory}`)}
+                          {t(`categories.${transaction.type}.${transaction.category}.${transaction.subcategory}`, transaction.subcategory)}
                         </Typography>
                       )}
                     </Box>

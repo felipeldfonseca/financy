@@ -71,6 +71,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
     if (searchParams.get('type')) urlFilters.type = searchParams.get('type') as any;
     if (searchParams.get('status')) urlFilters.status = searchParams.get('status') as any;
     if (searchParams.get('category')) urlFilters.category = searchParams.get('category')!;
+    if (searchParams.get('dashboardCategory')) urlFilters.dashboardCategory = searchParams.get('dashboardCategory')!;
     if (searchParams.get('subcategory')) urlFilters.subcategory = searchParams.get('subcategory')!;
     if (searchParams.get('currency')) urlFilters.currency = searchParams.get('currency')!;
     if (searchParams.get('merchantName')) urlFilters.merchantName = searchParams.get('merchantName')!;
@@ -97,6 +98,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
     if (newFilters.type) params.set('type', newFilters.type);
     if (newFilters.status) params.set('status', newFilters.status);
     if (newFilters.category) params.set('category', newFilters.category);
+    if (newFilters.dashboardCategory) params.set('dashboardCategory', newFilters.dashboardCategory);
     if (newFilters.subcategory) params.set('subcategory', newFilters.subcategory);
     if (newFilters.currency) params.set('currency', newFilters.currency);
     if (newFilters.merchantName) params.set('merchantName', newFilters.merchantName);
@@ -299,6 +301,7 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
     if (filters.type) count++;
     if (filters.status) count++;
     if (filters.category) count++;
+    if (filters.dashboardCategory) count++;
     if (filters.merchantName) count++;
     if (filters.search) count++;
     if (filters.minAmount !== undefined) count++;
@@ -531,8 +534,8 @@ export const TransactionFiltersComponent: React.FC<TransactionFiltersProps> = ({
           <Grid item xs={12} sm={6} md={3}>
             <Autocomplete
               options={state.categories}
-              value={filters.category || ''}
-              onChange={(_, value) => handleFilterChange('category', value || undefined)}
+              value={filters.dashboardCategory || ''}
+              onChange={(_, value) => handleFilterChange('dashboardCategory', value || undefined)}
               renderInput={(params) => (
                 <TextField {...params} label={t('filters.category.label')} size="small" />
               )}

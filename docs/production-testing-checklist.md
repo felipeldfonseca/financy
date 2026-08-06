@@ -76,30 +76,32 @@ This document provides a comprehensive testing checklist for validating the Fina
 ## **Phase 3: Core Financial Features**
 
 ### 💰 **Transaction Management**
-- [ ] Navigate to Transactions page
-- [ ] Page loads transaction list (empty initially)
-- [ ] "Add Transaction" button works
-- [ ] Create manual transaction form opens
-- [ ] Successfully create a test transaction:
+- [x] Navigate to Transactions page
+- [x] Page loads transaction list (empty initially)
+- [x] "Add Transaction" button works
+- [x] Create manual transaction form opens
+- [x] Successfully create a test transaction (2026-08-06):
   ```
   Description: "Test grocery shopping"
   Amount: 50.00
   Category: "Food"
   Type: "Expense"
   ```
-- [ ] Transaction appears in list
-- [ ] Transaction details are correct
-- [ ] Edit transaction functionality works
-- [ ] Delete transaction works
+- [x] Transaction appears in list
+- [x] Transaction details are correct (amount/description/date — see category regression below)
+- [x] Edit transaction functionality works
+- [x] Delete transaction works
+
+**Regression 3 (found 2026-08-06)**: the two-tier category system stored the *dashboard* category key (e.g. `fooddining`) in the `category` field, while the list translations, the category-to-dashboard mapping, and the filters all expect the *detailed* key (e.g. `food`). Result: the list showed raw i18n keys (`categories.expense.fooddining.groceries`) and the dashboard bucketed every transaction under "Other". Fixed in the frontend: the form now derives the detailed category from the chosen subcategory and sends `dashboardCategory` separately; `getDashboardCategory` accepts legacy dashboard-key rows; the list falls back to the subcategory name instead of showing raw keys; the category filter now queries `dashboardCategory`. Pending deploy.
 
 ### 📊 **Dashboard Analytics**
-- [ ] Navigate to Dashboard
-- [ ] Summary cards display (income, expenses, balance)
-- [ ] Charts render properly
+- [x] Navigate to Dashboard
+- [x] Summary cards display (income, expenses, balance)
+- [x] Charts render properly (note: charts only appear above a minimum number of transactions)
 - [ ] Recent transactions section shows data
 - [ ] Quick actions work
 
-**Status**: ⏳ **PENDING** - Requires authentication completion first
+**Status**: 🟡 **MOSTLY PASSED** (2026-08-06) - CRUD and dashboard verified; category display fix pending deploy, re-test categorization after it ships
 
 ---
 
