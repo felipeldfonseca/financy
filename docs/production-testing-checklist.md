@@ -38,8 +38,8 @@ This document provides a comprehensive testing checklist for validating the Fina
 - [x] Navigate to Register page
 - [x] Create new account with valid email/password — **re-verified in production 2026-08-06 via API (201 + JWT) after fixing the regressions below**
 - [x] Registration succeeds without errors
-- [ ] Redirected to dashboard after registration (browser flow pending)
-- [ ] JWT token stored properly
+- [x] Redirected to dashboard after registration (browser, 2026-08-06)
+- [x] JWT token stored properly (session survives page reload)
 
 **Regression 1 (found 2026-08-06, fixed)**: registration failed in the browser with `net::ERR_FAILED`. Commit `051bed1` (2025-12-11) hardcoded the CORS origin to `http://localhost:3000`, dropping the `FRONTEND_URL` lookup, and the 2026-06-05 deploy shipped it — every browser request from the Vercel origin was blocked by CORS. Fixed by restoring env-driven CORS origins in `backend/src/main.ts` (deployed 2026-08-06).
 
@@ -56,19 +56,20 @@ This document provides a comprehensive testing checklist for validating the Fina
   - At least 1 special character (@$!%*?&)
 
 ### 🔐 **User Login**
-- [ ] Navigate to Login page
-- [ ] Login with registered credentials
-- [ ] Login succeeds
-- [ ] Redirected to dashboard
-- [ ] User profile data loads correctly
+- [x] Navigate to Login page
+- [x] Login with registered credentials
+- [x] Login succeeds
+- [x] Redirected to dashboard
+- [x] User profile data loads correctly
+- [x] Invalid credentials show a friendly error (2026-08-06)
 
 ### 🔐 **Authentication Flow**
-- [ ] Protected routes work (dashboard, transactions)
-- [ ] Logout functionality works
-- [ ] Login redirects work properly
-- [ ] JWT token refresh works
+- [x] Protected routes work (dashboard, transactions — anonymous access redirects to login)
+- [x] Logout functionality works (protected routes lock again after logout)
+- [x] Login redirects work properly
+- [ ] JWT token refresh works (refresh endpoint not explicitly exercised yet)
 
-**Status**: 🟡 **IN PROGRESS** - Both 2026-08-06 regressions fixed and deployed; API registration confirmed 201 in production; browser flows (register/login/logout) pending
+**Status**: ✅ **PASSED** (2026-08-06) - Full register/login/logout/protected-routes flow verified in production; only the explicit token-refresh call remains untested
 
 ---
 
@@ -201,7 +202,7 @@ This document provides a comprehensive testing checklist for validating the Fina
 1. ✅ Frontend loads
 2. ✅ Backend API responds
 3. ✅ User registration
-4. ⏳ User login
+4. ✅ User login (full auth flow verified 2026-08-06)
 5. ⏳ Basic transaction creation
 
 ### 🔶 **Important (Test Second)**
