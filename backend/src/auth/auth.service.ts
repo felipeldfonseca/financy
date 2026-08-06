@@ -1,4 +1,10 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  UnauthorizedException,
+  ConflictException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
@@ -15,6 +21,8 @@ export interface AuthResponse {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
@@ -46,7 +54,8 @@ export class AuthService {
       if (error instanceof ConflictException) {
         throw error;
       }
-      throw new UnauthorizedException('Registration failed');
+      this.logger.error(`Registration failed: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('Registration failed');
     }
   }
 
