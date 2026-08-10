@@ -172,12 +172,14 @@ This document provides a comprehensive testing checklist for validating the Fina
 
 ### 🔒 **Security Testing**
 - [x] HTTPS enforced on both frontend/backend
-- [ ] API requires authentication for protected routes
+- [x] API requires authentication for protected routes (verified 2026-08-06)
+- [x] Telegram webhook rejects forged updates via `secret_token` (2026-08-06)
 - [ ] No sensitive data in browser console
 - [x] Environment variables not exposed
 - [ ] SQL injection protection (try malicious inputs)
+- [ ] Webhook update bodies are debug-logged in full (`TelegramController`), putting users' financial message text into Railway logs — consider dropping to a redacted summary
 
-**Status**: 🟡 **PARTIAL** - HTTPS working, auth testing pending
+**Status**: 🟡 **PARTIAL** - HTTPS, route auth, and webhook authentication done; input-level testing pending
 
 ---
 
@@ -224,7 +226,7 @@ This document provides a comprehensive testing checklist for validating the Fina
 
 ### 🚨 **Open Security Actions**
 1. **Bot token exposure (found 2026-08-06)**: the Telegram bot token was committed to this file while the repository is public. The value is redacted from the doc now, but it persists in git history — **rotate the token via @BotFather**, update `TELEGRAM_BOT_TOKEN` in Railway, and let the service restart (the webhook re-registers automatically on boot via `TelegramService.onModuleInit`).
-2. **Webhook accepts unauthenticated POSTs**: `setupWebhook()` does not set Telegram's `secret_token`, so `/api/v1/webhooks/telegram` cannot distinguish genuine Telegram updates from forged ones. Add `secret_token` to the `setWebhook` call and validate the `X-Telegram-Bot-Api-Secret-Token` header in the controller (Phase 6 item).
+2. ~~**Webhook accepts unauthenticated POSTs**~~ — **fixed 2026-08-06**: `setupWebhook()` now registers a `secret_token` and the controller rejects any update whose `X-Telegram-Bot-Api-Secret-Token` header does not match (constant-time comparison). The secret defaults to a value derived from the bot token, so no new environment variable is required; override it with `TELEGRAM_WEBHOOK_SECRET` if desired. Verified locally: forged POSTs with no header, a wrong header, and a near-miss header all return 401 without reaching the update processor, while the correct header is accepted.
 
 ### ✅ **Resolved Issues**
 1. **Database Connection**: Fixed DATABASE_URL configuration in TypeORM

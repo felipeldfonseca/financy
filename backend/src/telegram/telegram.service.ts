@@ -28,6 +28,7 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(TelegramService.name);
   private readonly botToken: string;
   private readonly webhookUrl: string;
+  private readonly webhookSecret: string;
   private readonly baseUrl: string;
   private readonly telegramMode: string;
   private readonly batchTransactions = new Map<string, ParsedTransaction[]>();
@@ -52,6 +53,54 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
     this.webhookUrl = this.configService.get('TELEGRAM_WEBHOOK_URL');
     this.telegramMode = this.configService.get('TELEGRAM_MODE', 'webhook');
     this.baseUrl = `https://api.telegram.org/bot${this.botToken}`;
+    this.webhookSecret = this.resolveWebhookSecret();
+  }
+
+  /**
+   * Secret shared with Telegram so the webhook endpoint can tell genuine
+   * updates from forged ones. Defaults to a value derived from the bot token
+   * so deployments need no extra configuration: anyone able to derive it
+   * already holds the token, which grants more than the webhook does.
+   */
+  private resolveWebhookSecret(): string {
+    const configured = this.configService.get<string>('TELEGRAM_WEBHOOK_SECRET');
+
+    if (configured) {
+      // Telegram only accepts A-Z, a-z, 0-9, _ and - (1-256 chars); a rejected
+      // secret would leave setWebhook failing and the bot silently unreachable.
+      if (/^[A-Za-z0-9_-]{1,256}$/.test(configured)) {
+        return configured;
+      }
+      this.logger.error(
+        'TELEGRAM_WEBHOOK_SECRET contains characters Telegram rejects (allowed: A-Z, a-z, 0-9, _, -). Falling back to the token-derived secret.',
+      );
+    }
+
+    if (!this.botToken) {
+      return '';
+    }
+
+    return crypto
+      .createHash('sha256')
+      .update(`financy-webhook:${this.botToken}`)
+      .digest('hex');
+  }
+
+  /**
+   * Constant-time check of the X-Telegram-Bot-Api-Secret-Token header sent
+   * with every webhook update once the secret is registered.
+   */
+  verifyWebhookSecret(providedSecret?: string): boolean {
+    if (!this.webhookSecret) {
+      return false;
+    }
+
+    // Hashing both sides keeps the comparison constant-time regardless of the
+    // provided value's length (timingSafeEqual throws on length mismatch).
+    const expected = crypto.createHash('sha256').update(this.webhookSecret).digest();
+    const actual = crypto.createHash('sha256').update(providedSecret ?? '').digest();
+
+    return crypto.timingSafeEqual(expected, actual);
   }
 
   async onModuleInit() {
@@ -84,6 +133,7 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
           url: this.webhookUrl,
           allowed_updates: ['message', 'callback_query'],
           drop_pending_updates: true,
+          secret_token: this.webhookSecret,
         })
       );
 
@@ -91,9 +141,15 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
         this.logger.log('Telegram webhook setup successfully');
       } else {
         this.logger.error('Failed to setup webhook:', response.data);
+        this.logger.error(
+          'The bot will not receive updates until the webhook is registered with its secret token (retry via POST /api/v1/webhooks/telegram/setup).',
+        );
       }
     } catch (error) {
       this.logger.error('Error setting up webhook:', error.message);
+      this.logger.error(
+        'The bot will not receive updates until the webhook is registered with its secret token (retry via POST /api/v1/webhooks/telegram/setup).',
+      );
     }
   }
 
