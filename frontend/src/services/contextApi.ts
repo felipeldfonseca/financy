@@ -41,6 +41,8 @@ export interface ContextMember {
   inviteMessage?: string;
   inviteToken?: string;
   inviteExpiresAt?: string;
+  /** Only present on the invite response: whether the email actually went out. */
+  invitationEmailSent?: boolean;
   contextId: string;
   userId: string;
   user?: {

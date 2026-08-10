@@ -123,6 +123,20 @@ describe('Shared contexts (e2e)', () => {
       inviteToken = response.body.inviteToken;
     });
 
+    it('still issues a working invitation when email is not configured', async () => {
+      // No provider key in the test environment: the invitation must not
+      // depend on delivery, and the caller must be told it was not sent so the
+      // UI can offer the link instead.
+      const response = await request(app.getHttpServer())
+        .post(`/api/v1/contexts/${contextId}/invite`)
+        .set(auth(owner))
+        .send({ email: stranger.email, role: 'viewer' })
+        .expect(201);
+
+      expect(response.body.invitationEmailSent).toBe(false);
+      expect(response.body.inviteToken).toEqual(expect.any(String));
+    });
+
     it('does not grant access before the invitation is accepted', async () => {
       const response = await request(app.getHttpServer())
         .get('/api/v1/contexts')

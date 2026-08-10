@@ -203,6 +203,14 @@ This document provides a comprehensive testing checklist for validating the Fina
 
 ## **Phase 8: Shared Contexts (added 2026-08-06)**
 
+### 📧 **Invitation email (optional feature)**
+Delivery is off until `RESEND_API_KEY` and `EMAIL_FROM` are set in Railway; the
+invitation flow works either way. Once configured:
+- [ ] Invite someone and confirm the email arrives
+- [ ] The email is written in the recipient's language
+- [ ] The button in the email opens the invitation page and accepting works
+- [ ] With the key removed, inviting still succeeds and offers the link instead
+
 ### 👥 **Group management**
 - [ ] Create a shared context from the Contexts page
 - [ ] Invite a second account by email and copy the invitation link

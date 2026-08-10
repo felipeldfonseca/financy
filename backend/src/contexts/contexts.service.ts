@@ -8,6 +8,9 @@ import { User } from '../users/entities/user.entity';
 import { CreateContextDto } from './dto/create-context.dto';
 import { UpdateContextDto } from './dto/update-context.dto';
 import { InviteMemberDto, UpdateMemberRoleDto } from './dto/invite-member.dto';
+import { EmailService } from '../email/email.service';
+import { buildInvitationEmail } from '../email/templates/invitation.template';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ContextsService {
@@ -18,6 +21,8 @@ export class ContextsService {
     private contextMembersRepository: Repository<ContextMember>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private emailService: EmailService,
+    private configService: ConfigService,
   ) {}
 
   async create(createContextDto: CreateContextDto, ownerId: string): Promise<Context> {
@@ -133,7 +138,54 @@ export class ContextsService {
       invitedAt: new Date(),
     });
 
-    return await this.contextMembersRepository.save(membership);
+    const saved = await this.contextMembersRepository.save(membership);
+
+    // Delivery is best effort. When email is not configured — or the provider
+    // is having a bad day — the invitation is still valid and the UI falls
+    // back to handing the inviter a link to share.
+    saved.invitationEmailSent = await this.sendInvitationEmail({
+      context,
+      inviter: await this.usersRepository.findOne({ where: { id: inviterId } }),
+      recipient: userToInvite,
+      inviteToken,
+      inviteExpiresAt,
+      message: inviteMemberDto.message,
+    });
+
+    return saved;
+  }
+
+  private async sendInvitationEmail(params: {
+    context: Context;
+    inviter: User | null;
+    recipient: User;
+    inviteToken: string;
+    inviteExpiresAt: Date;
+    message?: string;
+  }): Promise<boolean> {
+    if (!this.emailService.isEnabled()) {
+      return false;
+    }
+
+    const frontendUrl = (
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3001'
+    ).replace(/\/$/, '');
+
+    const fullName = (user: User | null): string =>
+      [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim();
+
+    return this.emailService.send(
+      buildInvitationEmail({
+        recipientEmail: params.recipient.email,
+        recipientName: fullName(params.recipient) || params.recipient.email,
+        inviterName: fullName(params.inviter) || 'A Financy user',
+        contextName: params.context.name,
+        message: params.message,
+        acceptUrl: `${frontendUrl}/invitations/${params.inviteToken}`,
+        expiresAt: params.inviteExpiresAt,
+        language: params.recipient.language,
+      }),
+    );
   }
 
   async acceptInvitation(token: string, userId: string): Promise<ContextMember> {

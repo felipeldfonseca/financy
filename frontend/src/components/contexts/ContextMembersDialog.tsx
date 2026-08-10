@@ -102,16 +102,21 @@ export const ContextMembersDialog: React.FC<Props> = ({ open, context, onClose }
     setNotice(null);
 
     try {
+      const recipient = inviteEmail.trim();
       const member = await contextApi.invite(context.id, {
-        email: inviteEmail.trim(),
+        email: recipient,
         role: inviteRole,
       });
 
       setInviteEmail('');
-      // The API issues a token but sends no email, so the link has to be
-      // handed over by whoever invited.
+      // The link is shown either way: it is the only delivery route when email
+      // is not configured, and a useful fallback when it is.
       setPendingLink(member.inviteToken ? invitationUrl(member.inviteToken) : null);
-      setNotice(t('members.inviteCreated'));
+      setNotice(
+        member.invitationEmailSent
+          ? t('members.inviteEmailed', { email: recipient })
+          : t('members.inviteCreated'),
+      );
       await load();
     } catch (err: any) {
       setError(err?.response?.data?.message || err.message);

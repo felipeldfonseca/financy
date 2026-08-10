@@ -72,6 +72,13 @@ export class ContextMember {
   @Column({ type: 'jsonb', nullable: true })
   settings: Record<string, any>; // Member-specific settings
 
+  /**
+   * Whether the invitation email actually went out, so the UI can decide
+   * between "we emailed them" and "share this link yourself". Not persisted:
+   * it describes one API response, not the membership.
+   */
+  invitationEmailSent?: boolean;
+
   // Context relationship
   @Column('uuid')
   contextId: string;
