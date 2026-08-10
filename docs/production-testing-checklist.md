@@ -201,6 +201,26 @@ This document provides a comprehensive testing checklist for validating the Fina
 
 ---
 
+## **Phase 8: Shared Contexts (added 2026-08-06)**
+
+### 👥 **Group management**
+- [ ] Create a shared context from the Contexts page
+- [ ] Invite a second account by email and copy the invitation link
+- [ ] Open the link as the invited account and accept
+- [ ] Both accounts see the context in their list
+- [ ] Change the invited member's role, then remove them
+- [ ] Leave a context as a non-owner; delete one as the owner
+
+### 👥 **Shared money**
+- [ ] Switch the Transactions page to the shared context
+- [ ] Add a transaction while the context is selected; the other member sees it
+- [ ] Switch back to "My finances"; the other member's transactions are gone
+- [ ] A transaction added in personal view never appears in the shared view
+
+**Status**: ⏳ **PENDING** - Covered by automated e2e tests; needs a manual pass in production
+
+---
+
 ## **Priority Testing Order**
 
 ### 🔥 **Critical (Test First)**

@@ -1,0 +1,91 @@
+{
+  "title": "Contextos compartidos",
+  "subtitle": "Lleva las finanzas en conjunto con la familia, compañeros de piso o un proyecto.",
+  "types": {
+    "personal": "Personal",
+    "family": "Familia",
+    "business": "Negocio",
+    "shared_living": "Vivienda compartida",
+    "trip": "Viaje",
+    "project": "Proyecto",
+    "friends": "Amigos",
+    "shared": "Compartido"
+  },
+  "visibility": {
+    "private": "Privado",
+    "invite_only": "Solo por invitación",
+    "public": "Público"
+  },
+  "roles": {
+    "owner": "Propietario",
+    "admin": "Administrador",
+    "member": "Miembro",
+    "viewer": "Observador"
+  },
+  "actions": {
+    "create": "Nuevo contexto",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "leave": "Salir del contexto",
+    "members": "Miembros",
+    "transactions": "Transacciones",
+    "viewTransactions": "Ver transacciones",
+    "viewTransactionsHint": "Cambiar a este contexto y ver sus transacciones",
+    "more": "Más opciones",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "close": "Cerrar"
+  },
+  "empty": {
+    "title": "Aún no hay contextos compartidos",
+    "description": "Crea uno para compartir gastos con otras personas y verlo todo en un solo lugar.",
+    "action": "Crear el primero"
+  },
+  "form": {
+    "createTitle": "Nuevo contexto compartido",
+    "editTitle": "Editar contexto",
+    "name": "Nombre",
+    "nameRequired": "Ponle un nombre al contexto.",
+    "description": "Descripción",
+    "type": "Tipo",
+    "currency": "Moneda predeterminada"
+  },
+  "confirm": {
+    "delete": "¿Eliminar \"{{name}}\"? Las transacciones siguen con quien las creó.",
+    "leave": "¿Salir de \"{{name}}\"? Perderás el acceso a sus transacciones."
+  },
+  "members": {
+    "title": "Miembros",
+    "inviteTitle": "Invitar a alguien",
+    "inviteHint": "La persona ya debe tener una cuenta en Financy. No se envía ningún correo: comparte el enlace que genera la invitación.",
+    "email": "Correo electrónico",
+    "role": "Rol",
+    "invite": "Invitar",
+    "inviteCreated": "Invitación creada. Comparte el enlace de abajo.",
+    "shareLink": "Enlace de invitación (válido por 7 días):",
+    "copyLink": "Copiar enlace",
+    "linkCopied": "Enlace copiado.",
+    "linkCopyFailed": "No se pudo copiar automáticamente: selecciona el enlace de arriba.",
+    "remove": "Quitar miembro",
+    "invitationPending": "Invitación pendiente",
+    "invitationExpired": "Invitación caducada",
+    "unknownUser": "Usuario desconocido",
+    "empty": "Todavía no hay miembros."
+  },
+  "switcher": {
+    "label": "Viendo",
+    "personal": "Mis finanzas",
+    "personalHint": "Solo tus transacciones",
+    "sharedView": "Todos los de este contexto"
+  },
+  "invitation": {
+    "accepting": "Aceptando invitación…",
+    "accepted": "¡Ya estás dentro!",
+    "acceptedHint": "Ahora tienes acceso a este contexto compartido.",
+    "openContext": "Abrir contexto",
+    "seeAll": "Ver todos los contextos",
+    "failed": "No se pudo aceptar esta invitación",
+    "failedHint": "El enlace puede haber caducado, ya haberse usado o pertenecer a otra cuenta.",
+    "retry": "Intentar de nuevo"
+  }
+}

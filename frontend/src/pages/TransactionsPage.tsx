@@ -22,6 +22,8 @@ import { TransactionForm } from '../components/transactions/TransactionForm';
 import { TransactionList } from '../components/transactions/TransactionList';
 import { TransactionFiltersComponent } from '../components/transactions/TransactionFilters';
 import { Transaction, TransactionFilters } from '../services/transactionApi';
+import { ContextSwitcher } from '../components/contexts/ContextSwitcher';
+import { useFinancialContexts } from '../contexts/ContextsContext';
 
 const TransactionsSummaryCard: React.FC<{
   title: string;
@@ -123,6 +125,7 @@ const TransactionsSummaryCard: React.FC<{
 const TransactionsPageContent: React.FC = () => {
   const { t } = useTranslation('transactions');
   const { state, loadTransactions, setFilters } = useTransactions();
+  const { selectedContextId } = useFinancialContexts();
   const [formOpen, setFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
@@ -132,8 +135,17 @@ const TransactionsPageContent: React.FC = () => {
   // }, []);
 
   const handleFiltersChange = (filters: TransactionFilters) => {
-    setFilters(filters);
-    loadTransactions(filters);
+    // The selected context decides whose transactions are in scope, so it
+    // travels with every filter change.
+    const scoped = { ...filters, contextId: selectedContextId };
+    setFilters(scoped);
+    loadTransactions(scoped);
+  };
+
+  const handleContextChange = (contextId?: string) => {
+    const scoped = { ...state.filters, contextId, page: 1 };
+    setFilters(scoped);
+    loadTransactions(scoped);
   };
 
   const handleAddTransaction = () => {
@@ -270,6 +282,11 @@ const TransactionsPageContent: React.FC = () => {
           />
         </Box>
       )}
+
+      {/* Context scope */}
+      <Box mb={2}>
+        <ContextSwitcher onChange={handleContextChange} />
+      </Box>
 
       {/* Filters */}
       <Box mb={3}>

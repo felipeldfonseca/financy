@@ -11,6 +11,7 @@ import enAuth from './locales/en/auth.json';
 import enTransactions from './locales/en/transactions.json';
 import enTelegram from './locales/en/telegram.json';
 import enPlanning from './locales/en/planning.json';
+import enContexts from './locales/en/contexts.json';
 import enLanding from './locales/en/landing.json';
 
 import ptCommon from './locales/pt/common.json';
@@ -22,6 +23,7 @@ import ptAuth from './locales/pt/auth.json';
 import ptTransactions from './locales/pt/transactions.json';
 import ptTelegram from './locales/pt/telegram.json';
 import ptPlanning from './locales/pt/planning.json';
+import ptContexts from './locales/pt/contexts.json';
 import ptLanding from './locales/pt/landing.json';
 
 import esCommon from './locales/es/common.json';
@@ -33,6 +35,7 @@ import esAuth from './locales/es/auth.json';
 import esTransactions from './locales/es/transactions.json';
 import esTelegram from './locales/es/telegram.json';
 import esPlanning from './locales/es/planning.json';
+import esContexts from './locales/es/contexts.json';
 import esLanding from './locales/es/landing.json';
 
 const resources = {
@@ -46,6 +49,7 @@ const resources = {
     transactions: enTransactions,
     telegram: enTelegram,
     planning: enPlanning,
+    contexts: enContexts,
     landing: enLanding,
   },
   pt: {
@@ -58,6 +62,7 @@ const resources = {
     transactions: ptTransactions,
     telegram: ptTelegram,
     planning: ptPlanning,
+    contexts: ptContexts,
     landing: ptLanding,
   },
   es: {
@@ -70,6 +75,7 @@ const resources = {
     transactions: esTransactions,
     telegram: esTelegram,
     planning: esPlanning,
+    contexts: esContexts,
     landing: esLanding,
   },
 };
@@ -107,7 +113,7 @@ i18n
 
     // Namespace configuration
     defaultNS: 'common',
-    ns: ['common', 'onboarding', 'navigation', 'settings', 'dashboard', 'auth', 'transactions', 'telegram', 'planning', 'landing'],
+    ns: ['common', 'onboarding', 'navigation', 'settings', 'dashboard', 'auth', 'transactions', 'telegram', 'planning', 'landing', 'contexts'],
 
     // Debug mode for development
     debug: process.env.NODE_ENV === 'development',

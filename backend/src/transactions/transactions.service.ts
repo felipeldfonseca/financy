@@ -151,9 +151,9 @@ export class TransactionsService {
     userId: string,
     filters: TransactionFiltersDto,
   ): Promise<PaginatedTransactions> {
-    const queryBuilder = this.transactionsRepository
-      .createQueryBuilder('transaction')
-      .where('transaction.userId = :userId', { userId });
+    const queryBuilder = this.transactionsRepository.createQueryBuilder('transaction');
+
+    await this.applyScope(queryBuilder, userId, filters);
 
     // Apply filters
     this.applyFilters(queryBuilder, filters);
@@ -293,6 +293,39 @@ export class TransactionsService {
     return result.map(r => r.merchant).filter(Boolean).sort();
   }
 
+  /**
+   * Restricts a query to what the caller is allowed to see. By default that is
+   * their own transactions; when a shared context is requested it is every
+   * transaction recorded in that context, which is the whole point of sharing
+   * one — but only for members who are actually part of it.
+   */
+  private async applyScope(
+    queryBuilder: any,
+    userId: string,
+    filters: TransactionFiltersDto,
+  ): Promise<void> {
+    if (!filters.contextId) {
+      queryBuilder.where('transaction.userId = :userId', { userId });
+      return;
+    }
+
+    const membership = await this.contextMembersRepository.findOne({
+      where: {
+        contextId: filters.contextId,
+        userId,
+        status: MemberStatus.ACTIVE,
+      },
+    });
+
+    if (!membership || !membership.canViewTransactions()) {
+      throw new ForbiddenException('You do not have access to this context');
+    }
+
+    queryBuilder.where('transaction.contextId = :contextId', {
+      contextId: filters.contextId,
+    });
+  }
+
   private applyFilters(queryBuilder: any, filters: TransactionFiltersDto): void {
     if (filters.startDate && filters.endDate) {
       queryBuilder.andWhere('transaction.date BETWEEN :startDate AND :endDate', {
@@ -367,12 +400,13 @@ export class TransactionsService {
     userId: string,
     filters: TransactionFiltersDto,
   ): Promise<TransactionSummary> {
-    const queryBuilder = this.transactionsRepository
-      .createQueryBuilder('transaction')
-      .where('transaction.userId = :userId', { userId })
-      .andWhere('transaction.status != :cancelledStatus', {
-        cancelledStatus: TransactionStatus.CANCELLED,
-      });
+    const queryBuilder = this.transactionsRepository.createQueryBuilder('transaction');
+
+    await this.applyScope(queryBuilder, userId, filters);
+
+    queryBuilder.andWhere('transaction.status != :cancelledStatus', {
+      cancelledStatus: TransactionStatus.CANCELLED,
+    });
 
     this.applyFilters(queryBuilder, filters);
 
@@ -521,17 +555,20 @@ export class TransactionsService {
   }
 
   private async getOrCreateDefaultContext(userId: string): Promise<string> {
-    // First, try to find an existing personal context for the user
-    const existingMembership = await this.contextMembersRepository.findOne({
-      where: { 
-        userId, 
-        status: MemberStatus.ACTIVE 
+    // The user's own personal context — deliberately not "any context they
+    // belong to". Matching any membership would file a transaction the user
+    // meant to keep private into a shared context, where every other member
+    // would see it.
+    const personalContext = await this.contextsRepository.findOne({
+      where: {
+        ownerId: userId,
+        type: ContextType.PERSONAL,
+        isActive: true,
       },
-      relations: ['context'],
     });
 
-    if (existingMembership && existingMembership.context.isActive) {
-      return existingMembership.context.id;
+    if (personalContext) {
+      return personalContext.id;
     }
 
     // If no context exists, create a default personal context

@@ -23,6 +23,7 @@ import * as yup from 'yup';
 import { useTranslation } from 'react-i18next';
 import { CreateTransactionData, UpdateTransactionData, Transaction } from '../../services/transactionApi';
 import { useTransactions } from '../../contexts/TransactionContext';
+import { useFinancialContexts } from '../../contexts/ContextsContext';
 import {
   getDashboardCategory,
   getDetailedCategoryForSubcategory,
@@ -191,6 +192,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
 }) => {
   const { t } = useTranslation('transactions');
   const { state, createTransaction, updateTransaction, loadCategories, loadMerchants } = useTransactions();
+  const { selectedContextId } = useFinancialContexts();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -329,6 +331,9 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
         ...data,
         category: getDetailedCategoryForSubcategory(data.type, data.subcategory) || data.category,
         dashboardCategory: data.category,
+        // A transaction added while a shared context is selected belongs to
+        // that context, so the other members can see it.
+        ...(mode === 'create' && selectedContextId ? { contextId: selectedContextId } : {}),
       };
 
       if (mode === 'create') {

@@ -25,8 +25,13 @@ export const VALID_PASSWORD = 'Senha@123';
 
 let uniqueCounter = 0;
 
-/** Unique email per call, so specs never collide on the unique constraint. */
+/**
+ * Unique email per call, so specs never collide on the unique constraint.
+ * The counter alone is not enough: each spec file gets a fresh module
+ * registry, so two files would restart at 1 and pick the same address.
+ */
 export function uniqueEmail(prefix = 'user'): string {
   uniqueCounter += 1;
-  return `${prefix}.${process.pid}.${uniqueCounter}@example.test`;
+  const stamp = process.hrtime.bigint().toString(36);
+  return `${prefix}.${stamp}.${uniqueCounter}@example.test`;
 }

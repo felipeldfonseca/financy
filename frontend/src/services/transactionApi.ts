@@ -35,6 +35,8 @@ export interface CreateTransactionData {
   category?: string;
   subcategory?: string;
   dashboardCategory?: string;
+  /** Shared context the transaction belongs to; omitted for personal ones. */
+  contextId?: string;
   currency?: string;
   date?: string;
   time?: string;
@@ -64,6 +66,8 @@ export interface TransactionFilters {
   category?: string;
   subcategory?: string;
   dashboardCategory?: string;
+  /** Scope results to a shared context instead of the caller's own records. */
+  contextId?: string;
   currency?: string;
   merchantName?: string;
   search?: string;
@@ -119,7 +123,11 @@ export const transactionApi = {
   },
 
   async createTransaction(data: CreateTransactionData): Promise<Transaction> {
-    const response = await api.post('/transactions', data);
+    // The API reads the target context from the query string, not the body.
+    const { contextId, ...body } = data;
+    const response = await api.post('/transactions', body, {
+      params: contextId ? { contextId } : undefined,
+    });
     return response.data;
   },
 

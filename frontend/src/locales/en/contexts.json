@@ -1,0 +1,91 @@
+{
+  "title": "Shared contexts",
+  "subtitle": "Track finances together with family, housemates, or a project team.",
+  "types": {
+    "personal": "Personal",
+    "family": "Family",
+    "business": "Business",
+    "shared_living": "Shared living",
+    "trip": "Trip",
+    "project": "Project",
+    "friends": "Friends",
+    "shared": "Shared"
+  },
+  "visibility": {
+    "private": "Private",
+    "invite_only": "Invite only",
+    "public": "Public"
+  },
+  "roles": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "member": "Member",
+    "viewer": "Viewer"
+  },
+  "actions": {
+    "create": "New context",
+    "edit": "Edit",
+    "delete": "Delete",
+    "leave": "Leave context",
+    "members": "Members",
+    "transactions": "Transactions",
+    "viewTransactions": "View transactions",
+    "viewTransactionsHint": "Switch to this context and see its transactions",
+    "more": "More options",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close"
+  },
+  "empty": {
+    "title": "No shared contexts yet",
+    "description": "Create one to share expenses with other people and see everything in one place.",
+    "action": "Create the first one"
+  },
+  "form": {
+    "createTitle": "New shared context",
+    "editTitle": "Edit context",
+    "name": "Name",
+    "nameRequired": "Give the context a name.",
+    "description": "Description",
+    "type": "Type",
+    "currency": "Default currency"
+  },
+  "confirm": {
+    "delete": "Delete \"{{name}}\"? Its transactions stay with whoever created them.",
+    "leave": "Leave \"{{name}}\"? You will lose access to its transactions."
+  },
+  "members": {
+    "title": "Members",
+    "inviteTitle": "Invite someone",
+    "inviteHint": "The person needs a Financy account already. No email is sent — share the link the invite generates.",
+    "email": "Email",
+    "role": "Role",
+    "invite": "Invite",
+    "inviteCreated": "Invitation created. Share the link below.",
+    "shareLink": "Invitation link (valid for 7 days):",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied.",
+    "linkCopyFailed": "Could not copy automatically — select the link above.",
+    "remove": "Remove member",
+    "invitationPending": "Invitation pending",
+    "invitationExpired": "Invitation expired",
+    "unknownUser": "Unknown user",
+    "empty": "No members yet."
+  },
+  "switcher": {
+    "label": "Viewing",
+    "personal": "My finances",
+    "personalHint": "Only your own transactions",
+    "sharedView": "Everyone in this context"
+  },
+  "invitation": {
+    "accepting": "Accepting invitation…",
+    "accepted": "You are in!",
+    "acceptedHint": "You now have access to this shared context.",
+    "openContext": "Open context",
+    "seeAll": "See all contexts",
+    "failed": "Could not accept this invitation",
+    "failedHint": "The link may have expired, already been used, or belong to a different account.",
+    "retry": "Try again"
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "title": "Contextos compartilhados",
+  "subtitle": "Acompanhe as finanças em conjunto com a família, colegas de casa ou um projeto.",
+  "types": {
+    "personal": "Pessoal",
+    "family": "Família",
+    "business": "Negócio",
+    "shared_living": "Moradia compartilhada",
+    "trip": "Viagem",
+    "project": "Projeto",
+    "friends": "Amigos",
+    "shared": "Compartilhado"
+  },
+  "visibility": {
+    "private": "Privado",
+    "invite_only": "Somente por convite",
+    "public": "Público"
+  },
+  "roles": {
+    "owner": "Dono",
+    "admin": "Administrador",
+    "member": "Membro",
+    "viewer": "Visualizador"
+  },
+  "actions": {
+    "create": "Novo contexto",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "leave": "Sair do contexto",
+    "members": "Membros",
+    "transactions": "Transações",
+    "viewTransactions": "Ver transações",
+    "viewTransactionsHint": "Mudar para este contexto e ver suas transações",
+    "more": "Mais opções",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "close": "Fechar"
+  },
+  "empty": {
+    "title": "Nenhum contexto compartilhado ainda",
+    "description": "Crie um para dividir despesas com outras pessoas e ver tudo num lugar só.",
+    "action": "Criar o primeiro"
+  },
+  "form": {
+    "createTitle": "Novo contexto compartilhado",
+    "editTitle": "Editar contexto",
+    "name": "Nome",
+    "nameRequired": "Dê um nome ao contexto.",
+    "description": "Descrição",
+    "type": "Tipo",
+    "currency": "Moeda padrão"
+  },
+  "confirm": {
+    "delete": "Excluir \"{{name}}\"? As transações continuam com quem as criou.",
+    "leave": "Sair de \"{{name}}\"? Você perderá acesso às transações dele."
+  },
+  "members": {
+    "title": "Membros",
+    "inviteTitle": "Convidar alguém",
+    "inviteHint": "A pessoa precisa já ter conta no Financy. Nenhum e-mail é enviado — compartilhe o link gerado pelo convite.",
+    "email": "E-mail",
+    "role": "Papel",
+    "invite": "Convidar",
+    "inviteCreated": "Convite criado. Compartilhe o link abaixo.",
+    "shareLink": "Link do convite (válido por 7 dias):",
+    "copyLink": "Copiar link",
+    "linkCopied": "Link copiado.",
+    "linkCopyFailed": "Não foi possível copiar automaticamente — selecione o link acima.",
+    "remove": "Remover membro",
+    "invitationPending": "Convite pendente",
+    "invitationExpired": "Convite expirado",
+    "unknownUser": "Usuário desconhecido",
+    "empty": "Nenhum membro ainda."
+  },
+  "switcher": {
+    "label": "Visualizando",
+    "personal": "Minhas finanças",
+    "personalHint": "Apenas as suas transações",
+    "sharedView": "Todos deste contexto"
+  },
+  "invitation": {
+    "accepting": "Aceitando convite…",
+    "accepted": "Você entrou!",
+    "acceptedHint": "Agora você tem acesso a este contexto compartilhado.",
+    "openContext": "Abrir contexto",
+    "seeAll": "Ver todos os contextos",
+    "failed": "Não foi possível aceitar este convite",
+    "failedHint": "O link pode ter expirado, já ter sido usado ou pertencer a outra conta.",
+    "retry": "Tentar de novo"
+  }
+}

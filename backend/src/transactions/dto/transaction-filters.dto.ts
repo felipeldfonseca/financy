@@ -7,12 +7,22 @@ import {
   Min,
   Max,
   IsIn,
+  IsUUID,
 } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { TransactionType, TransactionStatus } from '../entities/transaction.entity';
 import { getAllValidDashboardCategories } from '../constants/categories.constants';
 
 export class TransactionFiltersDto {
+  @ApiPropertyOptional({
+    description:
+      'Restrict results to a shared context. Returns every member transaction in that context, not just the caller own.',
+  })
+  @IsOptional()
+  @IsUUID()
+  contextId?: string;
+
   @IsOptional()
   @IsDateString()
   startDate?: string;

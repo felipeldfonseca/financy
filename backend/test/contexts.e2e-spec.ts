@@ -1,0 +1,281 @@
+import { INestApplication } from '@nestjs/common';
+import * as request from 'supertest';
+import { createTestApp, uniqueEmail, VALID_PASSWORD } from './utils/app';
+
+interface Account {
+  token: string;
+  email: string;
+  id: string;
+}
+
+describe('Shared contexts (e2e)', () => {
+  let app: INestApplication;
+  let owner: Account;
+  let invitee: Account;
+  let stranger: Account;
+  let contextId: string;
+
+  const signUp = async (prefix: string): Promise<Account> => {
+    const email = uniqueEmail(prefix);
+    const response = await request(app.getHttpServer())
+      .post('/api/v1/auth/register')
+      .send({ email, firstName: 'Ctx', lastName: prefix, password: VALID_PASSWORD })
+      .expect(201);
+
+    return { token: response.body.access_token, email, id: response.body.user.id };
+  };
+
+  const auth = (account: Account) => ({ Authorization: `Bearer ${account.token}` });
+
+  const addTransaction = (account: Account, description: string, targetContext?: string) =>
+    request(app.getHttpServer())
+      .post('/api/v1/transactions')
+      .set(auth(account))
+      .query(targetContext ? { contextId: targetContext } : {})
+      .send({
+        amount: 20,
+        description,
+        type: 'expense',
+        category: 'food',
+        subcategory: 'groceries',
+        dashboardCategory: 'fooddining',
+        date: '2026-08-06',
+      });
+
+  beforeAll(async () => {
+    app = await createTestApp();
+    owner = await signUp('owner');
+    invitee = await signUp('invitee');
+    stranger = await signUp('stranger');
+
+    const created = await request(app.getHttpServer())
+      .post('/api/v1/contexts')
+      .set(auth(owner))
+      .send({ name: 'Household', type: 'family', defaultCurrency: 'BRL' })
+      .expect(201);
+
+    contextId = created.body.id;
+  });
+
+  afterAll(async () => {
+    await app?.close();
+  });
+
+  describe('creation and listing', () => {
+    it('lists the context for its owner', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/contexts')
+        .set(auth(owner))
+        .expect(200);
+
+      expect(response.body.map((context: any) => context.id)).toContain(contextId);
+    });
+
+    it('does not list it for anyone else', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/contexts')
+        .set(auth(stranger))
+        .expect(200);
+
+      expect(response.body.map((context: any) => context.id)).not.toContain(contextId);
+    });
+
+    it('keeps a non-member out of the context itself', async () => {
+      await request(app.getHttpServer())
+        .get(`/api/v1/contexts/${contextId}`)
+        .set(auth(stranger))
+        .expect(403);
+    });
+
+    it('requires authentication', async () => {
+      await request(app.getHttpServer()).get('/api/v1/contexts').expect(401);
+    });
+  });
+
+  describe('invitations', () => {
+    let inviteToken: string;
+
+    it('refuses to invite an address with no account', async () => {
+      await request(app.getHttpServer())
+        .post(`/api/v1/contexts/${contextId}/invite`)
+        .set(auth(owner))
+        .send({ email: 'nobody@example.test', role: 'member' })
+        .expect(404);
+    });
+
+    it('refuses invitations from someone who is not a member', async () => {
+      await request(app.getHttpServer())
+        .post(`/api/v1/contexts/${contextId}/invite`)
+        .set(auth(stranger))
+        .send({ email: invitee.email, role: 'member' })
+        .expect(403);
+    });
+
+    it('issues a token the invitee can redeem', async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/api/v1/contexts/${contextId}/invite`)
+        .set(auth(owner))
+        .send({ email: invitee.email, role: 'member' })
+        .expect(201);
+
+      expect(response.body.status).toBe('invited');
+      expect(response.body.inviteToken).toEqual(expect.any(String));
+      inviteToken = response.body.inviteToken;
+    });
+
+    it('does not grant access before the invitation is accepted', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/contexts')
+        .set(auth(invitee))
+        .expect(200);
+
+      expect(response.body.map((context: any) => context.id)).not.toContain(contextId);
+    });
+
+    it('rejects a duplicate invitation', async () => {
+      await request(app.getHttpServer())
+        .post(`/api/v1/contexts/${contextId}/invite`)
+        .set(auth(owner))
+        .send({ email: invitee.email, role: 'member' })
+        .expect(409);
+    });
+
+    it('rejects an unknown token', async () => {
+      await request(app.getHttpServer())
+        .post('/api/v1/contexts/invitations/not-a-real-token/accept')
+        .set(auth(invitee))
+        .expect(404);
+    });
+
+    it('adds the invitee once the token is redeemed', async () => {
+      await request(app.getHttpServer())
+        .post(`/api/v1/contexts/invitations/${inviteToken}/accept`)
+        .set(auth(invitee))
+        .expect(201);
+
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/contexts')
+        .set(auth(invitee))
+        .expect(200);
+
+      expect(response.body.map((context: any) => context.id)).toContain(contextId);
+    });
+  });
+
+  describe('shared transactions', () => {
+    beforeAll(async () => {
+      await addTransaction(owner, 'Owner shared expense', contextId).expect(201);
+      await addTransaction(invitee, 'Invitee shared expense', contextId).expect(201);
+      await addTransaction(owner, 'Owner private expense').expect(201);
+    });
+
+    it('shows every member transaction to each member', async () => {
+      for (const account of [owner, invitee]) {
+        const response = await request(app.getHttpServer())
+          .get('/api/v1/transactions')
+          .query({ contextId })
+          .set(auth(account))
+          .expect(200);
+
+        const descriptions = response.body.transactions.map((t: any) => t.description);
+        expect(descriptions).toEqual(
+          expect.arrayContaining(['Owner shared expense', 'Invitee shared expense']),
+        );
+      }
+    });
+
+    it('keeps private transactions out of the shared view', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/transactions')
+        .query({ contextId })
+        .set(auth(owner))
+        .expect(200);
+
+      expect(response.body.transactions.map((t: any) => t.description)).not.toContain(
+        'Owner private expense',
+      );
+    });
+
+    it('keeps other members transactions out of the personal view', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/transactions')
+        .set(auth(owner))
+        .expect(200);
+
+      const descriptions = response.body.transactions.map((t: any) => t.description);
+      expect(descriptions).toContain('Owner private expense');
+      expect(descriptions).not.toContain('Invitee shared expense');
+    });
+
+    it('summarises the shared context, not just the caller', async () => {
+      const shared = await request(app.getHttpServer())
+        .get('/api/v1/transactions')
+        .query({ contextId })
+        .set(auth(invitee))
+        .expect(200);
+
+      // Both members contributed 20, so a caller-only summary would show 20.
+      expect(Number(shared.body.summary.totalExpenses)).toBeGreaterThanOrEqual(40);
+    });
+
+    it('refuses the shared view to a non-member', async () => {
+      await request(app.getHttpServer())
+        .get('/api/v1/transactions')
+        .query({ contextId })
+        .set(auth(stranger))
+        .expect(403);
+    });
+
+    it('refuses to file a transaction into a context the caller is not in', async () => {
+      const response = await addTransaction(stranger, 'Sneaky expense', contextId);
+
+      expect(response.status).toBeGreaterThanOrEqual(400);
+    });
+  });
+
+  describe('membership management', () => {
+    it('lets an admin change a member role but not the owner role', async () => {
+      const members = await request(app.getHttpServer())
+        .get(`/api/v1/contexts/${contextId}/members`)
+        .set(auth(owner))
+        .expect(200);
+
+      const inviteeMember = members.body.find((member: any) => member.userId === invitee.id);
+      const ownerMember = members.body.find((member: any) => member.userId === owner.id);
+
+      await request(app.getHttpServer())
+        .patch(`/api/v1/contexts/${contextId}/members/${inviteeMember.id}/role`)
+        .set(auth(owner))
+        .send({ role: 'viewer' })
+        .expect(200);
+
+      const ownerRoleChange = await request(app.getHttpServer())
+        .patch(`/api/v1/contexts/${contextId}/members/${ownerMember.id}/role`)
+        .set(auth(invitee))
+        .send({ role: 'member' });
+
+      expect(ownerRoleChange.status).toBeGreaterThanOrEqual(400);
+    });
+
+    it('still lets a viewer read the shared transactions', async () => {
+      await request(app.getHttpServer())
+        .get('/api/v1/transactions')
+        .query({ contextId })
+        .set(auth(invitee))
+        .expect(200);
+    });
+
+    it('cuts access off when a member leaves', async () => {
+      await request(app.getHttpServer())
+        .post(`/api/v1/contexts/${contextId}/leave`)
+        .set(auth(invitee))
+        .expect(204);
+
+      await request(app.getHttpServer())
+        .get('/api/v1/transactions')
+        .query({ contextId })
+        .set(auth(invitee))
+        .expect(403);
+    });
+  });
+});
