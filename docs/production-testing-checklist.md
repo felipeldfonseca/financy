@@ -92,7 +92,7 @@ This document provides a comprehensive testing checklist for validating the Fina
 - [x] Edit transaction functionality works
 - [x] Delete transaction works
 
-**Regression 3 (found 2026-08-06)**: the two-tier category system stored the *dashboard* category key (e.g. `fooddining`) in the `category` field, while the list translations, the category-to-dashboard mapping, and the filters all expect the *detailed* key (e.g. `food`). Result: the list showed raw i18n keys (`categories.expense.fooddining.groceries`) and the dashboard bucketed every transaction under "Other". Fixed in the frontend: the form now derives the detailed category from the chosen subcategory and sends `dashboardCategory` separately; `getDashboardCategory` accepts legacy dashboard-key rows; the list falls back to the subcategory name instead of showing raw keys; the category filter now queries `dashboardCategory`. Pending deploy.
+**Regression 3 (found 2026-08-06)**: the two-tier category system stored the *dashboard* category key (e.g. `fooddining`) in the `category` field, while the list translations, the category-to-dashboard mapping, and the filters all expect the *detailed* key (e.g. `food`). Result: the list showed raw i18n keys (`categories.expense.fooddining.groceries`) and the dashboard bucketed every transaction under "Other". Fixed in the frontend: the form now derives the detailed category from the chosen subcategory and sends `dashboardCategory` separately; `getDashboardCategory` accepts legacy dashboard-key rows; the list falls back to the subcategory name instead of showing raw keys; the category filter now queries `dashboardCategory`. **Deployed and verified in production 2026-08-06** (translated labels and correct dashboard bucketing confirmed).
 
 ### 📊 **Dashboard Analytics**
 - [x] Navigate to Dashboard
@@ -101,7 +101,7 @@ This document provides a comprehensive testing checklist for validating the Fina
 - [ ] Recent transactions section shows data
 - [ ] Quick actions work
 
-**Status**: 🟡 **MOSTLY PASSED** (2026-08-06) - CRUD and dashboard verified; category display fix pending deploy, re-test categorization after it ships
+**Status**: ✅ **PASSED** (2026-08-06) - CRUD, dashboard, and categorization verified in production after the category fix shipped
 
 ---
 
@@ -117,9 +117,10 @@ This document provides a comprehensive testing checklist for validating the Fina
 **Webhook URL**: `https://web-production-c74f6.up.railway.app/api/v1/webhooks/telegram`
 
 ### 🤖 **Transaction Processing**
-- [ ] Send simple transaction message: `"Spent $15 on lunch at McDonald's"`
-- [ ] Bot processes and responds
-- [ ] Transaction appears in web dashboard
+- [x] Web → Telegram account linking works (first successful linking ever — `chat_contexts` created 2026-08-06)
+- [x] Send simple transaction message (`"Gastei R$15 no almoço"`)
+- [x] Bot processes and responds with the structured transaction
+- [x] Transaction appears in web dashboard (full product loop verified 2026-08-06)
 - [ ] Check Railway logs for AI processing
 
 ### 🤖 **Advanced Bot Features**
@@ -133,7 +134,7 @@ This document provides a comprehensive testing checklist for validating the Fina
 - Secondary: `qwen/qwen3-coder:free`
 - Tertiary: `google/gemini-2.5-flash-lite`
 
-**Status**: ⏳ **PENDING** - Backend ready, requires user setup
+**Status**: 🟡 **CORE PASSED** (2026-08-06) - Linking, text transaction processing, and dashboard sync verified; advanced features (voice, multi-transaction, currency conversion, context switching) still untested
 
 ---
 
@@ -205,12 +206,12 @@ This document provides a comprehensive testing checklist for validating the Fina
 2. ✅ Backend API responds
 3. ✅ User registration
 4. ✅ User login (full auth flow verified 2026-08-06)
-5. ⏳ Basic transaction creation
+5. ✅ Basic transaction creation
 
 ### 🔶 **Important (Test Second)**
-6. ⏳ Telegram bot basic functionality
-7. ⏳ Dashboard displays data
-8. ⏳ Transaction management
+6. ✅ Telegram bot basic functionality
+7. ✅ Dashboard displays data
+8. ✅ Transaction management
 
 ### 🔵 **Nice to Have (Test Last)**
 9. ⏳ Advanced bot features
@@ -285,11 +286,11 @@ This document provides a comprehensive testing checklist for validating the Fina
 - [x] Database connected and operational
 - [x] User registration working
 
-### **Application Success** (Target)
-- [ ] Complete user authentication flow
-- [ ] Transaction CRUD operations
-- [ ] Telegram bot processing transactions
-- [ ] Dashboard displaying financial data
+### **Application Success** ✅ (achieved 2026-08-06)
+- [x] Complete user authentication flow
+- [x] Transaction CRUD operations
+- [x] Telegram bot processing transactions
+- [x] Dashboard displaying financial data
 
 ### **Production Ready** (Target)
 - [ ] All critical tests passing
@@ -300,5 +301,5 @@ This document provides a comprehensive testing checklist for validating the Fina
 ---
 
 **Last Updated**: August 6, 2026  
-**Current Status**: Production repaired 2026-08-06 — bot token rotated, CORS restored, schema migrations now run on boot, API registration confirmed 201 in production  
-**Next Priority**: Complete the browser authentication flow, then transactions/dashboard, then first-ever Telegram linking test (chat_contexts now exists)
+**Current Status**: Core product loop fully working in production as of 2026-08-06 — auth, transaction CRUD, dashboard, categorization, Telegram linking, and bot → dashboard sync all verified  
+**Next Priority**: Phase 5-7 — advanced bot features (voice, multi-transaction, currency), error handling & security (incl. webhook secret_token), performance, cross-platform
