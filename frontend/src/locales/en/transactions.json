@@ -21,7 +21,7 @@
       "required": "Type is required",
       "invalid": "Invalid transaction type",
       "expense": "Expense",
-      "income": "Income", 
+      "income": "Income",
       "transfer": "Transfer"
     },
     "description": {
@@ -93,7 +93,7 @@
       "transfer": "Transfers"
     },
     "status": {
-      "label": "Status", 
+      "label": "Status",
       "all": "All Statuses",
       "pending": "Pending",
       "confirmed": "Confirmed",
@@ -139,7 +139,7 @@
       "housing": "Housing",
       "transportation": "Transportation",
       "fooddining": "Food & Dining",
-      "healthfitness": "Health & Fitness", 
+      "healthfitness": "Health & Fitness",
       "entertainmentshopping": "Entertainment & Shopping",
       "billsfinancial": "Bills & Financial",
       "travellifestyle": "Travel & Lifestyle",
@@ -153,7 +153,7 @@
     },
     "transfer": {
       "accounts": "Account Transfers",
-      "debt": "Debt Payments", 
+      "debt": "Debt Payments",
       "other": "Other Transfers"
     }
   },
@@ -389,7 +389,7 @@
   "list": {
     "headers": {
       "type": "Type",
-      "description": "Description", 
+      "description": "Description",
       "category": "Category",
       "amount": "Amount",
       "date": "Date",
@@ -400,9 +400,10 @@
     "actions": {
       "edit": "Edit",
       "confirm": "Confirm",
-      "cancel": "Cancel", 
+      "cancel": "Cancel",
       "delete": "Delete",
-      "moreActions": "More actions"
+      "moreActions": "More actions",
+      "readOnly": "Only the author or a context admin can change this"
     },
     "status": {
       "confirmed": "Confirmed",
@@ -413,6 +414,7 @@
       "title": "No transactions found",
       "subtitle": "Add your first transaction to get started",
       "button": "Add Transaction"
-    }
+    },
+    "recordedBy": "Recorded by {{name}}"
   }
 }

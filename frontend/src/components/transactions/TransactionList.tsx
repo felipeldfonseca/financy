@@ -37,6 +37,9 @@ import { useTranslation } from 'react-i18next';
 import { Transaction } from '../../services/transactionApi';
 import { useTransactions } from '../../contexts/TransactionContext';
 import { useDashboardCategories } from '../../hooks/useDashboardCategories';
+import { useFinancialContexts } from '../../contexts/ContextsContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { canModifyTransaction } from '../../utils/contextPermissions';
 
 interface TransactionListProps {
   onEditTransaction: (transaction: Transaction) => void;
@@ -47,6 +50,19 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
   const theme = useTheme();
   const { state, loadTransactions, deleteTransaction, confirmTransaction, cancelTransaction } = useTransactions();
   const { mapToDisplayCategory } = useDashboardCategories();
+  const { selectedContext } = useFinancialContexts();
+  const { state: authState } = useAuth();
+
+  // In a shared context, entries recorded by other members can only be changed
+  // by an owner or admin — matching what the API allows.
+  const mayModify = (transaction: Transaction | null): boolean =>
+    !transaction
+      ? false
+      : canModifyTransaction({
+          transactionUserId: transaction.userId,
+          currentUserId: authState.user?.id,
+          contextRole: selectedContext?.memberRole,
+        });
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
@@ -310,8 +326,17 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
                       {transaction.description}
                     </Typography>
                     {transaction.notes && (
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography variant="caption" color="text.secondary" display="block">
                         {transaction.notes}
+                      </Typography>
+                    )}
+                    {selectedContext && transaction.user && (
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        {t('list.recordedBy', {
+                          name: [transaction.user.firstName, transaction.user.lastName]
+                            .filter(Boolean)
+                            .join(' '),
+                        })}
                       </Typography>
                     )}
                   </Box>
@@ -399,14 +424,20 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <MenuItem onClick={handleEdit}>
-          <ListItemIcon>
-            <EditIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>{t('list.actions.edit')}</ListItemText>
-        </MenuItem>
+        {mayModify(selectedTransaction) ? (
+          <MenuItem onClick={handleEdit}>
+            <ListItemIcon>
+              <EditIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>{t('list.actions.edit')}</ListItemText>
+          </MenuItem>
+        ) : (
+          <MenuItem disabled>
+            <ListItemText>{t('list.actions.readOnly')}</ListItemText>
+          </MenuItem>
+        )}
 
-        {selectedTransaction?.status === 'pending' && (
+        {mayModify(selectedTransaction) && selectedTransaction?.status === 'pending' && (
           <MenuItem onClick={handleConfirm}>
             <ListItemIcon>
               <CheckIcon fontSize="small" />
@@ -415,7 +446,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
           </MenuItem>
         )}
 
-        {selectedTransaction?.status !== 'cancelled' && (
+        {mayModify(selectedTransaction) && selectedTransaction?.status !== 'cancelled' && (
           <MenuItem onClick={handleCancel}>
             <ListItemIcon>
               <CancelIcon fontSize="small" />
@@ -424,12 +455,14 @@ export const TransactionList: React.FC<TransactionListProps> = ({ onEditTransact
           </MenuItem>
         )}
 
-        <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
-          <ListItemIcon>
-            <DeleteIcon fontSize="small" color="error" />
-          </ListItemIcon>
-          <ListItemText>{t('list.actions.delete')}</ListItemText>
-        </MenuItem>
+        {mayModify(selectedTransaction) && (
+          <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
+            <ListItemIcon>
+              <DeleteIcon fontSize="small" color="error" />
+            </ListItemIcon>
+            <ListItemText>{t('list.actions.delete')}</ListItemText>
+          </MenuItem>
+        )}
       </Menu>
     </Card>
   );

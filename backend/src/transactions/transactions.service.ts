@@ -187,7 +187,56 @@ export class TransactionsService {
 
   async findOne(id: string, userId: string): Promise<Transaction> {
     const transaction = await this.transactionsRepository.findOne({
-      where: { id, userId },
+      where: { id },
+      relations: ['user'],
+    });
+
+    // Anyone who can see the transaction in a shared context's list must also
+    // be able to open it; a 404 is used for the rest so the endpoint does not
+    // reveal which ids exist.
+    if (!transaction || !(await this.canRead(transaction, userId))) {
+      throw new NotFoundException('Transaction not found');
+    }
+
+    return transaction;
+  }
+
+  /** The caller's live membership of the context a transaction belongs to. */
+  private async membershipFor(
+    transaction: Transaction,
+    userId: string,
+  ): Promise<ContextMember | null> {
+    if (!transaction.contextId) {
+      return null;
+    }
+
+    return this.contextMembersRepository.findOne({
+      where: {
+        contextId: transaction.contextId,
+        userId,
+        status: MemberStatus.ACTIVE,
+      },
+    });
+  }
+
+  private async canRead(transaction: Transaction, userId: string): Promise<boolean> {
+    if (transaction.userId === userId) {
+      return true;
+    }
+
+    const membership = await this.membershipFor(transaction, userId);
+    return Boolean(membership?.canViewTransactions());
+  }
+
+  /**
+   * Resolves a transaction the caller is allowed to change: their own, or
+   * anyone's if they administer the context it belongs to. Without this an
+   * owner could see a departed member's entries in the shared list but never
+   * correct or remove them.
+   */
+  private async findForMutation(id: string, userId: string): Promise<Transaction> {
+    const transaction = await this.transactionsRepository.findOne({
+      where: { id },
       relations: ['user'],
     });
 
@@ -195,7 +244,24 @@ export class TransactionsService {
       throw new NotFoundException('Transaction not found');
     }
 
-    return transaction;
+    if (transaction.userId === userId) {
+      return transaction;
+    }
+
+    const membership = await this.membershipFor(transaction, userId);
+
+    if (membership?.canModerateTransactions()) {
+      return transaction;
+    }
+
+    // Someone who can already see it learns nothing from a clear refusal.
+    if (membership?.canViewTransactions()) {
+      throw new ForbiddenException(
+        'Only the member who recorded this transaction, or a context owner or admin, can change it',
+      );
+    }
+
+    throw new NotFoundException('Transaction not found');
   }
 
   async update(
@@ -203,7 +269,7 @@ export class TransactionsService {
     updateTransactionDto: UpdateTransactionDto,
     userId: string,
   ): Promise<Transaction> {
-    const transaction = await this.findOne(id, userId);
+    const transaction = await this.findForMutation(id, userId);
 
     // Validate amount if being updated
     if (updateTransactionDto.amount !== undefined && updateTransactionDto.amount <= 0) {
@@ -218,18 +284,18 @@ export class TransactionsService {
   }
 
   async remove(id: string, userId: string): Promise<void> {
-    const transaction = await this.findOne(id, userId);
+    const transaction = await this.findForMutation(id, userId);
     await this.transactionsRepository.remove(transaction);
   }
 
   async confirmTransaction(id: string, userId: string): Promise<Transaction> {
-    const transaction = await this.findOne(id, userId);
+    const transaction = await this.findForMutation(id, userId);
     transaction.status = TransactionStatus.CONFIRMED;
     return await this.transactionsRepository.save(transaction);
   }
 
   async cancelTransaction(id: string, userId: string): Promise<Transaction> {
-    const transaction = await this.findOne(id, userId);
+    const transaction = await this.findForMutation(id, userId);
     transaction.status = TransactionStatus.CANCELLED;
     return await this.transactionsRepository.save(transaction);
   }
@@ -324,6 +390,13 @@ export class TransactionsService {
     queryBuilder.where('transaction.contextId = :contextId', {
       contextId: filters.contextId,
     });
+
+    // In a shared list "whose expense is this?" is the first question, and the
+    // answer also decides which rows offer an edit button. Only the naming
+    // fields are selected — nothing else about the member is needed here.
+    queryBuilder
+      .leftJoin('transaction.user', 'author')
+      .addSelect(['author.id', 'author.firstName', 'author.lastName']);
   }
 
   private applyFilters(queryBuilder: any, filters: TransactionFiltersDto): void {

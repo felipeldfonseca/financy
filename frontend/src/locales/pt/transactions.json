@@ -21,7 +21,7 @@
       "required": "Tipo é obrigatório",
       "invalid": "Tipo de transação inválido",
       "expense": "Despesa",
-      "income": "Receita", 
+      "income": "Receita",
       "transfer": "Transferência"
     },
     "description": {
@@ -76,7 +76,7 @@
     "timePeriod": {
       "label": "Período",
       "today": "Hoje",
-      "yesterday": "Ontem", 
+      "yesterday": "Ontem",
       "last7days": "Últimos 7 Dias",
       "last30days": "Últimos 30 Dias",
       "thisMonth": "Este Mês",
@@ -89,7 +89,7 @@
       "label": "Tipo",
       "all": "Todos os Tipos",
       "expense": "Despesas",
-      "income": "Receitas", 
+      "income": "Receitas",
       "transfer": "Transferências"
     },
     "status": {
@@ -100,7 +100,7 @@
       "cancelled": "Cancelado"
     },
     "category": {
-      "label": "Categoria", 
+      "label": "Categoria",
       "all": "Todas as Categorias"
     },
     "merchant": {
@@ -120,7 +120,7 @@
       "order": "Ordem",
       "date": "Data",
       "amount": "Valor",
-      "description": "Descrição", 
+      "description": "Descrição",
       "created": "Criado",
       "newest": "Mais Recentes",
       "oldest": "Mais Antigos"
@@ -137,7 +137,7 @@
   "dashboardCategories": {
     "expense": {
       "housing": "Moradia",
-      "transportation": "Transporte", 
+      "transportation": "Transporte",
       "fooddining": "Alimentação",
       "healthfitness": "Saúde e Fitness",
       "entertainmentshopping": "Entretenimento e Compras",
@@ -148,7 +148,7 @@
     "income": {
       "employment": "Renda do Trabalho",
       "investment": "Investimentos",
-      "governmentbenefits": "Governo e Benefícios", 
+      "governmentbenefits": "Governo e Benefícios",
       "other": "Outras Receitas"
     },
     "transfer": {
@@ -393,7 +393,7 @@
       "category": "Categoria",
       "amount": "Valor",
       "date": "Data",
-      "status": "Status", 
+      "status": "Status",
       "merchant": "Estabelecimento",
       "actions": "Ações"
     },
@@ -402,7 +402,8 @@
       "confirm": "Confirmar",
       "cancel": "Cancelar",
       "delete": "Excluir",
-      "moreActions": "Mais ações"
+      "moreActions": "Mais ações",
+      "readOnly": "Só o autor ou um administrador do contexto pode alterar"
     },
     "status": {
       "confirmed": "Confirmado",
@@ -413,6 +414,7 @@
       "title": "Nenhuma transação encontrada",
       "subtitle": "Adicione sua primeira transação para começar",
       "button": "Adicionar Transação"
-    }
+    },
+    "recordedBy": "Lançado por {{name}}"
   }
 }

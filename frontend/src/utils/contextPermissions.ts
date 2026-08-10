@@ -34,6 +34,29 @@ export const canChangeRole = (actorRole: MemberRole | undefined, target: Context
 export const assignableRoles = (actorRole: MemberRole | undefined): MemberRole[] =>
   canManageMembers(actorRole) ? ['admin', 'member', 'viewer'] : [];
 
+/**
+ * Whether the signed-in user may edit or delete a transaction. Their own
+ * always; anyone else's only while they own or administer the shared context
+ * being viewed. Mirrors the rule the API enforces, so the interface never
+ * offers a button that would come back refused.
+ */
+export const canModifyTransaction = (params: {
+  transactionUserId?: string;
+  currentUserId?: string;
+  /** Role in the context currently being viewed, if a shared one is selected. */
+  contextRole?: MemberRole;
+}): boolean => {
+  const { transactionUserId, currentUserId, contextRole } = params;
+
+  // A transaction with no known author (the personal view omits it) is the
+  // caller's own by construction.
+  if (!transactionUserId || !currentUserId || transactionUserId === currentUserId) {
+    return true;
+  }
+
+  return contextRole === 'owner' || contextRole === 'admin';
+};
+
 /** The caller's own membership row, used to decide what the UI offers. */
 export const findOwnMembership = (
   members: ContextMember[],

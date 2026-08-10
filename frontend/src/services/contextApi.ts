@@ -30,6 +30,8 @@ export interface FinancialContext {
   ownerId: string;
   createdAt: string;
   updatedAt: string;
+  /** The signed-in user's role in this context, attached by the list endpoint. */
+  memberRole?: MemberRole;
 }
 
 export interface ContextMember {

@@ -4,6 +4,7 @@ import {
   canEditTransactions,
   canManageContext,
   canManageMembers,
+  canModifyTransaction,
   canRemoveMember,
   canViewTransactions,
   findOwnMembership,
@@ -88,6 +89,35 @@ describe('acting on other members', () => {
   it('never offers to hand over ownership', () => {
     expect(assignableRoles('owner')).not.toContain('owner');
     expect(assignableRoles('owner')).toEqual(['admin', 'member', 'viewer']);
+  });
+});
+
+describe('changing a transaction', () => {
+  const mine = { transactionUserId: 'me', currentUserId: 'me' };
+  const theirs = { transactionUserId: 'them', currentUserId: 'me' };
+
+  it('always allows the author', () => {
+    expect(canModifyTransaction(mine)).toBe(true);
+    expect(canModifyTransaction({ ...mine, contextRole: 'viewer' })).toBe(true);
+  });
+
+  it('allows owners and admins to tidy up after other members', () => {
+    // The reported failure: an owner could see a departed member's entry in the
+    // shared list but the delete came back refused.
+    expect(canModifyTransaction({ ...theirs, contextRole: 'owner' })).toBe(true);
+    expect(canModifyTransaction({ ...theirs, contextRole: 'admin' })).toBe(true);
+  });
+
+  it('refuses ordinary members and viewers on someone else entry', () => {
+    expect(canModifyTransaction({ ...theirs, contextRole: 'member' })).toBe(false);
+    expect(canModifyTransaction({ ...theirs, contextRole: 'viewer' })).toBe(false);
+    expect(canModifyTransaction(theirs)).toBe(false);
+  });
+
+  it('treats an unattributed transaction as the caller own', () => {
+    // The personal view does not return an author, and everything in it
+    // belongs to the caller by construction.
+    expect(canModifyTransaction({ currentUserId: 'me' })).toBe(true);
   });
 });
 

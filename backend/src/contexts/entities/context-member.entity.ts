@@ -124,6 +124,18 @@ export class ContextMember {
     return this.role === MemberRole.OWNER;
   }
 
+  /**
+   * Whether this member may edit or delete transactions recorded by someone
+   * else in the context — tidying up after a member leaves, for instance.
+   * Members keep full control of their own entries regardless.
+   */
+  canModerateTransactions(): boolean {
+    return (
+      this.status === MemberStatus.ACTIVE &&
+      (this.role === MemberRole.OWNER || this.role === MemberRole.ADMIN)
+    );
+  }
+
   isActive(): boolean {
     return this.status === MemberStatus.ACTIVE;
   }

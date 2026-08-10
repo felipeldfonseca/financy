@@ -21,7 +21,7 @@
       "required": "El tipo es requerido",
       "invalid": "Tipo de transacción inválido",
       "expense": "Gasto",
-      "income": "Ingreso", 
+      "income": "Ingreso",
       "transfer": "Transferencia"
     },
     "description": {
@@ -93,7 +93,7 @@
       "transfer": "Transferencias"
     },
     "status": {
-      "label": "Estado", 
+      "label": "Estado",
       "all": "Todos los Estados",
       "pending": "Pendiente",
       "confirmed": "Confirmado",
@@ -139,7 +139,7 @@
       "housing": "Vivienda",
       "transportation": "Transporte",
       "fooddining": "Comida y Restaurantes",
-      "healthfitness": "Salud y Bienestar", 
+      "healthfitness": "Salud y Bienestar",
       "entertainmentshopping": "Entretenimiento y Compras",
       "billsfinancial": "Facturas y Financiero",
       "travellifestyle": "Viajes y Estilo de Vida",
@@ -153,7 +153,7 @@
     },
     "transfer": {
       "accounts": "Transferencias de Cuenta",
-      "debt": "Pagos de Deudas", 
+      "debt": "Pagos de Deudas",
       "other": "Otras Transferencias"
     }
   },
@@ -389,7 +389,7 @@
   "list": {
     "headers": {
       "type": "Tipo",
-      "description": "Descripción", 
+      "description": "Descripción",
       "category": "Categoría",
       "amount": "Cantidad",
       "date": "Fecha",
@@ -400,9 +400,10 @@
     "actions": {
       "edit": "Editar",
       "confirm": "Confirmar",
-      "cancel": "Cancelar", 
+      "cancel": "Cancelar",
       "delete": "Eliminar",
-      "moreActions": "Más acciones"
+      "moreActions": "Más acciones",
+      "readOnly": "Solo el autor o un administrador del contexto puede cambiarlo"
     },
     "status": {
       "confirmed": "Confirmado",
@@ -413,6 +414,7 @@
       "title": "No se encontraron transacciones",
       "subtitle": "Agrega tu primera transacción para comenzar",
       "button": "Agregar Transacción"
-    }
+    },
+    "recordedBy": "Registrado por {{name}}"
   }
 }

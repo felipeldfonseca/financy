@@ -48,7 +48,14 @@ export class ContextsService {
       relations: ['context'],
     });
 
-    return members.map(member => member.context).filter(context => context.isActive);
+    // The caller's role travels with each context so the interface knows which
+    // controls to offer without a request per context.
+    return members
+      .filter((member) => member.context?.isActive)
+      .map((member) => {
+        member.context.memberRole = member.role;
+        return member.context;
+      });
   }
 
   async findOne(id: string, userId: string): Promise<Context> {
@@ -112,13 +119,19 @@ export class ContextsService {
       throw new NotFoundException('User not found with this email address');
     }
 
-    // Check if user is already a member
+    // Membership rows survive a removal — the status becomes LEFT rather than
+    // the row disappearing — so only a live membership is a genuine conflict.
+    // Anything else is someone being invited back, which must be allowed.
     const existingMembership = await this.contextMembersRepository.findOne({
       where: { contextId, userId: userToInvite.id },
     });
 
-    if (existingMembership) {
+    if (existingMembership?.status === MemberStatus.ACTIVE) {
       throw new ConflictException('User is already a member of this context');
+    }
+
+    if (existingMembership?.status === MemberStatus.INVITED) {
+      throw new ConflictException('This user already has a pending invitation');
     }
 
     // Generate invitation token
@@ -126,9 +139,14 @@ export class ContextsService {
     const inviteExpiresAt = new Date();
     inviteExpiresAt.setDate(inviteExpiresAt.getDate() + 7); // 7 days expiry
 
-    const membership = this.contextMembersRepository.create({
+    // Reuse the previous row when there is one: (contextId, userId) is unique,
+    // so a second insert for the same person could never succeed.
+    const membership = existingMembership ?? this.contextMembersRepository.create({
       contextId,
       userId: userToInvite.id,
+    });
+
+    Object.assign(membership, {
       role: inviteMemberDto.role,
       status: MemberStatus.INVITED,
       invitedById: inviterId,
@@ -136,6 +154,8 @@ export class ContextsService {
       inviteToken,
       inviteExpiresAt,
       invitedAt: new Date(),
+      joinedAt: null,
+      leftAt: null,
     });
 
     const saved = await this.contextMembersRepository.save(membership);
@@ -307,8 +327,14 @@ export class ContextsService {
     // Verify user has access to this context
     await this.findOne(contextId, userId);
 
+    // Pending invitations belong here too: whoever manages the context needs
+    // to see who has been invited and not yet accepted. Only people who left
+    // are left out.
     return await this.contextMembersRepository.find({
-      where: { contextId, status: MemberStatus.ACTIVE },
+      where: [
+        { contextId, status: MemberStatus.ACTIVE },
+        { contextId, status: MemberStatus.INVITED },
+      ],
       relations: ['user'],
       order: { role: 'ASC', createdAt: 'ASC' },
     });

@@ -10,7 +10,7 @@ import {
   BeforeInsert,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { ContextMember } from './context-member.entity';
+import { ContextMember, MemberRole } from './context-member.entity';
 import { Transaction } from '../../transactions/entities/transaction.entity';
 
 export enum ContextType {
@@ -72,6 +72,12 @@ export class Context {
 
   @Column({ length: 50, nullable: true })
   icon: string; // Icon identifier for UI
+
+  /**
+   * The requesting member's role, attached when a context is listed for a
+   * particular user. Not persisted: it describes the caller, not the context.
+   */
+  memberRole?: MemberRole;
 
   // Owner relationship
   @Column('uuid')

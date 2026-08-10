@@ -1,4 +1,5 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { ClassSerializerInterceptor, INestApplication, ValidationPipe } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import helmet from 'helmet';
 import * as compression from 'compression';
 import * as cookieParser from 'cookie-parser';
@@ -35,6 +36,12 @@ export function configureApp(app: INestApplication): void {
       transform: true,
     }),
   );
+
+  // Applies the @Exclude() markers on entities when they are serialised.
+  // Without it those markers are inert decoration: any endpoint returning an
+  // entity that carries a User relation was sending the password hash along
+  // with it.
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   app.enableCors({
     origin: corsOrigins(),

@@ -247,6 +247,64 @@ describe('Shared contexts (e2e)', () => {
     });
   });
 
+  describe('moderating other members transactions', () => {
+    it('lets an owner correct and remove a member entry', async () => {
+      const created = await addTransaction(invitee, 'Invitee mistake', contextId).expect(201);
+
+      // The reported failure: after a member leaves, their entries stay in the
+      // shared list and the owner has to be able to tidy them up.
+      await request(app.getHttpServer())
+        .patch(`/api/v1/transactions/${created.body.id}`)
+        .set(auth(owner))
+        .send({ description: 'Corrected by owner' })
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .delete(`/api/v1/transactions/${created.body.id}`)
+        .set(auth(owner))
+        .expect(204);
+    });
+
+    it('refuses an ordinary member changing someone else entry', async () => {
+      const created = await addTransaction(owner, 'Owner entry', contextId).expect(201);
+
+      // Visible in the shared list, so an explicit refusal rather than a 404.
+      await request(app.getHttpServer())
+        .delete(`/api/v1/transactions/${created.body.id}`)
+        .set(auth(invitee))
+        .expect(403);
+
+      await request(app.getHttpServer())
+        .patch(`/api/v1/transactions/${created.body.id}`)
+        .set(auth(invitee))
+        .send({ amount: 1 })
+        .expect(403);
+    });
+
+    it('lets a member open a shared entry recorded by someone else', async () => {
+      const created = await addTransaction(owner, 'Readable by members', contextId).expect(201);
+
+      await request(app.getHttpServer())
+        .get(`/api/v1/transactions/${created.body.id}`)
+        .set(auth(invitee))
+        .expect(200);
+    });
+
+    it('still hides everything from a non-member', async () => {
+      const created = await addTransaction(owner, 'Not for strangers', contextId).expect(201);
+
+      await request(app.getHttpServer())
+        .get(`/api/v1/transactions/${created.body.id}`)
+        .set(auth(stranger))
+        .expect(404);
+
+      await request(app.getHttpServer())
+        .delete(`/api/v1/transactions/${created.body.id}`)
+        .set(auth(stranger))
+        .expect(404);
+    });
+  });
+
   describe('membership management', () => {
     it('lets an admin change a member role but not the owner role', async () => {
       const members = await request(app.getHttpServer())
@@ -290,6 +348,68 @@ describe('Shared contexts (e2e)', () => {
         .query({ contextId })
         .set(auth(invitee))
         .expect(403);
+    });
+  });
+
+  describe('inviting someone back after they leave', () => {
+    /**
+     * Removing a member marks the row as LEFT rather than deleting it, and the
+     * duplicate check used to match any row at all — so anyone removed from a
+     * context could never be invited again.
+     */
+    it('issues a fresh invitation to a former member', async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/api/v1/contexts/${contextId}/invite`)
+        .set(auth(owner))
+        .send({ email: invitee.email, role: 'member' })
+        .expect(201);
+
+      expect(response.body.status).toBe('invited');
+      expect(response.body.inviteToken).toEqual(expect.any(String));
+
+      await request(app.getHttpServer())
+        .post(`/api/v1/contexts/invitations/${response.body.inviteToken}/accept`)
+        .set(auth(invitee))
+        .expect(201);
+
+      const contexts = await request(app.getHttpServer())
+        .get('/api/v1/contexts')
+        .set(auth(invitee))
+        .expect(200);
+
+      expect(contexts.body.map((context: any) => context.id)).toContain(contextId);
+    });
+
+    it('still refuses to invite someone who is already active', async () => {
+      await request(app.getHttpServer())
+        .post(`/api/v1/contexts/${contextId}/invite`)
+        .set(auth(owner))
+        .send({ email: invitee.email, role: 'member' })
+        .expect(409);
+    });
+  });
+
+  describe('pending invitations', () => {
+    it('lists someone who has been invited but has not accepted', async () => {
+      const newcomer = await signUp('newcomer');
+
+      await request(app.getHttpServer())
+        .post(`/api/v1/contexts/${contextId}/invite`)
+        .set(auth(owner))
+        .send({ email: newcomer.email, role: 'viewer' })
+        .expect(201);
+
+      const members = await request(app.getHttpServer())
+        .get(`/api/v1/contexts/${contextId}/members`)
+        .set(auth(owner))
+        .expect(200);
+
+      const pending = members.body.find((member: any) => member.userId === newcomer.id);
+
+      // Without this the interface shows nothing at all between inviting
+      // someone and their accepting.
+      expect(pending).toBeDefined();
+      expect(pending.status).toBe('invited');
     });
   });
 });

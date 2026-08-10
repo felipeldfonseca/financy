@@ -24,8 +24,16 @@ export interface Transaction {
   originalAmount?: number;
   originalCurrency?: string;
   userId: string;
+  /** Who recorded it. Only returned when viewing a shared context. */
+  user?: TransactionAuthor;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface TransactionAuthor {
+  id: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface CreateTransactionData {
