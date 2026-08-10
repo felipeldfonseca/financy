@@ -11,6 +11,17 @@ import * as cookieParser from 'cookie-parser';
  * a validation rule that only exists in main() is a rule no test can protect.
  */
 export function configureApp(app: INestApplication): void {
+  // Behind the hosting platform's proxy every request arrives from the same
+  // address, so without this the rate limiter would count all users as one
+  // client and start rejecting real traffic.
+  //
+  // The value must stay 1 — exactly one hop. Express then reads only the entry
+  // the proxy in front of us appended, which is the real client. Raising it
+  // (or using `true`) would trust entries the client itself can put in
+  // X-Forwarded-For, letting an attacker rotate a fake address and slip past
+  // every limit. The rate-limiting e2e suite fails if this is loosened.
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
+
   // Security middleware
   app.use(helmet());
   app.use(compression());

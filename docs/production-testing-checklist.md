@@ -147,10 +147,10 @@ This document provides a comprehensive testing checklist for validating the Fina
 - [ ] Invalid JWT token handling
 
 ### ⚠️ **Backend Error Handling**
-- [ ] Invalid API requests (wrong data)
-- [ ] Unauthorized access attempts
+- [x] Invalid API requests (wrong data) — covered by the auth and transaction e2e suites
+- [x] Unauthorized access attempts — covered by the protected-route and context isolation e2e suites
 - [ ] Database constraint violations
-- [ ] Rate limiting (100+ requests in 1 minute)
+- [x] Rate limiting (2026-08-06) — the ThrottlerModule had been configured since the start but its guard was never registered, so no limit was ever enforced and login accepted unlimited password guesses. The guard is now global (100 req/min), login is capped at 10/min, and the Telegram webhook gets 300/min so a busy bot is never throttled. `trust proxy` is set to exactly one hop, without which every user would share a single bucket behind Railway's proxy — and with more than one hop an attacker could forge X-Forwarded-For to get a fresh budget per request. Both failure modes are covered by `rate-limiting.e2e-spec.ts`.
 
 ### ⚠️ **Telegram Error Handling**
 - [ ] Send invalid transaction format

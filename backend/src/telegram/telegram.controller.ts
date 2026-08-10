@@ -9,6 +9,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { Public } from '../auth/decorators/public.decorator';
 import { TelegramService } from './telegram.service';
 import { TelegramUpdate } from './interfaces/telegram.interface';
@@ -22,6 +23,10 @@ export class TelegramController {
   constructor(private readonly telegramService: TelegramService) {}
 
   @Public()
+  // Telegram delivers every update from a small pool of addresses, so the
+  // default per-IP limit would throttle the whole bot the moment it got busy
+  // and drop users' messages. This ceiling only exists to bound a flood.
+  @Throttle({ default: { limit: 300, ttl: 60_000 } })
   @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Handle Telegram webhook updates' })
