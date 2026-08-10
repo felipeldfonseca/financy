@@ -1,8 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 import { Context } from '../../contexts/entities/context.entity';
 
 @Entity('chat_contexts')
-@Index(['chatId', 'chatType'])
+// Named explicitly so the entity and the migration agree; without a name
+// TypeORM expects a generated hash the migration does not create.
+@Index('IDX_chat_contexts_chat_id_chat_type', ['chatId', 'chatType'])
 export class ChatContext {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -19,7 +21,10 @@ export class ChatContext {
   @Column({ type: 'uuid', name: 'context_id' })
   contextId: string;
 
+  // Without an explicit join column the relation would generate a second,
+  // redundant "contextId" column alongside the "context_id" above.
   @ManyToOne(() => Context, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'context_id' })
   context: Context;
 
   @CreateDateColumn({ name: 'created_at' })

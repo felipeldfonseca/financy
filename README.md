@@ -90,6 +90,29 @@ financy/
 - `npm run lint` - Run linting on all projects
 - `npm run lint:fix` - Fix linting issues automatically
 
+### Tests
+
+Unit tests need nothing extra:
+
+```bash
+npm test --workspace backend     # service and utility specs
+npm test --workspace frontend    # category mapping and translation specs
+```
+
+The backend end-to-end suite runs the real API against a real PostgreSQL. It
+drops every table and rebuilds the schema from migrations on each run — the
+same path a production deploy takes — so it refuses to start unless the
+database name contains `test`:
+
+```bash
+createdb financy_test
+DATABASE_URL=postgres://postgres@localhost:5432/financy_test \
+  npm run test:e2e --workspace backend
+```
+
+All three suites run on every push and pull request via GitHub Actions
+(`.github/workflows/ci.yml`).
+
 ### Technology Stack
 
 **Backend:**
