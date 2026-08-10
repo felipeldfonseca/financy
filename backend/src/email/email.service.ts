@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
+import { assessSender } from './sender-address';
 
 export interface EmailMessage {
   to: string;
@@ -32,8 +33,49 @@ export class EmailService {
     this.apiKey = this.configService.get<string>('RESEND_API_KEY');
     this.from = this.configService.get<string>('EMAIL_FROM', 'Financy <onboarding@resend.dev>');
 
+    this.reportConfiguration();
+  }
+
+  /**
+   * Says at boot whether email will actually be delivered. A sender the
+   * provider will reject only shows up as invitations that never arrive, and
+   * nobody reports an email they did not know to expect — so the problem
+   * belongs in the deployment logs, not in a support message weeks later.
+   */
+  private reportConfiguration(): void {
     if (!this.apiKey) {
-      this.logger.log('RESEND_API_KEY not configured. Transactional email is disabled.');
+      this.logger.log(
+        'RESEND_API_KEY not configured. Transactional email is disabled; invitations fall back to a shareable link.',
+      );
+      return;
+    }
+
+    const sender = assessSender(this.from);
+
+    switch (sender.status) {
+      case 'malformed':
+        this.logger.error(
+          `EMAIL_FROM ("${this.from}") is not a valid address. Use "Name <user@your-domain.com>". No email will be delivered.`,
+        );
+        break;
+
+      case 'unverifiable-domain':
+        this.logger.error(
+          `EMAIL_FROM uses ${sender.domain}, a mailbox provider whose DNS you cannot control, so it can never be verified as a sending domain and every send will be rejected. ` +
+            'Use "onboarding@resend.dev" to test, or verify your own domain at https://resend.com/domains. Invitations still work through their shareable link.',
+        );
+        break;
+
+      case 'shared-testing-sender':
+        this.logger.warn(
+          "Sending from Resend's shared testing address: delivery only works to the address that owns the Resend account. " +
+            'Verify your own domain to email anyone else.',
+        );
+        break;
+
+      case 'ok':
+        this.logger.log(`Transactional email enabled (sending from ${sender.address}).`);
+        break;
     }
   }
 
