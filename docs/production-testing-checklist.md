@@ -177,7 +177,7 @@ This document provides a comprehensive testing checklist for validating the Fina
 - [ ] No sensitive data in browser console
 - [x] Environment variables not exposed
 - [ ] SQL injection protection (try malicious inputs)
-- [ ] Webhook update bodies are debug-logged in full (`TelegramController`), putting users' financial message text into Railway logs — consider dropping to a redacted summary
+- [x] Message content kept out of production logs (2026-08-06) — webhook update dumps, voice transcripts, raw model output, and parsed transactions are reduced to metadata (chat id, content kinds, field presence) when `NODE_ENV=production`; full payloads still log outside production for debugging. Verified locally in both modes.
 
 **Status**: 🟡 **PARTIAL** - HTTPS, route auth, and webhook authentication done; input-level testing pending
 

@@ -22,6 +22,7 @@ import { ContextDetectionService } from './context-detection.service';
 import { ContextSetupService } from './context-setup.service';
 import { MemberRole } from '../contexts/entities/context-member.entity';
 import { getTelegramTranslation } from './translations';
+import { describeUpdate } from './utils/log-sanitizer';
 
 @Injectable()
 export class TelegramService implements OnModuleInit, OnModuleDestroy {
@@ -262,7 +263,7 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
 
   async processUpdate(update: TelegramUpdate): Promise<void> {
     try {
-      this.logger.debug('Processing update:', JSON.stringify(update, null, 2));
+      this.logger.debug('Processing update:', describeUpdate(update));
 
       if (update.message) {
         await this.processMessage(update.message);

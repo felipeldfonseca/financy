@@ -6,6 +6,7 @@ import * as crypto from 'crypto';
 import * as FormData from 'form-data';
 import { ParsedTransaction } from './interfaces/telegram.interface';
 import { CurrencyService } from '../currency/currency.service';
+import { describeContent, describeTransaction } from './utils/log-sanitizer';
 
 // Predefined dashboard category configuration (must match frontend categories)
 // These use the same keys as the frontend dashboard categories
@@ -112,7 +113,7 @@ export class MessageProcessorService {
         return null;
       }
 
-      this.logger.log('Voice transcription successful:', transcribedText);
+      this.logger.log('Voice transcription successful:', describeContent(transcribedText));
       return transcribedText;
     } catch (error) {
       this.logger.error('Error processing voice message:', error);
@@ -178,7 +179,7 @@ export class MessageProcessorService {
           };
 
           processedTransactions.push(finalTransaction);
-          this.logger.log(`Photo ${i + 1} processing successful:`, finalTransaction);
+          this.logger.log(`Photo ${i + 1} processing successful:`, describeTransaction(finalTransaction));
         } catch (error) {
           this.logger.error(`Error processing photo ${i + 1}:`, error);
           continue;
@@ -383,7 +384,7 @@ Remember: Respond with ONLY the JSON array, no additional text. Always use ${def
         
         // Validate each transaction
         if (!this.isValidParsedTransaction(transaction)) {
-          this.logger.warn(`Invalid AI response format for transaction ${i + 1}:`, transaction);
+          this.logger.warn(`Invalid AI response format for transaction ${i + 1}:`, describeTransaction(transaction));
           continue;
         }
 
@@ -403,7 +404,7 @@ Remember: Respond with ONLY the JSON array, no additional text. Always use ${def
 
       return validTransactions;
     } catch (error) {
-      this.logger.error('Error parsing multi AI response:', error, 'Response:', aiResponse);
+      this.logger.error('Error parsing multi AI response:', error, 'Response:', describeContent(aiResponse));
       return [];
     }
   }
@@ -430,7 +431,7 @@ Remember: Respond with ONLY the JSON array, no additional text. Always use ${def
 
       // Validate the parsed response
       if (!this.isValidParsedTransaction(parsed)) {
-        this.logger.warn('Invalid AI response format:', parsed);
+        this.logger.warn('Invalid AI response format:', describeTransaction(parsed));
         return null;
       }
 
@@ -445,7 +446,7 @@ Remember: Respond with ONLY the JSON array, no additional text. Always use ${def
         originalText,
       };
     } catch (error) {
-      this.logger.error('Error parsing AI response:', error, 'Response:', aiResponse);
+      this.logger.error('Error parsing AI response:', error, 'Response:', describeContent(aiResponse));
       return null;
     }
   }
@@ -738,7 +739,7 @@ Remember: Respond with ONLY the JSON array, no additional text. Always use ${def
           );
 
           if (response.data.text) {
-            this.logger.log(`Transcription successful with ${model}:`, response.data.text);
+            this.logger.log(`Transcription successful with ${model}:`, describeContent(response.data.text));
             return response.data.text.trim();
           }
         } catch (error) {
@@ -931,7 +932,7 @@ Remember: Respond with ONLY the JSON object, no additional text. Always use a ca
         return parsed;
       }
 
-      this.logger.warn('Invalid receipt data format:', parsed);
+      this.logger.warn('Invalid receipt data format:', describeTransaction(parsed));
       return null;
     } catch (error) {
       this.logger.error('Error parsing receipt response:', error);

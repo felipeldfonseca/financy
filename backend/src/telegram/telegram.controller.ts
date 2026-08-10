@@ -12,6 +12,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Public } from '../auth/decorators/public.decorator';
 import { TelegramService } from './telegram.service';
 import { TelegramUpdate } from './interfaces/telegram.interface';
+import { describeUpdate } from './utils/log-sanitizer';
 
 @ApiTags('telegram')
 @Controller('webhooks/telegram')
@@ -38,7 +39,7 @@ export class TelegramController {
       throw new UnauthorizedException('Invalid webhook secret token');
     }
 
-    this.logger.debug('Received Telegram update:', JSON.stringify(update, null, 2));
+    this.logger.debug('Received Telegram update:', describeUpdate(update));
 
     try {
       await this.telegramService.processUpdate(update);
