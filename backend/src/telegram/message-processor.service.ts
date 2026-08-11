@@ -46,13 +46,16 @@ export class MessageProcessorService {
     this.tertiaryModel = this.configService.get('TERTIARY_MODEL', 'google/gemini-2.5-flash-lite');
 
     // Receipt OCR needs vision models, which the primary/secondary text models
-    // are not. The default is gpt-4o-mini: cheap (fractions of a cent per
-    // receipt), accurate, and — unlike the free vision models, which come and
-    // go on OpenRouter — reliably available. It does require a little credit on
-    // the OpenRouter account. Override with VISION_MODELS (comma-separated,
-    // tried in order) to put a free model first, or to use a stronger paid one.
+    // are not. Tried in order until one succeeds:
+    //   1. gemini-2.5-flash — tops the OCR leaderboards, reads PDFs natively,
+    //      and is cheap (~US$0.001 per receipt). The natural primary once PDF
+    //      support lands, since the same model handles photos and PDFs.
+    //   2. qwen3-vl-235b — state-of-the-art OCR among open models, cheaper
+    //      still, strong multilingual text; catches receipts the first misses.
+    // Both are far better value than the old gpt-4o-mini default. Override with
+    // VISION_MODELS (comma-separated) to tune cost vs accuracy.
     this.visionModels = this.configService
-      .get('VISION_MODELS', 'openai/gpt-4o-mini')
+      .get('VISION_MODELS', 'google/gemini-2.5-flash,qwen/qwen3-vl-235b-a22b-instruct')
       .split(',')
       .map((model: string) => model.trim())
       .filter(Boolean);
