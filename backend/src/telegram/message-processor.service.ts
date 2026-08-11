@@ -46,16 +46,13 @@ export class MessageProcessorService {
     this.tertiaryModel = this.configService.get('TERTIARY_MODEL', 'google/gemini-2.5-flash-lite');
 
     // Receipt OCR needs vision models, which the primary/secondary text models
-    // are not. These defaults are free, current, and vision-capable — the old
-    // hardcoded list was paid (gpt-4o, claude-3.5-sonnet) and included a model
-    // Google has since retired (gemini-pro-vision), so on a free key every
-    // receipt failed. Override with VISION_MODELS (comma-separated) to use
-    // paid models for better accuracy.
+    // are not. The default is gpt-4o-mini: cheap (fractions of a cent per
+    // receipt), accurate, and — unlike the free vision models, which come and
+    // go on OpenRouter — reliably available. It does require a little credit on
+    // the OpenRouter account. Override with VISION_MODELS (comma-separated,
+    // tried in order) to put a free model first, or to use a stronger paid one.
     this.visionModels = this.configService
-      .get(
-        'VISION_MODELS',
-        'meta-llama/llama-3.2-11b-vision-instruct:free,qwen/qwen2.5-vl-72b-instruct:free,google/gemini-2.0-flash-exp:free',
-      )
+      .get('VISION_MODELS', 'openai/gpt-4o-mini')
       .split(',')
       .map((model: string) => model.trim())
       .filter(Boolean);
