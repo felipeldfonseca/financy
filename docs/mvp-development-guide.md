@@ -4318,7 +4318,7 @@ Deploy MVP to production environment and launch beta testing program.
 1. **Docker Configuration**
    ```dockerfile
    # backend/Dockerfile
-   FROM node:18-alpine AS builder
+   FROM node:20-alpine AS builder
    
    WORKDIR /app
    COPY package*.json ./
@@ -4327,7 +4327,7 @@ Deploy MVP to production environment and launch beta testing program.
    COPY . .
    RUN npm run build
    
-   FROM node:18-alpine AS production
+   FROM node:20-alpine AS production
    
    WORKDIR /app
    COPY --from=builder /app/node_modules ./node_modules

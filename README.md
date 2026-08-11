@@ -21,7 +21,7 @@ This project is currently in **development phase**. The MVP is being built follo
 
 ### Prerequisites
 
-- Node.js 18+ and npm 9+
+- Node.js 20+ and npm 9+
 - PostgreSQL 15+
 - Redis 7+
 - Docker and Docker Compose (optional)
