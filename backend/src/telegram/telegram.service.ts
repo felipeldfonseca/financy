@@ -9,6 +9,7 @@ import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { TransactionsService } from '../transactions/transactions.service';
 import { normalizeDashboardCategory } from '../transactions/category-normalizer';
+import { resolveTransactionDate } from './transaction-date';
 import { CreateTransactionDto } from '../transactions/dto/create-transaction.dto';
 import { ContextsService } from '../contexts/contexts.service';
 import { 
@@ -933,20 +934,9 @@ Once linked, you can track transactions directly through Telegram! 🚀
       category: dashboardCategory,
       dashboardCategory,
       merchantName: transactionData.merchantName,
-      date: this.resolveTransactionDate(transactionData.date),
+      date: resolveTransactionDate(transactionData.date, new Date()),
       contextId: transactionData.contextId,
     };
-  }
-
-  /** Uses the date parsed from the message when it is valid; today otherwise. */
-  private resolveTransactionDate(parsedDate?: string): string {
-    if (parsedDate) {
-      const parsed = new Date(parsedDate);
-      if (!Number.isNaN(parsed.getTime())) {
-        return parsed.toISOString();
-      }
-    }
-    return new Date().toISOString();
   }
 
   private async confirmTransaction(chatId: number, tempId: string, userId: string): Promise<void> {
