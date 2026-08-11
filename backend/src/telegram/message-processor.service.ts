@@ -187,13 +187,8 @@ export class MessageProcessorService {
           // Apply currency conversion
           const convertedTransaction = await this.applyCurrencyConversion(extractedData, defaultCurrency);
 
-          // Create ParsedTransaction with temp ID
-          const tempId = crypto.randomBytes(16).toString('hex');
-          const finalTransaction: ParsedTransaction = {
-            ...convertedTransaction,
-            tempId,
-            originalText: 'Receipt photo',
-          };
+          // Assign a temp id and store it so the confirm button can find it.
+          const finalTransaction = this.finalizeTransaction(convertedTransaction, 'Receipt photo');
 
           processedTransactions.push(finalTransaction);
           this.logger.log('Receipt processing successful:', describeTransaction(finalTransaction));
@@ -489,7 +484,12 @@ Remember: Respond with ONLY the JSON array, no additional text. Always use ${def
           transactions.push(singleTransaction);
         }
       }
-      
+
+      // The regex path returns straight to the caller, bypassing the store
+      // that the AI path runs — without this, a confirmation after an AI
+      // outage would fail with "Transaction data expired".
+      transactions.forEach((transaction) => this.storeTransaction(transaction));
+
       return transactions;
     } catch (error) {
       this.logger.error('Error in multi-regex parsing:', error);
@@ -668,11 +668,27 @@ Remember: Respond with ONLY the JSON array, no additional text. Always use ${def
   private storeTransaction(transaction: ParsedTransaction): void {
     // Store for 10 minutes
     this.storedTransactions.set(transaction.tempId, transaction);
-    
+
     // Auto-cleanup after 10 minutes
     setTimeout(() => {
       this.storedTransactions.delete(transaction.tempId);
     }, 10 * 60 * 1000);
+  }
+
+  /**
+   * Assigns a temp id, stores the transaction so the confirm button can find
+   * it, and returns it. Minting an id without storing is exactly what left
+   * receipt confirmations failing with "Transaction data expired" — this keeps
+   * the two steps inseparable for every path that produces a transaction.
+   */
+  finalizeTransaction(data: Partial<ParsedTransaction>, originalText: string): ParsedTransaction {
+    const transaction: ParsedTransaction = {
+      ...(data as ParsedTransaction),
+      tempId: crypto.randomBytes(16).toString('hex'),
+      originalText,
+    };
+    this.storeTransaction(transaction);
+    return transaction;
   }
 
   private async getTelegramFileUrl(fileId: string): Promise<string | null> {
@@ -853,15 +869,9 @@ Remember: Respond with ONLY the JSON array, no additional text. Always use ${def
       }
 
       const convertedTransaction = await this.applyCurrencyConversion(extractedData, defaultCurrency);
-      const tempId = crypto.randomBytes(16).toString('hex');
 
-      return [
-        {
-          ...convertedTransaction,
-          tempId,
-          originalText: 'Receipt PDF',
-        },
-      ];
+      // Store it so the confirm button can find it (see finalizeTransaction).
+      return [this.finalizeTransaction(convertedTransaction, 'Receipt PDF')];
     } catch (error) {
       this.logger.error('Error processing PDF message:', error);
       return [];
