@@ -31,6 +31,7 @@ export class MessageProcessorService {
   private readonly primaryModel: string;
   private readonly secondaryModel: string;
   private readonly tertiaryModel: string;
+  private readonly visionModels: string[];
   private readonly storedTransactions = new Map<string, ParsedTransaction>();
 
   constructor(
@@ -42,6 +43,21 @@ export class MessageProcessorService {
     this.primaryModel = this.configService.get('PRIMARY_MODEL', 'deepseek/deepseek-chat-v3.1:free');
     this.secondaryModel = this.configService.get('SECONDARY_MODEL', 'qwen/qwen3-coder:free');
     this.tertiaryModel = this.configService.get('TERTIARY_MODEL', 'google/gemini-2.5-flash-lite');
+
+    // Receipt OCR needs vision models, which the primary/secondary text models
+    // are not. These defaults are free, current, and vision-capable — the old
+    // hardcoded list was paid (gpt-4o, claude-3.5-sonnet) and included a model
+    // Google has since retired (gemini-pro-vision), so on a free key every
+    // receipt failed. Override with VISION_MODELS (comma-separated) to use
+    // paid models for better accuracy.
+    this.visionModels = this.configService
+      .get(
+        'VISION_MODELS',
+        'meta-llama/llama-3.2-11b-vision-instruct:free,qwen/qwen2.5-vl-72b-instruct:free,google/gemini-2.0-flash-exp:free',
+      )
+      .split(',')
+      .map((model: string) => model.trim())
+      .filter(Boolean);
   }
 
   async processTextMessage(text: string, userId: string, defaultCurrency: string = 'USD'): Promise<ParsedTransaction[]> {
@@ -786,14 +802,7 @@ Remember: Respond with ONLY the JSON array, no additional text. Always use ${def
 
   private async extractReceiptData(imageBuffer: Buffer, photoInfo: any): Promise<any | null> {
     try {
-      // Use OpenRouter's vision models to extract receipt data
-      const models = [
-        'openai/gpt-4o', // GPT-4 Vision (best quality)
-        'anthropic/claude-3.5-sonnet', // Claude 3.5 Sonnet with vision
-        'google/gemini-pro-vision', // Gemini Pro Vision
-      ];
-
-      for (const model of models) {
+      for (const model of this.visionModels) {
         try {
           this.logger.debug(`Trying receipt extraction with model: ${model}`);
           
@@ -891,20 +900,20 @@ Guidelines:
 - Focus on the total amount (after tax, fees, etc.)
 - Detect currency from symbols ($, €, £, R$, ¥, MX$) or text
 - Identify merchant name from header/footer
-- Category is REQUIRED: choose the closest match from allowed categories above, use "Other Expenses" if unsure
+- Category is REQUIRED: use one of the exact keys listed above, or "other" if unsure
 - Extract date from receipt if visible, otherwise use current date
 - Set confidence 0.9+ for clear receipts, 0.7+ for unclear ones
 
-Category Examples:
-- Grocery store receipt → "Food & Dining"
-- Gas station → "Transportation"
-- Restaurant, cafe, bar → "Food & Dining"
-- Retail/clothing store → "Shopping"
-- Pharmacy → "Health & Fitness"
-- Uber/taxi → "Transportation"
-- Hotel → "Travel & Vacation"
+Category Examples (use the key on the right, exactly):
+- Grocery store, restaurant, cafe, bar → fooddining
+- Gas station, Uber, taxi, parking → transportation
+- Retail, clothing, electronics → entertainmentshopping
+- Pharmacy, doctor, gym → healthfitness
+- Rent, utilities bill → housing
+- Hotel, flight, vacation → travellifestyle
+- Bank fees, insurance, taxes → billsfinancial
 
-Remember: Respond with ONLY the JSON object, no additional text. Always use a category from the allowed list.`;
+Remember: Respond with ONLY the JSON object, no additional text. The category MUST be one of the exact keys: ${PREDEFINED_CATEGORIES.expense.join(', ')}.`;
   }
 
   private parseReceiptResponse(response: string): any | null {
@@ -969,19 +978,11 @@ Remember: Respond with ONLY the JSON object, no additional text. Always use a ca
   }
 
   private fallbackReceiptProcessing(imageBuffer: Buffer, photoInfo: any): any | null {
-    // Simple fallback when vision models fail
-    // Could integrate with Tesseract.js or similar OCR library here
-    this.logger.warn('Vision models failed, receipt processing requires manual entry');
-    
-    // Return a basic transaction template that user can confirm/edit
-    return {
-      amount: 0,
-      currency: 'USD',
-      type: 'expense',
-      description: 'Receipt (please edit)',
-      category: 'Uncategorized',
-      merchantName: null,
-      confidence: 0.3, // Low confidence to indicate manual verification needed
-    };
+    // Every configured vision model failed. Returning a zero-amount "Receipt
+    // (please edit)" placeholder used to look like a successful read of an
+    // empty receipt; null lets the caller tell the user plainly that the image
+    // could not be read, so they can retry or enter it by hand.
+    this.logger.warn('All vision models failed to read the receipt.');
+    return null;
   }
 }

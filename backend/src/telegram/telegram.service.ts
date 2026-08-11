@@ -8,6 +8,8 @@ import * as crypto from 'crypto';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { TransactionsService } from '../transactions/transactions.service';
+import { normalizeDashboardCategory } from '../transactions/category-normalizer';
+import { CreateTransactionDto } from '../transactions/dto/create-transaction.dto';
 import { ContextsService } from '../contexts/contexts.service';
 import { 
   TelegramUpdate, 
@@ -867,26 +869,57 @@ Once linked, you can track transactions directly through Telegram! 🚀
     await this.sendMessage(chatId, message);
   }
 
+  /**
+   * Turns a parsed message (text, voice or receipt) into the payload the
+   * transactions service expects. Two things were wrong before this existed:
+   * dashboardCategory was never set, so bot transactions landed in "Other" on
+   * the dashboard, and the extracted date was thrown away in favour of today,
+   * so a receipt from last week was filed under today.
+   */
+  private buildTransactionPayload(transactionData: ParsedTransaction): CreateTransactionDto {
+    const dashboardCategory = normalizeDashboardCategory(
+      transactionData.type,
+      transactionData.category,
+    );
+
+    return {
+      amount: transactionData.amount,
+      description: transactionData.description,
+      type: transactionData.type as any,
+      currency: transactionData.currency,
+      category: dashboardCategory,
+      dashboardCategory,
+      merchantName: transactionData.merchantName,
+      date: this.resolveTransactionDate(transactionData.date),
+      contextId: transactionData.contextId,
+    };
+  }
+
+  /** Uses the date parsed from the message when it is valid; today otherwise. */
+  private resolveTransactionDate(parsedDate?: string): string {
+    if (parsedDate) {
+      const parsed = new Date(parsedDate);
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed.toISOString();
+      }
+    }
+    return new Date().toISOString();
+  }
+
   private async confirmTransaction(chatId: number, tempId: string, userId: string): Promise<void> {
     try {
       const transactionData = await this.messageProcessor.getStoredTransaction(tempId);
-      
+
       if (!transactionData) {
         await this.sendMessage(chatId, 'Transaction data expired. Please try again.');
         return;
       }
 
       // Create the transaction
-      const transaction = await this.transactionsService.create({
-        amount: transactionData.amount,
-        description: transactionData.description,
-        type: transactionData.type as any,
-        currency: transactionData.currency,
-        category: transactionData.category,
-        merchantName: transactionData.merchantName,
-        date: new Date().toISOString(),
-        contextId: transactionData.contextId,
-      }, userId);
+      const transaction = await this.transactionsService.create(
+        this.buildTransactionPayload(transactionData),
+        userId,
+      );
 
       await this.sendMessage(chatId, `✅ Transaction confirmed!\n\n💰 ${transactionData.amount} ${transactionData.currency} - ${transactionData.description}`);
       
@@ -1131,17 +1164,11 @@ ${closing}
         
         try {
           // Create the transaction
-          const transaction = await this.transactionsService.create({
-            amount: transactionData.amount,
-            description: transactionData.description,
-            type: transactionData.type as any,
-            currency: transactionData.currency,
-            category: transactionData.category,
-            merchantName: transactionData.merchantName,
-            date: new Date().toISOString(),
-            contextId: transactionData.contextId,
-          }, userId);
-          
+          const transaction = await this.transactionsService.create(
+            this.buildTransactionPayload(transactionData),
+            userId,
+          );
+
           savedTransactions.push(transaction);
         } catch (error) {
           this.logger.error(`Error saving transaction ${i + 1}:`, error);
