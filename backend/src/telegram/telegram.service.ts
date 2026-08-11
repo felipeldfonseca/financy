@@ -326,10 +326,12 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
       await this.handleVoiceMessage(chatId, message.voice, userId);
     } else if (message.photo && message.photo.length > 0) {
       await this.handlePhotoMessage(chatId, message.photo, userId);
+    } else if (message.document) {
+      await this.handleDocumentMessage(chatId, message.document, userId);
     } else if (message.text) {
       await this.handleTextMessage(chatId, message.text, userId, message);
     } else {
-      await this.sendMessage(chatId, 'I can process text messages, voice messages, and photos. Please try one of those!');
+      await this.sendMessage(chatId, 'I can process text messages, voice messages, photos, and PDF receipts. Please try one of those!');
     }
   }
 
@@ -544,8 +546,8 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
 
   private async handlePhotoMessage(chatId: number, photos: any[], userId: string): Promise<void> {
     try {
-      const photoCount = photos.length;
-      await this.sendMessage(chatId, `📷 Processing ${photoCount} receipt${photoCount > 1 ? 's' : ''}...`);
+      const translation = getTelegramTranslation(await this.getUserLanguage(userId));
+      await this.sendMessage(chatId, translation.receipt.processingPhoto);
 
       // Get user's default currency from their profile
       let defaultCurrency = 'USD'; // fallback default
@@ -561,56 +563,97 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
 
       // Process all photos
       const extractedTransactions = await this.messageProcessor.processPhotoMessage(photos, userId, defaultCurrency);
-
-      if (extractedTransactions && extractedTransactions.length > 0) {
-        // Filter transactions with sufficient confidence
-        const validTransactions = extractedTransactions.filter(transaction => transaction.confidence > 0.6);
-        
-        if (validTransactions.length > 0) {
-          if (validTransactions.length === 1) {
-            // Single transaction - use existing format
-            const confirmationMessage = await this.formatTransactionConfirmation(validTransactions[0], userId);
-            const userLanguage = await this.getUserLanguage(userId);
-            const translation = getTelegramTranslation(userLanguage);
-            await this.sendMessage(chatId, confirmationMessage, {
-              reply_markup: {
-                inline_keyboard: [[
-                  { text: translation.buttons.confirm, callback_data: `confirm_${validTransactions[0].tempId}` },
-                  { text: translation.buttons.edit, callback_data: `edit_${validTransactions[0].tempId}` },
-                  { text: translation.buttons.cancel, callback_data: `cancel_${validTransactions[0].tempId}` },
-                ]],
-              },
-            });
-          } else {
-            // Multiple transactions - use batch format
-            const confirmationMessage = await this.formatMultiTransactionConfirmation(validTransactions, userId);
-            const batchId = crypto.randomBytes(16).toString('hex');
-            
-            // Store batch for processing
-            this.storeBatchTransactions(batchId, validTransactions);
-            
-            const userLanguage = await this.getUserLanguage(userId);
-            const translation = getTelegramTranslation(userLanguage);
-            await this.sendMessage(chatId, confirmationMessage, {
-              reply_markup: {
-                inline_keyboard: [[
-                  { text: translation.buttons.confirmAll, callback_data: `confirm_batch_${batchId}` },
-                  { text: translation.buttons.review, callback_data: `review_batch_${batchId}` },
-                  { text: translation.buttons.cancelAll, callback_data: `cancel_batch_${batchId}` },
-                ]],
-              },
-            });
-          }
-        } else {
-          await this.sendMessage(chatId, `I processed ${extractedTransactions.length} receipt${extractedTransactions.length > 1 ? 's' : ''} but the confidence was too low. Please try clearer images or enter the transactions manually.`);
-        }
-      } else {
-        await this.sendMessage(chatId, 'Sorry, I couldn\'t extract transaction details from the image(s). Please try again with clearer photos or enter the transaction manually.');
-      }
+      await this.presentExtractedReceipts(chatId, extractedTransactions, userId);
     } catch (error) {
       this.logger.error('Error processing photo message:', error);
-      await this.sendMessage(chatId, 'Sorry, I couldn\'t process those images.');
+      const translation = getTelegramTranslation(await this.getUserLanguage(userId));
+      await this.sendMessage(chatId, translation.receipt.failed);
     }
+  }
+
+  private async handleDocumentMessage(chatId: number, document: any, userId: string): Promise<void> {
+    const translation = getTelegramTranslation(await this.getUserLanguage(userId));
+
+    // The only document type the OCR pipeline understands is a PDF receipt.
+    if (document.mime_type !== 'application/pdf') {
+      await this.sendMessage(chatId, translation.receipt.unsupportedFile);
+      return;
+    }
+
+    try {
+      await this.sendMessage(chatId, translation.receipt.processingPdf);
+
+      let defaultCurrency = 'USD';
+      try {
+        const user = await this.usersRepository.findOne({ where: { id: userId, isActive: true } });
+        if (user?.defaultCurrency) {
+          defaultCurrency = user.defaultCurrency;
+        }
+      } catch (error) {
+        this.logger.warn('Could not fetch user default currency for PDF, using USD:', error.message);
+      }
+
+      const extractedTransactions = await this.messageProcessor.processPdfMessage(
+        document,
+        userId,
+        defaultCurrency,
+      );
+      await this.presentExtractedReceipts(chatId, extractedTransactions, userId);
+    } catch (error) {
+      this.logger.error('Error processing document message:', error);
+      await this.sendMessage(chatId, translation.receipt.failed);
+    }
+  }
+
+  /**
+   * Shows the transactions read from a receipt (photo or PDF) with confirm
+   * buttons — one confirmation for a single transaction, a batch for several,
+   * and a clear message when nothing legible came back. Shared by the photo
+   * and PDF handlers so both behave identically.
+   */
+  private async presentExtractedReceipts(
+    chatId: number,
+    extractedTransactions: ParsedTransaction[],
+    userId: string,
+  ): Promise<void> {
+    const translation = getTelegramTranslation(await this.getUserLanguage(userId));
+    const validTransactions = (extractedTransactions || []).filter((t) => t.confidence > 0.6);
+
+    if (validTransactions.length === 0) {
+      const hadResults = extractedTransactions && extractedTransactions.length > 0;
+      await this.sendMessage(
+        chatId,
+        hadResults ? translation.receipt.lowConfidence : translation.receipt.notRecognized,
+      );
+      return;
+    }
+
+    if (validTransactions.length === 1) {
+      const confirmationMessage = await this.formatTransactionConfirmation(validTransactions[0], userId);
+      await this.sendMessage(chatId, confirmationMessage, {
+        reply_markup: {
+          inline_keyboard: [[
+            { text: translation.buttons.confirm, callback_data: `confirm_${validTransactions[0].tempId}` },
+            { text: translation.buttons.edit, callback_data: `edit_${validTransactions[0].tempId}` },
+            { text: translation.buttons.cancel, callback_data: `cancel_${validTransactions[0].tempId}` },
+          ]],
+        },
+      });
+      return;
+    }
+
+    const confirmationMessage = await this.formatMultiTransactionConfirmation(validTransactions, userId);
+    const batchId = crypto.randomBytes(16).toString('hex');
+    this.storeBatchTransactions(batchId, validTransactions);
+    await this.sendMessage(chatId, confirmationMessage, {
+      reply_markup: {
+        inline_keyboard: [[
+          { text: translation.buttons.confirmAll, callback_data: `confirm_batch_${batchId}` },
+          { text: translation.buttons.review, callback_data: `review_batch_${batchId}` },
+          { text: translation.buttons.cancelAll, callback_data: `cancel_batch_${batchId}` },
+        ]],
+      },
+    });
   }
 
   private async sendWelcomeMessage(chatId: number, userId?: string): Promise<void> {

@@ -18,6 +18,14 @@ export interface TelegramTranslations {
     review: string;
     cancelAll: string;
   };
+  receipt: {
+    processingPhoto: string;
+    processingPdf: string;
+    lowConfidence: string;
+    notRecognized: string;
+    unsupportedFile: string;
+    failed: string;
+  };
 }
 
 export const telegramTranslations: Record<string, TelegramTranslations> = {
@@ -71,6 +79,14 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       confirmAll: '✅ Confirm All',
       review: '✏️ Review',
       cancelAll: '❌ Cancel All'
+    },
+    receipt: {
+      processingPhoto: '📷 Reading your receipt...',
+      processingPdf: '📄 Reading your PDF...',
+      lowConfidence: "I read the receipt but couldn't be sure of the details. Please try a clearer image or enter it manually.",
+      notRecognized: "I couldn't read a transaction from that. Try a clearer photo, or type the amount and what it was for.",
+      unsupportedFile: 'I can read PDF receipts. For other files, send a photo or type the transaction.',
+      failed: "Sorry, I couldn't process that file. Please try again."
     }
   },
   pt: {
@@ -123,6 +139,14 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       confirmAll: '✅ Confirmar Todas',
       review: '✏️ Revisar',
       cancelAll: '❌ Cancelar Todas'
+    },
+    receipt: {
+      processingPhoto: '📷 Lendo seu recibo...',
+      processingPdf: '📄 Lendo seu PDF...',
+      lowConfidence: 'Li o recibo mas não tive certeza dos detalhes. Tente uma imagem mais nítida ou lance manualmente.',
+      notRecognized: 'Não consegui identificar uma transação. Tente uma foto mais nítida, ou digite o valor e do que foi.',
+      unsupportedFile: 'Eu leio recibos em PDF. Para outros arquivos, mande uma foto ou digite a transação.',
+      failed: 'Desculpe, não consegui processar esse arquivo. Tente novamente.'
     }
   },
   es: {
@@ -175,6 +199,14 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       confirmAll: '✅ Confirmar Todo',
       review: '✏️ Revisar',
       cancelAll: '❌ Cancelar Todo'
+    },
+    receipt: {
+      processingPhoto: '📷 Leyendo tu recibo...',
+      processingPdf: '📄 Leyendo tu PDF...',
+      lowConfidence: 'Leí el recibo pero no pude estar seguro de los detalles. Prueba una imagen más nítida o regístralo manualmente.',
+      notRecognized: 'No pude identificar una transacción. Prueba una foto más nítida, o escribe el monto y de qué fue.',
+      unsupportedFile: 'Puedo leer recibos en PDF. Para otros archivos, envía una foto o escribe la transacción.',
+      failed: 'Lo siento, no pude procesar ese archivo. Inténtalo de nuevo.'
     }
   }
 };

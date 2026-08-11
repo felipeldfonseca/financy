@@ -790,72 +790,164 @@ Remember: Respond with ONLY the JSON array, no additional text. Always use ${def
     return selectLargestPhotoSize(photos);
   }
 
+  /**
+   * Reads a receipt from a PDF. The document is sent to the same vision models
+   * through OpenRouter's file input, with the file-parser plugin set to the
+   * model's native engine — Gemini reads PDFs directly, so digital invoices
+   * cost nothing extra to parse. Scanned PDFs still work because the model
+   * sees the rendered pages.
+   */
+  async processPdfMessage(
+    document: { file_id: string; file_name?: string; file_size?: number },
+    userId: string,
+    defaultCurrency: string = 'USD',
+  ): Promise<ParsedTransaction[]> {
+    try {
+      if (!this.openRouterApiKey || this.openRouterApiKey === 'placeholder') {
+        this.logger.warn('OpenRouter API key not configured. PDF processing disabled.');
+        return [];
+      }
+
+      // Telegram's Bot API caps file downloads at 20 MB; a receipt PDF is well
+      // under that, and rejecting oversize files early avoids a doomed download
+      // and a large base64 payload to the model.
+      if (document.file_size && document.file_size > 15 * 1024 * 1024) {
+        this.logger.warn(`PDF too large to process: ${document.file_size} bytes`);
+        return [];
+      }
+
+      const fileUrl = await this.getTelegramFileUrl(document.file_id);
+      if (!fileUrl) {
+        this.logger.error('Failed to get PDF URL from Telegram');
+        return [];
+      }
+
+      const pdfBuffer = await this.downloadTelegramFile(fileUrl);
+      if (!pdfBuffer) {
+        this.logger.error('Failed to download PDF');
+        return [];
+      }
+
+      const fileName = document.file_name;
+      const base64Pdf = pdfBuffer.toString('base64');
+      const content = [
+        { type: 'text', text: this.buildReceiptExtractionPrompt() },
+        {
+          type: 'file',
+          file: {
+            filename: fileName || 'receipt.pdf',
+            file_data: `data:application/pdf;base64,${base64Pdf}`,
+          },
+        },
+      ];
+
+      // 'native' lets a PDF-capable model (Gemini) read the file for free;
+      // OpenRouter falls back to its own parser for models that cannot.
+      const extractedData = await this.runReceiptExtraction(content, {
+        plugins: [{ id: 'file-parser', pdf: { engine: 'native' } }],
+      });
+
+      if (!extractedData) {
+        this.logger.warn('Failed to extract transaction data from PDF');
+        return [];
+      }
+
+      const convertedTransaction = await this.applyCurrencyConversion(extractedData, defaultCurrency);
+      const tempId = crypto.randomBytes(16).toString('hex');
+
+      return [
+        {
+          ...convertedTransaction,
+          tempId,
+          originalText: 'Receipt PDF',
+        },
+      ];
+    } catch (error) {
+      this.logger.error('Error processing PDF message:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Runs the configured vision models in order against a prepared message
+   * content (image or PDF), returning the first successfully parsed receipt.
+   * Shared by the photo and PDF paths so both honour the same model list,
+   * prompt, and parsing.
+   */
+  private async runReceiptExtraction(
+    userContent: any[],
+    extraBody: Record<string, any> = {},
+  ): Promise<any | null> {
+    for (const model of this.visionModels) {
+      try {
+        this.logger.debug(`Trying receipt extraction with model: ${model}`);
+
+        const response = await lastValueFrom(
+          this.httpService.post(
+            `${this.openRouterBaseUrl}/chat/completions`,
+            {
+              model,
+              messages: [
+                {
+                  role: 'system',
+                  content:
+                    'You are a receipt data extraction expert. Extract transaction details from receipts and respond only with valid JSON.',
+                },
+                { role: 'user', content: userContent },
+              ],
+              max_tokens: 500,
+              temperature: 0.1,
+              ...extraBody,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${this.openRouterApiKey}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'https://financy-app.com',
+                'X-Title': 'Financy Receipt OCR',
+              },
+              timeout: 45000,
+            },
+          ),
+        );
+
+        const content = response.data.choices?.[0]?.message?.content?.trim();
+        if (content) {
+          const extractedData = this.parseReceiptResponse(content);
+          if (extractedData) {
+            this.logger.log(`Receipt extraction successful with ${model}`);
+            return extractedData;
+          }
+        }
+      } catch (error) {
+        this.logger.warn(
+          `Receipt extraction failed with ${model}:`,
+          error.response?.data || error.message,
+        );
+        continue; // Try next model
+      }
+    }
+
+    return null;
+  }
+
   private async extractReceiptData(imageBuffer: Buffer, photoInfo: any): Promise<any | null> {
     try {
-      for (const model of this.visionModels) {
-        try {
-          this.logger.debug(`Trying receipt extraction with model: ${model}`);
-          
-          // Convert image to base64
-          const base64Image = imageBuffer.toString('base64');
-          const imageType = this.detectImageType(imageBuffer);
-          
-          const extractionPrompt = this.buildReceiptExtractionPrompt();
-          
-          const response = await lastValueFrom(
-            this.httpService.post(
-              `${this.openRouterBaseUrl}/chat/completions`,
-              {
-                model: model,
-                messages: [
-                  {
-                    role: 'system',
-                    content: 'You are a receipt data extraction expert. Extract transaction details from receipt images and respond only with valid JSON.'
-                  },
-                  {
-                    role: 'user',
-                    content: [
-                      {
-                        type: 'text',
-                        text: extractionPrompt
-                      },
-                      {
-                        type: 'image_url',
-                        image_url: {
-                          url: `data:${imageType};base64,${base64Image}`,
-                          detail: 'high'
-                        }
-                      }
-                    ]
-                  }
-                ],
-                max_tokens: 500,
-                temperature: 0.1,
-              },
-              {
-                headers: {
-                  'Authorization': `Bearer ${this.openRouterApiKey}`,
-                  'Content-Type': 'application/json',
-                  'HTTP-Referer': 'https://financy-app.com',
-                  'X-Title': 'Financy Receipt OCR',
-                },
-                timeout: 30000, // 30 second timeout
-              }
-            )
-          );
+      // Convert image to base64
+      const base64Image = imageBuffer.toString('base64');
+      const imageType = this.detectImageType(imageBuffer);
 
-          const content = response.data.choices?.[0]?.message?.content?.trim();
-          if (content) {
-            const extractedData = this.parseReceiptResponse(content);
-            if (extractedData) {
-              this.logger.log(`Receipt extraction successful with ${model}`);
-              return extractedData;
-            }
-          }
-        } catch (error) {
-          this.logger.warn(`Receipt extraction failed with ${model}:`, error.response?.data || error.message);
-          continue; // Try next model
-        }
+      const content = [
+        { type: 'text', text: this.buildReceiptExtractionPrompt() },
+        {
+          type: 'image_url',
+          image_url: { url: `data:${imageType};base64,${base64Image}`, detail: 'high' },
+        },
+      ];
+
+      const extracted = await this.runReceiptExtraction(content);
+      if (extracted) {
+        return extracted;
       }
 
       // If all vision models fail, try OCR + text parsing fallback
