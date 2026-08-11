@@ -7,6 +7,7 @@ import * as FormData from 'form-data';
 import { ParsedTransaction } from './interfaces/telegram.interface';
 import { CurrencyService } from '../currency/currency.service';
 import { describeContent, describeTransaction } from './utils/log-sanitizer';
+import { selectLargestPhotoSize } from './photo-size';
 
 // Predefined dashboard category configuration (must match frontend categories)
 // These use the same keys as the frontend dashboard categories
@@ -145,67 +146,66 @@ export class MessageProcessorService {
       }
 
       if (!photos || photos.length === 0) {
-        this.logger.warn('No photos provided for processing');
+        this.logger.warn('No photo provided for processing');
         return [];
       }
 
-      this.logger.log('Processing multiple photo messages:', { photoCount: photos.length });
-
       const processedTransactions: ParsedTransaction[] = [];
 
-      // Process each photo separately
-      for (let i = 0; i < photos.length; i++) {
-        const photo = photos[i];
-        
+      // Telegram delivers a single photo as several PhotoSize entries — the
+      // same image from a tiny thumbnail up to full resolution. They are not
+      // separate receipts: pick the largest and read it once. The old loop
+      // treated each size as its own receipt and OCR'd the 90x67 thumbnail,
+      // which no model can read.
+      {
         try {
-          this.logger.log(`Processing photo ${i + 1}/${photos.length}:`, { fileId: photo.file_id, width: photo.width, height: photo.height });
+          const highestResPhoto = this.selectBestPhoto(photos);
+          this.logger.log('Processing receipt photo:', {
+            width: highestResPhoto.width,
+            height: highestResPhoto.height,
+          });
 
-          // Step 1: Get the highest resolution photo (if it's an array of sizes)
-          const highestResPhoto = this.selectBestPhoto(photo);
-          
-          // Step 2: Download the photo
           const photoUrl = await this.getTelegramFileUrl(highestResPhoto.file_id);
           if (!photoUrl) {
-            this.logger.error(`Failed to get photo URL from Telegram for photo ${i + 1}`);
-            continue;
+            this.logger.error('Failed to get photo URL from Telegram');
+            return [];
           }
 
           const imageBuffer = await this.downloadTelegramFile(photoUrl);
           if (!imageBuffer) {
-            this.logger.error(`Failed to download photo ${i + 1}`);
-            continue;
+            this.logger.error('Failed to download photo');
+            return [];
           }
 
-          // Step 3: Extract transaction details using vision models
+          // Extract transaction details using vision models
           const extractedData = await this.extractReceiptData(imageBuffer, highestResPhoto);
           if (!extractedData) {
-            this.logger.warn(`Failed to extract transaction data from photo ${i + 1}`);
-            continue;
+            this.logger.warn('Failed to extract transaction data from receipt');
+            return [];
           }
 
-          // Step 4: Apply currency conversion
+          // Apply currency conversion
           const convertedTransaction = await this.applyCurrencyConversion(extractedData, defaultCurrency);
 
-          // Step 5: Create ParsedTransaction with temp ID
+          // Create ParsedTransaction with temp ID
           const tempId = crypto.randomBytes(16).toString('hex');
           const finalTransaction: ParsedTransaction = {
             ...convertedTransaction,
             tempId,
-            originalText: `Receipt photo ${i + 1}`,
+            originalText: 'Receipt photo',
           };
 
           processedTransactions.push(finalTransaction);
-          this.logger.log(`Photo ${i + 1} processing successful:`, describeTransaction(finalTransaction));
+          this.logger.log('Receipt processing successful:', describeTransaction(finalTransaction));
         } catch (error) {
-          this.logger.error(`Error processing photo ${i + 1}:`, error);
-          continue;
+          this.logger.error('Error processing receipt photo:', error);
+          return [];
         }
       }
 
-      this.logger.log(`Batch photo processing completed: ${processedTransactions.length}/${photos.length} successful`);
       return processedTransactions;
     } catch (error) {
-      this.logger.error('Error processing photo messages:', error);
+      this.logger.error('Error processing photo message:', error);
       return [];
     }
   }
@@ -787,17 +787,7 @@ Remember: Respond with ONLY the JSON array, no additional text. Always use ${def
   }
 
   private selectBestPhoto(photos: any[]): any {
-    // If it's a single photo object, return it
-    if (!Array.isArray(photos)) {
-      return photos;
-    }
-
-    // Select the highest resolution photo
-    return photos.reduce((best, current) => {
-      const bestSize = (best.width || 0) * (best.height || 0);
-      const currentSize = (current.width || 0) * (current.height || 0);
-      return currentSize > bestSize ? current : best;
-    });
+    return selectLargestPhotoSize(photos);
   }
 
   private async extractReceiptData(imageBuffer: Buffer, photoInfo: any): Promise<any | null> {
