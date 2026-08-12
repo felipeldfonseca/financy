@@ -2,10 +2,49 @@
   "title": "Planificación Financiera",
   "description": "Planifica tus finanzas con facturas recurrentes, metas de ahorro y presupuestos por categoría.",
   "comingSoon": "Próximamente",
-  "upcomingBills": {
-    "title": "Facturas Próximas",
-    "description": "Rastrea facturas recurrentes y configura recordatorios para que nunca pierdas una fecha de pago.",
-    "features": "Funcionalidades: Recordatorios de facturas • Rastreo de pagos • Auto-categorización"
+  "bills": {
+    "title": "Cuentas Pendientes",
+    "add": "Nueva cuenta",
+    "empty": "Ninguna cuenta pendiente. ¡Todo al día!",
+    "overdue": "Vencida",
+    "dueOn": "Vence el {{date}}",
+    "overdueSince": "Venció el {{date}}",
+    "installment": "{{number}}/{{total}}",
+    "pay": "Pagar",
+    "paid": "Pago registrado. El gasto se registró a tu nombre.",
+    "totalPending": "Total pendiente",
+    "rowMenu": "Más acciones",
+    "deleteConfirm": "¿Eliminar la cuenta \"{{description}}\"?",
+    "menu": {
+      "edit": "Editar",
+      "delete": "Eliminar"
+    },
+    "payDialog": {
+      "title": "Registrar pago",
+      "amount": "Importe pagado",
+      "date": "Fecha del pago",
+      "hint": "El gasto se registrará a tu nombre, en el mismo contexto de la cuenta.",
+      "confirm": "Confirmar pago",
+      "cancel": "Cancelar"
+    },
+    "form": {
+      "addTitle": "Nueva cuenta por pagar",
+      "editTitle": "Editar cuenta",
+      "description": "Descripción",
+      "descriptionRequired": "La descripción es obligatoria",
+      "amount": "Importe",
+      "amountInvalid": "Ingresa un importe mayor que cero",
+      "currency": "Moneda",
+      "dueDate": "Vencimiento",
+      "dueDateRequired": "El vencimiento es obligatorio",
+      "category": "Categoría",
+      "merchant": "Establecimiento",
+      "installmentNumber": "Cuota nº",
+      "installmentTotal": "de",
+      "installmentsInvalid": "Indica la cuota y el total juntos, con la cuota dentro del total",
+      "save": "Guardar",
+      "cancel": "Cancelar"
+    }
   },
   "savingsGoals": {
     "title": "Metas de Ahorro",

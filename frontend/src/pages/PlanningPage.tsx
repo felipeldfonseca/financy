@@ -8,11 +8,11 @@ import {
   SvgIcon,
 } from '@mui/material';
 import {
-  EventNote as CalendarIcon,
   TrackChanges as GoalIcon,
   Savings as BudgetIcon,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
+import { UpcomingBillsCard } from '../components/planning/UpcomingBillsCard';
 
 // SVG Icons for empty states
 const ComingSoonIcon: React.FC<{ sx?: any }> = ({ sx }) => (
@@ -55,58 +55,12 @@ const PlanningPage: React.FC = () => {
 
       <Grid container spacing={4}>
         {/* Upcoming Bills Section */}
-        <Grid item xs={12} md={4}>
-          <Card sx={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '20px',
-            height: '100%',
-            minHeight: 400,
-          }}>
-            <CardContent sx={{ p: 4, height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <CalendarIcon sx={{ fontSize: 32, color: '#f59e0b' }} />
-                <Typography variant="h5" fontWeight={600}>
-                  {t('upcomingBills.title')}
-                </Typography>
-              </Box>
-
-              <Box sx={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textAlign: 'center',
-              }}>
-                <ComingSoonIcon sx={{ fontSize: 64, color: '#f59e0b', mb: 3, opacity: 0.6 }} />
-
-                <Typography variant="h6" gutterBottom fontWeight={600}>
-                  {t('comingSoon')}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 300 }}>
-                  {t('upcomingBills.description')}
-                </Typography>
-
-                <Box sx={{
-                  p: 2,
-                  borderRadius: '12px',
-                  background: 'rgba(245, 158, 11, 0.05)',
-                  border: '1px dashed rgba(245, 158, 11, 0.2)',
-                  width: '100%',
-                }}>
-                  <Typography variant="caption" color="text.secondary">
-                    {t('upcomingBills.features')}
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
+        <Grid item xs={12} md={6}>
+          <UpcomingBillsCard />
         </Grid>
 
         {/* Savings Goals Section */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} sm={6} md={3}>
           <Card sx={{
             background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
             backdropFilter: 'blur(10px)',
@@ -157,7 +111,7 @@ const PlanningPage: React.FC = () => {
         </Grid>
 
         {/* Budget Management Section */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} sm={6} md={3}>
           <Card sx={{
             background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
             backdropFilter: 'blur(10px)',

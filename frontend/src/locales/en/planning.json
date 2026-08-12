@@ -2,10 +2,49 @@
   "title": "Financial Planning",
   "description": "Plan your finances with recurring bills, savings goals, and category budgets.",
   "comingSoon": "Coming Soon",
-  "upcomingBills": {
+  "bills": {
     "title": "Upcoming Bills",
-    "description": "Track recurring bills and set reminders so you never miss a payment deadline.",
-    "features": "Features: Bill reminders • Payment tracking • Auto-categorization"
+    "add": "New bill",
+    "empty": "No open bills. All caught up!",
+    "overdue": "Overdue",
+    "dueOn": "Due {{date}}",
+    "overdueSince": "Was due {{date}}",
+    "installment": "{{number}}/{{total}}",
+    "pay": "Pay",
+    "paid": "Payment recorded. The expense was filed under your name.",
+    "totalPending": "Total pending",
+    "rowMenu": "More actions",
+    "deleteConfirm": "Delete the bill \"{{description}}\"?",
+    "menu": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "payDialog": {
+      "title": "Record payment",
+      "amount": "Amount paid",
+      "date": "Payment date",
+      "hint": "The expense will be recorded in your name, in the bill's context.",
+      "confirm": "Confirm payment",
+      "cancel": "Cancel"
+    },
+    "form": {
+      "addTitle": "New bill to pay",
+      "editTitle": "Edit bill",
+      "description": "Description",
+      "descriptionRequired": "Description is required",
+      "amount": "Amount",
+      "amountInvalid": "Enter an amount greater than zero",
+      "currency": "Currency",
+      "dueDate": "Due date",
+      "dueDateRequired": "Due date is required",
+      "category": "Category",
+      "merchant": "Merchant",
+      "installmentNumber": "Installment #",
+      "installmentTotal": "of",
+      "installmentsInvalid": "Provide the installment and the total together, with the installment within the total",
+      "save": "Save",
+      "cancel": "Cancel"
+    }
   },
   "savingsGoals": {
     "title": "Savings Goals",

@@ -10,6 +10,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { TransactionsModule } from './transactions/transactions.module';
+import { BillsModule } from './bills/bills.module';
 import { ContextsModule } from './contexts/contexts.module';
 import { TelegramModule } from './telegram/telegram.module';
 import { CurrencyModule } from './currency/currency.module';
@@ -70,6 +71,7 @@ import { typeOrmConfig } from './config/typeorm.config';
     AuthModule,
     UsersModule,
     TransactionsModule,
+    BillsModule,
     ContextsModule,
     TelegramModule,
     CurrencyModule,

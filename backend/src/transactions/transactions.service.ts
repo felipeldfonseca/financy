@@ -627,7 +627,9 @@ export class TransactionsService {
     this.logger.log(`Completed reconversion for user ${userId}`);
   }
 
-  private async getOrCreateDefaultContext(userId: string): Promise<string> {
+  // Public because bills resolve their home context by exactly the same rule;
+  // a second implementation would eventually disagree with this one.
+  async getOrCreateDefaultContext(userId: string): Promise<string> {
     // The user's own personal context — deliberately not "any context they
     // belong to". Matching any membership would file a transaction the user
     // meant to keep private into a shared context, where every other member
