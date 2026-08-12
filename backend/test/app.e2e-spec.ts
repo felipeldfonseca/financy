@@ -20,7 +20,9 @@ describe('Application (e2e)', () => {
   it('serves the health endpoint under the API prefix', async () => {
     const response = await request(app.getHttpServer()).get('/api/v1/health').expect(200);
 
-    expect(response.body).toMatchObject({ status: 'ok' });
+    // An uptime monitor watches this: 'ok' must mean the database answered
+    // too, not merely that the process is alive.
+    expect(response.body).toMatchObject({ status: 'ok', database: 'up' });
     expect(response.body).toHaveProperty('timestamp');
   });
 

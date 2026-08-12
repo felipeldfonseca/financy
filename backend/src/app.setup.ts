@@ -1,8 +1,9 @@
 import { ClassSerializerInterceptor, INestApplication, ValidationPipe } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
+import { HttpAdapterHost, Reflector } from '@nestjs/core';
 import helmet from 'helmet';
 import * as compression from 'compression';
 import * as cookieParser from 'cookie-parser';
+import { SentryExceptionFilter } from './monitoring/sentry-exception.filter';
 
 /**
  * Everything that turns a bare Nest app into the Financy API: middleware,
@@ -42,6 +43,10 @@ export function configureApp(app: INestApplication): void {
   // entity that carries a User relation was sending the password hash along
   // with it.
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+
+  // Unexpected errors and 5xx go to Sentry (when configured); every response
+  // stays exactly what the default filter would have produced.
+  app.useGlobalFilters(new SentryExceptionFilter(app.get(HttpAdapterHost).httpAdapter));
 
   app.enableCors({
     origin: corsOrigins(),

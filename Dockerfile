@@ -1,6 +1,10 @@
 # Railway Dockerfile for Financy Backend
 FROM node:20-alpine
 
+# pg_dump for the daily database backup the bot delivers over Telegram.
+# Client 16 matches the Railway PostgreSQL instance.
+RUN apk add --no-cache postgresql16-client
+
 # Set working directory
 WORKDIR /app
 

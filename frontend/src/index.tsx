@@ -7,6 +7,9 @@ import CssBaseline from '@mui/material/CssBaseline';
 import App from './App';
 import theme from './theme';
 import reportWebVitals from './reportWebVitals';
+import { initSentry, MonitoredErrorBoundary } from './monitoring/sentry';
+
+initSentry();
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,14 +26,16 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <MonitoredErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </MonitoredErrorBoundary>
   </React.StrictMode>
 );
 

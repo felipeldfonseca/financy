@@ -2,8 +2,16 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { configureApp } from './app.setup';
+import { initSentry } from './monitoring/sentry';
 
 async function bootstrap() {
+  const sentryEnabled = initSentry();
+  console.log(
+    sentryEnabled
+      ? '🛰️  Sentry error monitoring enabled'
+      : 'ℹ️  Sentry disabled (set SENTRY_DSN to enable error monitoring)',
+  );
+
   const app = await NestFactory.create(AppModule);
 
   configureApp(app);

@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TelegramService } from './telegram.service';
 import { TelegramController } from './telegram.controller';
 import { BillReminderService } from './bill-reminder.service';
+import { DatabaseBackupService } from './database-backup.service';
 import { MessageProcessorService } from './message-processor.service';
 import { ContextDetectionService } from './context-detection.service';
 import { ContextSetupService } from './context-setup.service';
@@ -28,7 +29,7 @@ import { UsersModule } from '../users/users.module';
     UsersModule,
   ],
   controllers: [TelegramController],
-  providers: [TelegramService, BillReminderService, MessageProcessorService, ContextDetectionService, ContextSetupService],
+  providers: [TelegramService, BillReminderService, DatabaseBackupService, MessageProcessorService, ContextDetectionService, ContextSetupService],
   exports: [TelegramService, ContextDetectionService, ContextSetupService],
 })
 export class TelegramModule {}

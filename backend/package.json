@@ -36,6 +36,7 @@
     "@nestjs/swagger": "^7.1.17",
     "@nestjs/throttler": "^5.0.1",
     "@nestjs/typeorm": "^10.0.0",
+    "@sentry/node": "^7.120.4",
     "axios": "^1.12.2",
     "bcrypt": "^5.1.1",
     "cache-manager": "^5.2.4",
