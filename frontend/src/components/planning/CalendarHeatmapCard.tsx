@@ -125,6 +125,10 @@ export const CalendarHeatmapCard: React.FC<Props> = ({
   const formatCurrency = (amount: number, currencyCode = currency) =>
     new Intl.NumberFormat(locale, { style: 'currency', currency: currencyCode }).format(amount);
 
+  /** "+R$ 120,00" / "−R$ 80,00" — the sign carries the meaning, colour only helps. */
+  const formatSigned = (net: number) =>
+    `${net > 0 ? '+' : net < 0 ? '−' : ''}${formatCurrency(Math.abs(net))}`;
+
   const dayTooltip = (isoDate: string): string => {
     const summary = byDate.get(isoDate);
     const dueBills = billsByDate.get(isoDate) ?? [];
@@ -133,6 +137,7 @@ export const CalendarHeatmapCard: React.FC<Props> = ({
       parts.push(t('calendar.tooltipCount', { count: summary.count }));
       if (summary.income > 0) parts.push(`+${formatCurrency(summary.income)}`);
       if (summary.expense > 0) parts.push(`−${formatCurrency(summary.expense)}`);
+      parts.push(t('calendar.tooltipNet', { value: formatSigned(summary.income - summary.expense) }));
     }
     if (dueBills.length > 0) {
       parts.push(t('calendar.tooltipBills', { count: dueBills.length }));
@@ -490,6 +495,38 @@ export const CalendarHeatmapCard: React.FC<Props> = ({
                         </Typography>
                       </Box>
                     ))}
+                  </Box>
+                )}
+
+                {/* The day's bottom line, after everything that composed it. */}
+                {selectedSummary && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'baseline',
+                      mt: 1.5,
+                      pt: 1.5,
+                      borderTop: '1px solid rgba(0,0,0,0.08)',
+                    }}
+                  >
+                    <Typography variant="body2" fontWeight={700}>
+                      {t('calendar.dayNet')}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      fontWeight={800}
+                      sx={{
+                        color:
+                          selectedSummary.income - selectedSummary.expense > 0
+                            ? INCOME_POLE
+                            : selectedSummary.income - selectedSummary.expense < 0
+                              ? EXPENSE_POLE
+                              : 'text.primary',
+                      }}
+                    >
+                      {formatSigned(selectedSummary.income - selectedSummary.expense)}
+                    </Typography>
                   </Box>
                 )}
               </Box>

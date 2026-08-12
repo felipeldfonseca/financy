@@ -62,7 +62,9 @@
     "tooltipBills_other": "{{count}} cuentas con vencimiento",
     "billOpen": "abierta",
     "billPaid": "pagada",
-    "closeDay": "Cerrar detalles del día"
+    "closeDay": "Cerrar detalles del día",
+    "tooltipNet": "saldo {{value}}",
+    "dayNet": "Saldo del día"
   },
   "budget": {
     "title": "Estado del Presupuesto",
