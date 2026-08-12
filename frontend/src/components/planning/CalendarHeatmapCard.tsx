@@ -215,7 +215,7 @@ export const CalendarHeatmapCard: React.FC<Props> = ({
                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px' }}>
                   {weeks.flat().map((isoDate, index) => {
                     if (!isoDate) {
-                      return <Box key={`pad-${index}`} sx={{ aspectRatio: '1 / 1', maxHeight: 64 }} />;
+                      return <Box key={`pad-${index}`} sx={{ height: { xs: 48, md: 68 } }} />;
                     }
 
                     const summary = byDate.get(isoDate);
@@ -236,8 +236,11 @@ export const CalendarHeatmapCard: React.FC<Props> = ({
                         role="button"
                         aria-label={isoDate}
                         sx={{
-                          aspectRatio: '1 / 1',
-                          maxHeight: 64,
+                          // Stretch to the grid track: wide month, wide cells.
+                          // (aspect-ratio + max-height shrank every cell to a
+                          // loose 64px square in the middle of its column.)
+                          height: { xs: 48, md: 68 },
+                          width: '100%',
                           borderRadius: '10px',
                           position: 'relative',
                           cursor: 'pointer',
