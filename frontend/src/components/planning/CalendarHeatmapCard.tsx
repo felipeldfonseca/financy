@@ -15,12 +15,13 @@ import {
   ChevronRight as NextIcon,
   Close as CloseIcon,
   PriorityHighRounded as OverdueGlyph,
+  Repeat as RepeatIcon,
   TaskAlt as PaidIcon,
   WarningAmberRounded as OverdueIcon,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { CalendarDay, Transaction, transactionApi } from '../../services/transactionApi';
-import { Bill } from '../../services/billApi';
+import { ProjectedBill } from '../../utils/recurrence';
 import {
   buildMonthGrid,
   heatBackground,
@@ -38,7 +39,7 @@ interface Props {
   viewMonth: Date;
   onMonthChange: (next: Date) => void;
   days: CalendarDay[];
-  monthBills: Bill[];
+  monthBills: ProjectedBill[];
   isLoading: boolean;
   contextId?: string;
   currency: string;
@@ -74,7 +75,7 @@ export const CalendarHeatmapCard: React.FC<Props> = ({
   }, [days]);
 
   const billsByDate = useMemo(() => {
-    const map = new Map<string, Bill[]>();
+    const map = new Map<string, ProjectedBill[]>();
     monthBills.forEach((bill) => {
       const key = bill.dueDate.slice(0, 10);
       map.set(key, [...(map.get(key) ?? []), bill]);
@@ -301,7 +302,10 @@ export const CalendarHeatmapCard: React.FC<Props> = ({
                                   width: 5,
                                   height: 5,
                                   borderRadius: '50%',
-                                  backgroundColor: OVERDUE_INK,
+                                  // Hollow dot: an occurrence that will exist,
+                                  // solid dot: a bill that already does.
+                                  backgroundColor: bill.projected ? 'transparent' : OVERDUE_INK,
+                                  border: `1.5px solid ${OVERDUE_INK}`,
                                 }}
                               />
                             ))}
@@ -351,6 +355,19 @@ export const CalendarHeatmapCard: React.FC<Props> = ({
                     <Box sx={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: OVERDUE_INK }} />
                     <Typography variant="caption" color="text.secondary">
                       {t('calendar.legendUpcoming')}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                    <Box
+                      sx={{
+                        width: 5,
+                        height: 5,
+                        borderRadius: '50%',
+                        border: `1.5px solid ${OVERDUE_INK}`,
+                      }}
+                    />
+                    <Typography variant="caption" color="text.secondary">
+                      {t('calendar.legendProjected')}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -436,10 +453,12 @@ export const CalendarHeatmapCard: React.FC<Props> = ({
                 {selectedBills.length > 0 && (
                   <Box sx={{ mb: 1.5, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
                     {selectedBills.map((bill) => {
-                      const overdue = isBillOverdue(bill);
+                      const overdue = !bill.projected && isBillOverdue(bill);
                       return (
                         <Box key={bill.id} sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                          {bill.status === 'paid' ? (
+                          {bill.projected ? (
+                            <RepeatIcon sx={{ fontSize: 15, color: 'text.secondary' }} />
+                          ) : bill.status === 'paid' ? (
                             <PaidIcon sx={{ fontSize: 15, color: 'text.secondary' }} />
                           ) : (
                             <OverdueIcon
@@ -448,13 +467,18 @@ export const CalendarHeatmapCard: React.FC<Props> = ({
                           )}
                           <Typography variant="body2" sx={{ flex: 1 }} noWrap>
                             {bill.description}
+                            {bill.projected && bill.installmentNumber && bill.installmentTotal
+                              ? ` ${bill.installmentNumber}/${bill.installmentTotal}`
+                              : ''}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            {bill.status === 'paid'
-                              ? t('calendar.billPaid')
-                              : overdue
-                                ? t('bills.overdue')
-                                : t('calendar.billOpen')}
+                            {bill.projected
+                              ? t('calendar.billProjected')
+                              : bill.status === 'paid'
+                                ? t('calendar.billPaid')
+                                : overdue
+                                  ? t('bills.overdue')
+                                  : t('calendar.billOpen')}
                             {' · '}
                             {formatCurrency(Number(bill.amount), bill.currency)}
                           </Typography>

@@ -72,7 +72,9 @@
     "billPaid": "pagada",
     "closeDay": "Cerrar detalles del día",
     "tooltipNet": "saldo {{value}}",
-    "dayNet": "Saldo del día"
+    "dayNet": "Saldo del día",
+    "billProjected": "prevista",
+    "legendProjected": "recurrencia prevista"
   },
   "budget": {
     "title": "Estado del Presupuesto",
