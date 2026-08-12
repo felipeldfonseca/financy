@@ -43,8 +43,16 @@
       "installmentTotal": "of",
       "installmentsInvalid": "Provide the installment and the total together, with the installment within the total",
       "save": "Save",
-      "cancel": "Cancel"
-    }
+      "cancel": "Cancel",
+      "recurrence": "Recurrence",
+      "recurrenceOptions": {
+        "none": "None",
+        "weekly": "Weekly",
+        "monthly": "Monthly",
+        "yearly": "Yearly"
+      }
+    },
+    "paidWithNext": "Payment recorded. The next bill was created for {{date}}."
   },
   "calendar": {
     "title": "Month Calendar",

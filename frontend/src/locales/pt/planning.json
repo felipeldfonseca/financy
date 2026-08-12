@@ -43,8 +43,16 @@
       "installmentTotal": "de",
       "installmentsInvalid": "Informe a parcela e o total juntos, com a parcela dentro do total",
       "save": "Salvar",
-      "cancel": "Cancelar"
-    }
+      "cancel": "Cancelar",
+      "recurrence": "Recorrência",
+      "recurrenceOptions": {
+        "none": "Nenhuma",
+        "weekly": "Semanal",
+        "monthly": "Mensal",
+        "yearly": "Anual"
+      }
+    },
+    "paidWithNext": "Pagamento registrado. A próxima conta foi criada para {{date}}."
   },
   "calendar": {
     "title": "Calendário do Mês",

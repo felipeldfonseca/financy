@@ -420,5 +420,86 @@ describe('Bills (e2e)', () => {
       expect(response.body.installmentNumber).toBe(3);
       expect(response.body.installmentTotal).toBe(10);
     });
+
+    it('paying an installment spawns the next one, a month later', async () => {
+      const created = await createBill(owner, {
+        description: 'Geladeira parcelada',
+        installmentNumber: 3,
+        installmentTotal: 10,
+        dueDate: '2027-08-12',
+      }).expect(201);
+
+      const paid = await request(app.getHttpServer())
+        .post(`/api/v1/bills/${created.body.id}/pay`)
+        .set(auth(owner))
+        .send({})
+        .expect(201);
+
+      expect(paid.body.nextBill).toBeDefined();
+      expect(paid.body.nextBill.installmentNumber).toBe(4);
+      expect(paid.body.nextBill.installmentTotal).toBe(10);
+      expect(paid.body.nextBill.status).toBe('open');
+      expect(paid.body.nextBill.dueDate.slice(0, 10)).toBe('2027-09-12');
+      expect(paid.body.nextBill.contextId).toBe(created.body.contextId);
+
+      const open = await request(app.getHttpServer())
+        .get('/api/v1/bills')
+        .set(auth(owner))
+        .expect(200);
+      expect(open.body.map((bill: any) => bill.id)).toContain(paid.body.nextBill.id);
+    });
+
+    it('stops after the last installment', async () => {
+      const created = await createBill(owner, {
+        description: 'Última parcela',
+        installmentNumber: 2,
+        installmentTotal: 2,
+      }).expect(201);
+
+      const paid = await request(app.getHttpServer())
+        .post(`/api/v1/bills/${created.body.id}/pay`)
+        .set(auth(owner))
+        .send({})
+        .expect(201);
+
+      expect(paid.body.nextBill).toBeUndefined();
+    });
+  });
+
+  describe('recurring bills', () => {
+    it('paying a monthly bill spawns the next occurrence, clamped to real days', async () => {
+      // Due on the 31st: the next month has no 31st, so the successor lands
+      // on its last day instead of drifting into March.
+      const created = await createBill(owner, {
+        description: 'Aluguel recorrente',
+        recurrenceRule: 'monthly',
+        dueDate: '2027-01-31',
+      }).expect(201);
+
+      const paid = await request(app.getHttpServer())
+        .post(`/api/v1/bills/${created.body.id}/pay`)
+        .set(auth(owner))
+        .send({})
+        .expect(201);
+
+      expect(paid.body.nextBill.recurrenceRule).toBe('monthly');
+      expect(paid.body.nextBill.dueDate.slice(0, 10)).toBe('2027-02-28');
+    });
+
+    it('leaves a one-off bill without a successor', async () => {
+      const created = await createBill(owner, { description: 'Conta avulsa' }).expect(201);
+
+      const paid = await request(app.getHttpServer())
+        .post(`/api/v1/bills/${created.body.id}/pay`)
+        .set(auth(owner))
+        .send({})
+        .expect(201);
+
+      expect(paid.body.nextBill).toBeUndefined();
+    });
+
+    it('rejects a recurrence rule it cannot interpret', async () => {
+      await createBill(owner, { recurrenceRule: 'every-full-moon' }).expect(400);
+    });
   });
 });

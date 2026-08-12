@@ -4,6 +4,7 @@ import { DataSource } from 'typeorm';
 import { createTelegramTestApp, OutboundCall, sentButtons, sentMessages } from './utils/telegram-app';
 import { uniqueEmail, VALID_PASSWORD } from './utils/app';
 import { MessageProcessorService } from '../src/telegram/message-processor.service';
+import { BillReminderService } from '../src/telegram/bill-reminder.service';
 
 /**
  * The bot's bill conversation, end to end through the real webhook: a payment
@@ -263,6 +264,168 @@ describe('Telegram bill flows (e2e)', () => {
       expect(
         after.body.filter((bill: any) => bill.description === 'Fatura Vivo Fibra'),
       ).toHaveLength(1);
+    });
+  });
+
+  describe('due-date reminders', () => {
+    const OWNER_TG = 888000222;
+    const MEMBER_TG = 888000333;
+
+    let ownerToken: string;
+    let memberToken: string;
+    let memberId: string;
+    let groupBillId: string;
+    let overdueBillId: string;
+    let futureBillId: string;
+
+    const today = new Date().toISOString().slice(0, 10);
+    const reminderSends = (billId: string) =>
+      sentMessages(outbox).filter((body) =>
+        (body?.reply_markup?.inline_keyboard ?? [])
+          .flat()
+          .some((button: any) => button.callback_data === `remindpay_${billId}`),
+      );
+
+    beforeAll(async () => {
+      const dataSource = app.get(DataSource);
+
+      const signUp = async (prefix: string, telegramId: number) => {
+        const registration = await request(app.getHttpServer())
+          .post('/api/v1/auth/register')
+          .send({
+            email: uniqueEmail(prefix),
+            firstName: 'Rem',
+            lastName: prefix,
+            password: VALID_PASSWORD,
+          })
+          .expect(201);
+        await dataSource.query('UPDATE users SET "telegramUserId" = $1 WHERE id = $2', [
+          String(telegramId),
+          registration.body.user.id,
+        ]);
+        return registration.body;
+      };
+
+      const owner = await signUp('rem-owner', OWNER_TG);
+      const member = await signUp('rem-member', MEMBER_TG);
+      ownerToken = owner.access_token;
+      memberToken = member.access_token;
+      memberId = member.user.id;
+
+      const context = await request(app.getHttpServer())
+        .post('/api/v1/contexts')
+        .set({ Authorization: `Bearer ${ownerToken}` })
+        .send({ name: 'Casa Lembrete', type: 'family', defaultCurrency: 'USD' })
+        .expect(201);
+
+      const invitation = await request(app.getHttpServer())
+        .post(`/api/v1/contexts/${context.body.id}/invite`)
+        .set({ Authorization: `Bearer ${ownerToken}` })
+        .send({ email: member.user.email, role: 'member' })
+        .expect(201);
+      await request(app.getHttpServer())
+        .post(`/api/v1/contexts/invitations/${invitation.body.inviteToken}/accept`)
+        .set({ Authorization: `Bearer ${memberToken}` })
+        .expect(201);
+
+      const addBill = (token: string, body: Record<string, unknown>) =>
+        request(app.getHttpServer())
+          .post('/api/v1/bills')
+          .set({ Authorization: `Bearer ${token}` })
+          .send({
+            description: 'Reminder seed',
+            amount: 50,
+            currency: 'USD',
+            dashboardCategory: 'housing',
+            ...body,
+          })
+          .expect(201);
+
+      groupBillId = (
+        await addBill(ownerToken, {
+          description: 'Aluguel da casa lembrete',
+          dueDate: today,
+          contextId: context.body.id,
+        })
+      ).body.id;
+      overdueBillId = (
+        await addBill(ownerToken, { description: 'Atrasada lembrete', dueDate: '2026-07-01' })
+      ).body.id;
+      futureBillId = (
+        await addBill(ownerToken, { description: 'Futura lembrete', dueDate: '2030-01-01' })
+      ).body.id;
+    });
+
+    it('reminds everyone who can pay, once, and skips bills not yet due', async () => {
+      outbox.length = 0;
+      await app.get(BillReminderService).run(new Date());
+
+      // The household bill reaches both members, each in their own chat.
+      const groupSends = reminderSends(groupBillId);
+      expect(groupSends.map((body) => body.chat_id).sort()).toEqual([OWNER_TG, MEMBER_TG]);
+
+      // A bill registered already overdue gets its one overdue nudge.
+      const overdueSends = reminderSends(overdueBillId);
+      expect(overdueSends.map((body) => body.chat_id)).toEqual([OWNER_TG]);
+
+      // Not due yet: silence.
+      expect(reminderSends(futureBillId)).toHaveLength(0);
+
+      // A second cycle re-sends nothing: reminderSentAt made it idempotent.
+      outbox.length = 0;
+      await app.get(BillReminderService).run(new Date());
+      expect(reminderSends(groupBillId)).toHaveLength(0);
+      expect(reminderSends(overdueBillId)).toHaveLength(0);
+    });
+
+    it('settles from the reminder button in the presser name', async () => {
+      outbox.length = 0;
+
+      // The member — not the bill's creator — got the nudge and paid.
+      await webhook({
+        callback_query: {
+          id: `cb-${updateCounter}`,
+          from: { id: MEMBER_TG, is_bot: false, first_name: 'Rem' },
+          chat_instance: 'instance',
+          data: `remindpay_${groupBillId}`,
+          message: {
+            message_id: 900,
+            date: 1754900000,
+            chat: { id: MEMBER_TG, type: 'private' },
+          },
+        },
+      });
+
+      const paid = await request(app.getHttpServer())
+        .get(`/api/v1/bills/${groupBillId}`)
+        .set({ Authorization: `Bearer ${memberToken}` })
+        .expect(200);
+      expect(paid.body.status).toBe('paid');
+
+      const transaction = await request(app.getHttpServer())
+        .get(`/api/v1/transactions/${paid.body.paidTransactionId}`)
+        .set({ Authorization: `Bearer ${memberToken}` })
+        .expect(200);
+      expect(transaction.body.userId).toBe(memberId);
+
+      // The other member pressing later hears it is already settled.
+      outbox.length = 0;
+      await webhook({
+        callback_query: {
+          id: `cb-${updateCounter}`,
+          from: { id: OWNER_TG, is_bot: false, first_name: 'Rem' },
+          chat_instance: 'instance',
+          data: `remindpay_${groupBillId}`,
+          message: {
+            message_id: 901,
+            date: 1754900000,
+            chat: { id: OWNER_TG, type: 'private' },
+          },
+        },
+      });
+      expect(
+        sentMessages(outbox).some((body) => String(body?.text).includes('already settled')),
+      ).toBe(true);
     });
   });
 });

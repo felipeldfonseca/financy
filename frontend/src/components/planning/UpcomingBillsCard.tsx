@@ -47,7 +47,7 @@ export const UpcomingBillsCard: React.FC = () => {
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
   const [payingBill, setPayingBill] = useState<Bill | null>(null);
   const [menuAnchor, setMenuAnchor] = useState<{ element: HTMLElement; bill: Bill } | null>(null);
-  const [paidMessage, setPaidMessage] = useState(false);
+  const [paidMessage, setPaidMessage] = useState<string | null>(null);
 
   const contextRole = selectedContext?.memberRole;
   const currentUserId = authState.user?.id;
@@ -106,8 +106,13 @@ export const UpcomingBillsCard: React.FC = () => {
 
   const payBill = async (data: PayBillData) => {
     if (!payingBill) return;
-    await billApi.pay(payingBill.id, data);
-    setPaidMessage(true);
+    const result = await billApi.pay(payingBill.id, data);
+    // An installment or recurring bill leaves a successor behind; say so.
+    setPaidMessage(
+      result.nextBill
+        ? t('planning:bills.paidWithNext', { date: formatDueDate(result.nextBill.dueDate) })
+        : (t('planning:bills.paid') as string),
+    );
     await load();
   };
 
@@ -228,6 +233,13 @@ export const UpcomingBillsCard: React.FC = () => {
                             number: bill.installmentNumber,
                             total: bill.installmentTotal,
                           })}
+                          sx={{ height: 20, fontSize: '0.7rem' }}
+                        />
+                      )}
+                      {bill.recurrenceRule && (
+                        <Chip
+                          size="small"
+                          label={`🔁 ${t(`planning:bills.form.recurrenceOptions.${bill.recurrenceRule}`)}`}
                           sx={{ height: 20, fontSize: '0.7rem' }}
                         />
                       )}
@@ -352,13 +364,13 @@ export const UpcomingBillsCard: React.FC = () => {
         />
 
         <Snackbar
-          open={paidMessage}
-          autoHideDuration={4000}
-          onClose={() => setPaidMessage(false)}
+          open={Boolean(paidMessage)}
+          autoHideDuration={5000}
+          onClose={() => setPaidMessage(null)}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         >
-          <Alert severity="success" onClose={() => setPaidMessage(false)}>
-            {t('planning:bills.paid')}
+          <Alert severity="success" onClose={() => setPaidMessage(null)}>
+            {paidMessage}
           </Alert>
         </Snackbar>
       </CardContent>

@@ -393,6 +393,11 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
         case 'paycancel':
           await this.cancelPendingBillPayment(chatId, transactionId, userId);
           break;
+        case 'remindpay':
+          // From a due-date reminder: the id is the bill itself — reminders
+          // outlive any short-lived pending-payment store.
+          await this.completeBillPayment(chatId, transactionId, undefined, userId);
+          break;
         default:
           await this.sendMessage(chatId, 'Unknown action.');
       }
@@ -1231,32 +1236,53 @@ Or just type the complete transaction again:
   }
 
   private async settlePendingBillPayment(chatId: number, tempId: string, userId: string): Promise<void> {
-    const language = await this.getUserLanguage(userId);
-    const translation = getTelegramTranslation(language);
     const pending = this.pendingBillPayments.get(tempId);
 
     if (!pending) {
+      const translation = getTelegramTranslation(await this.getUserLanguage(userId));
       await this.sendMessage(chatId, translation.bills.expired);
       return;
     }
 
-    try {
-      const { bill, transaction } = await this.billsService.pay(
-        pending.billId,
-        { amount: pending.amount },
-        userId,
-      );
-      this.pendingBillPayments.delete(tempId);
+    this.pendingBillPayments.delete(tempId);
+    await this.completeBillPayment(chatId, pending.billId, pending.amount, userId);
+  }
 
-      await this.sendMessage(
-        chatId,
-        formatTemplate(translation.bills.settled, {
-          description: bill.description,
-          amount: this.formatMoney(Number(transaction.amount), transaction.currency, language),
-        }),
-      );
+  /**
+   * The shared end of every settle path — text confirmation, reminder button,
+   * pick list: pay the bill in the presser's name and tell them what happened,
+   * including the next installment or occurrence the payment spawned.
+   */
+  private async completeBillPayment(
+    chatId: number,
+    billId: string,
+    amount: number | undefined,
+    userId: string,
+  ): Promise<void> {
+    const language = await this.getUserLanguage(userId);
+    const translation = getTelegramTranslation(language);
+
+    try {
+      const { bill, transaction, nextBill } = await this.billsService.pay(billId, { amount }, userId);
+
+      let text = formatTemplate(translation.bills.settled, {
+        description: bill.description,
+        amount: this.formatMoney(Number(transaction.amount), transaction.currency, language),
+      });
+
+      if (nextBill) {
+        const template = nextBill.installmentNumber
+          ? translation.bills.nextInstallment
+          : translation.bills.nextOccurrence;
+        text += `\n${formatTemplate(template, {
+          number: nextBill.installmentNumber ?? '',
+          total: nextBill.installmentTotal ?? '',
+          date: this.formatDateForLanguage(String(nextBill.dueDate).slice(0, 10), language),
+        })}`;
+      }
+
+      await this.sendMessage(chatId, text);
     } catch (error) {
-      this.pendingBillPayments.delete(tempId);
       const status = typeof error?.getStatus === 'function' ? error.getStatus() : error?.status;
 
       if (status === 409) {
@@ -1267,10 +1293,27 @@ Or just type the complete transaction again:
         await this.sendMessage(chatId, translation.bills.noPermission);
         return;
       }
+      if (status === 404) {
+        await this.sendMessage(chatId, translation.bills.expired);
+        return;
+      }
 
       this.logger.error('Error settling bill from chat:', error);
       await this.sendMessage(chatId, 'Error saving transaction. Please try again.');
     }
+  }
+
+  /** Public seams for bot-adjacent services (the due-date reminder job). */
+  sendChatMessage(chatId: number, text: string, options?: any): Promise<TelegramBotResponse> {
+    return this.sendMessage(chatId, text, options);
+  }
+
+  formatMoneyForChat(amount: number, currency: string, language: string): string {
+    return this.formatMoney(amount, currency, language);
+  }
+
+  formatDateForChat(isoDate: string, language: string): string {
+    return this.formatDateForLanguage(isoDate, language);
   }
 
   private async cancelPendingBillPayment(chatId: number, tempId: string, userId: string): Promise<void> {

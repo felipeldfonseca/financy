@@ -3,6 +3,9 @@ import { Transaction } from './transactionApi';
 
 export type BillStatus = 'open' | 'paid' | 'canceled';
 
+/** Paying a bill with one of these spawns the next occurrence. */
+export type RecurrenceRule = 'weekly' | 'monthly' | 'yearly';
+
 export interface Bill {
   id: string;
   description: string;
@@ -16,7 +19,9 @@ export interface Bill {
   status: BillStatus;
   installmentNumber?: number;
   installmentTotal?: number;
-  recurrenceRule?: string;
+  recurrenceRule?: RecurrenceRule;
+  /** When the due-date reminder went out; null until then. */
+  reminderSentAt?: string | null;
   paidAt?: string;
   paidTransactionId?: string;
   userId: string;
@@ -37,6 +42,7 @@ export interface CreateBillData {
   merchantName?: string;
   installmentNumber?: number;
   installmentTotal?: number;
+  recurrenceRule?: RecurrenceRule;
   /** Shared context the bill belongs to; omitted for personal ones. */
   contextId?: string;
 }
@@ -89,8 +95,12 @@ export const billApi = {
     await api.delete(`/bills/${id}`);
   },
 
-  /** Settles the bill: the expense is recorded in the caller's own name. */
-  async pay(id: string, data: PayBillData = {}): Promise<{ bill: Bill; transaction: Transaction }> {
+  /** Settles the bill: the expense is recorded in the caller's own name.
+   * Paying an installment or a recurring bill also returns the next one. */
+  async pay(
+    id: string,
+    data: PayBillData = {},
+  ): Promise<{ bill: Bill; transaction: Transaction; nextBill?: Bill }> {
     const response = await api.post(`/bills/${id}/pay`, data);
     return response.data;
   },

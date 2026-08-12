@@ -62,9 +62,16 @@ export class Bill {
   @Column({ type: 'int', nullable: true })
   installmentTotal: number;
 
-  /** Reserved for recurring bills; stored but not yet interpreted. */
+  /** 'weekly' | 'monthly' | 'yearly': paying spawns the next occurrence. */
   @Column({ length: 100, nullable: true })
   recurrenceRule: string;
+
+  /**
+   * When the due-date reminder went out, so a restarted job never sends the
+   * same reminder twice. Null means "not reminded yet".
+   */
+  @Column({ type: 'timestamp', nullable: true })
+  reminderSentAt: Date;
 
   @Column({ type: 'timestamp', nullable: true })
   paidAt: Date;

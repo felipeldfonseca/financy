@@ -16,6 +16,7 @@ import { CreateBillDto } from './dto/create-bill.dto';
 import { UpdateBillDto } from './dto/update-bill.dto';
 import { BillFiltersDto } from './dto/bill-filters.dto';
 import { PayBillDto } from './dto/pay-bill.dto';
+import { nextBillTemplate } from './next-due-date';
 
 @Injectable()
 export class BillsService {
@@ -174,7 +175,7 @@ export class BillsService {
     id: string,
     dto: PayBillDto,
     userId: string,
-  ): Promise<{ bill: Bill; transaction: Transaction }> {
+  ): Promise<{ bill: Bill; transaction: Transaction; nextBill?: Bill }> {
     const bill = await this.findPayable(id, userId);
 
     if (bill.status !== BillStatus.OPEN) {
@@ -212,8 +213,33 @@ export class BillsService {
       throw new ConflictException('This bill has already been paid');
     }
 
+    // An installment plan or a recurring bill does not end when one payment
+    // lands: the next occurrence is created right here, in the original
+    // creator's name, so the pending list is never silently empty of a bill
+    // that is in fact coming back.
+    let nextBill: Bill | undefined;
+    const template = nextBillTemplate(bill);
+    if (template) {
+      nextBill = await this.billsRepository.save(
+        this.billsRepository.create({
+          description: bill.description,
+          amount: Number(bill.amount),
+          currency: bill.currency,
+          dueDate: template.dueDate,
+          category: bill.category,
+          dashboardCategory: bill.dashboardCategory,
+          merchantName: bill.merchantName,
+          installmentNumber: template.installmentNumber ?? null,
+          installmentTotal: template.installmentNumber != null ? bill.installmentTotal : null,
+          recurrenceRule: template.recurrenceRule ?? null,
+          userId: bill.userId,
+          contextId: bill.contextId,
+        }),
+      );
+    }
+
     const paid = await this.billsRepository.findOne({ where: { id: bill.id } });
-    return { bill: paid, transaction };
+    return { bill: paid, transaction, ...(nextBill ? { nextBill } : {}) };
   }
 
   private membershipIn(contextId: string, userId: string): Promise<ContextMember | null> {

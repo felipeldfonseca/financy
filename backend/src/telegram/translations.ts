@@ -45,6 +45,11 @@ export interface TelegramTranslations {
     noPermission: string;
     expired: string;
     cancelled: string;
+    nextInstallment: string;
+    nextOccurrence: string;
+    reminderDueToday: string;
+    reminderOverdue: string;
+    reminderHint: string;
   };
 }
 
@@ -137,7 +142,12 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       alreadyPaid: 'That bill is already settled.',
       noPermission: 'You cannot record payments in that context.',
       expired: 'That request expired. Please send the message again.',
-      cancelled: 'Ok, cancelled. To log it as a regular expense, just describe it again.'
+      cancelled: 'Ok, cancelled. To log it as a regular expense, just describe it again.',
+      nextInstallment: '📅 Next installment {number}/{total} created — due {date}.',
+      nextOccurrence: '🔁 Next occurrence created — due {date}.',
+      reminderDueToday: '🔔 <b>Bill due today</b>\n\n💰 <b>{amount}</b> — {description}\n📅 Due: {date}',
+      reminderOverdue: '🔔 <b>Overdue bill</b>\n\n💰 <b>{amount}</b> — {description}\n📅 Was due: {date}',
+      reminderHint: 'Already paid it? Tap below and I will record the expense in your name.'
     }
   },
   pt: {
@@ -217,7 +227,12 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       alreadyPaid: 'Essa conta já estava paga.',
       noPermission: 'Você não pode lançar pagamentos nesse contexto.',
       expired: 'Esse pedido expirou. Envie a mensagem de novo.',
-      cancelled: 'Ok, cancelei. Para lançar como despesa normal, é só descrever de novo.'
+      cancelled: 'Ok, cancelei. Para lançar como despesa normal, é só descrever de novo.',
+      nextInstallment: '📅 Próxima parcela {number}/{total} criada — vence {date}.',
+      nextOccurrence: '🔁 Próxima cobrança criada — vence {date}.',
+      reminderDueToday: '🔔 <b>Conta vence hoje</b>\n\n💰 <b>{amount}</b> — {description}\n📅 Vencimento: {date}',
+      reminderOverdue: '🔔 <b>Conta em atraso</b>\n\n💰 <b>{amount}</b> — {description}\n📅 Venceu: {date}',
+      reminderHint: 'Já pagou? Toque abaixo que eu lanço a despesa no seu nome.'
     }
   },
   es: {
@@ -297,7 +312,12 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       alreadyPaid: 'Esa cuenta ya estaba pagada.',
       noPermission: 'No puedes registrar pagos en ese contexto.',
       expired: 'Esa solicitud expiró. Envía el mensaje de nuevo.',
-      cancelled: 'Ok, cancelado. Para registrarlo como gasto normal, descríbelo de nuevo.'
+      cancelled: 'Ok, cancelado. Para registrarlo como gasto normal, descríbelo de nuevo.',
+      nextInstallment: '📅 Próxima cuota {number}/{total} creada — vence {date}.',
+      nextOccurrence: '🔁 Próximo cobro creado — vence {date}.',
+      reminderDueToday: '🔔 <b>Cuenta vence hoy</b>\n\n💰 <b>{amount}</b> — {description}\n📅 Vencimiento: {date}',
+      reminderOverdue: '🔔 <b>Cuenta vencida</b>\n\n💰 <b>{amount}</b> — {description}\n📅 Venció: {date}',
+      reminderHint: '¿Ya la pagaste? Toca abajo y registro el gasto a tu nombre.'
     }
   }
 };

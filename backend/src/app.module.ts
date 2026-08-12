@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
 import { redisStore } from 'cache-manager-redis-store';
 import { AppController } from './app.controller';
@@ -58,6 +59,9 @@ import { typeOrmConfig } from './config/typeorm.config';
       },
       inject: [ConfigService],
     }),
+
+    // Cron jobs (bill due-date reminders)
+    ScheduleModule.forRoot(),
 
     // Rate limiting
     ThrottlerModule.forRoot([

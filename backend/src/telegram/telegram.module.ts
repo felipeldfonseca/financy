@@ -3,12 +3,14 @@ import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TelegramService } from './telegram.service';
 import { TelegramController } from './telegram.controller';
+import { BillReminderService } from './bill-reminder.service';
 import { MessageProcessorService } from './message-processor.service';
 import { ContextDetectionService } from './context-detection.service';
 import { ContextSetupService } from './context-setup.service';
 import { User } from '../users/entities/user.entity';
 import { ChatContext } from './entities/chat-context.entity';
 import { ContextMember } from '../contexts/entities/context-member.entity';
+import { Bill } from '../bills/entities/bill.entity';
 import { TransactionsModule } from '../transactions/transactions.module';
 import { BillsModule } from '../bills/bills.module';
 import { ContextsModule } from '../contexts/contexts.module';
@@ -18,7 +20,7 @@ import { UsersModule } from '../users/users.module';
 @Module({
   imports: [
     HttpModule,
-    TypeOrmModule.forFeature([User, ChatContext, ContextMember]),
+    TypeOrmModule.forFeature([User, ChatContext, ContextMember, Bill]),
     TransactionsModule,
     BillsModule,
     ContextsModule,
@@ -26,7 +28,7 @@ import { UsersModule } from '../users/users.module';
     UsersModule,
   ],
   controllers: [TelegramController],
-  providers: [TelegramService, MessageProcessorService, ContextDetectionService, ContextSetupService],
+  providers: [TelegramService, BillReminderService, MessageProcessorService, ContextDetectionService, ContextSetupService],
   exports: [TelegramService, ContextDetectionService, ContextSetupService],
 })
 export class TelegramModule {}

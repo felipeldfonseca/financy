@@ -58,9 +58,10 @@ export class CreateBillDto {
   @Transform(({ value }) => parseInt(value, 10))
   installmentTotal?: number;
 
+  // Paying a recurring bill creates the next occurrence automatically.
   @IsOptional()
   @IsString()
-  @MaxLength(100)
+  @IsIn(['weekly', 'monthly', 'yearly'], { message: 'recurrenceRule must be weekly, monthly or yearly' })
   recurrenceRule?: string;
 
   @IsOptional()

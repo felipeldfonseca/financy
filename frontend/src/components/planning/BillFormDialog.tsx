@@ -11,9 +11,11 @@ import {
   TextField,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { Bill, CreateBillData } from '../../services/billApi';
+import { Bill, CreateBillData, RecurrenceRule } from '../../services/billApi';
 import { getDashboardCategoriesForType } from '../../utils/categoryMapping';
 import { localTodayIso } from '../../utils/bills';
+
+const RECURRENCE_OPTIONS: Array<RecurrenceRule | 'none'> = ['none', 'weekly', 'monthly', 'yearly'];
 
 const CURRENCIES = ['BRL', 'USD', 'EUR', 'GBP', 'JPY', 'CNY'];
 
@@ -40,6 +42,7 @@ interface FormValues {
   merchantName: string;
   installmentNumber: string;
   installmentTotal: string;
+  recurrenceRule: RecurrenceRule | 'none';
 }
 
 export const BillFormDialog: React.FC<Props> = ({
@@ -61,6 +64,7 @@ export const BillFormDialog: React.FC<Props> = ({
     merchantName: '',
     installmentNumber: '',
     installmentTotal: '',
+    recurrenceRule: 'none',
   });
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -78,6 +82,7 @@ export const BillFormDialog: React.FC<Props> = ({
       merchantName: bill?.merchantName ?? '',
       installmentNumber: bill?.installmentNumber ? String(bill.installmentNumber) : '',
       installmentTotal: bill?.installmentTotal ? String(bill.installmentTotal) : '',
+      recurrenceRule: bill?.recurrenceRule ?? 'none',
     });
   }, [open, bill, defaultCurrency]);
 
@@ -122,6 +127,7 @@ export const BillFormDialog: React.FC<Props> = ({
         merchantName: values.merchantName.trim() || undefined,
         installmentNumber,
         installmentTotal,
+        recurrenceRule: values.recurrenceRule === 'none' ? undefined : values.recurrenceRule,
       });
       onClose();
     } catch (err: any) {
@@ -218,6 +224,22 @@ export const BillFormDialog: React.FC<Props> = ({
               fullWidth
               inputProps={{ maxLength: 200 }}
             />
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
+            <TextField
+              select
+              label={t('planning:bills.form.recurrence')}
+              value={values.recurrenceRule}
+              onChange={change('recurrenceRule')}
+              fullWidth
+            >
+              {RECURRENCE_OPTIONS.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {t(`planning:bills.form.recurrenceOptions.${option}`)}
+                </MenuItem>
+              ))}
+            </TextField>
           </Grid>
 
           <Grid item xs={6} sm={3}>
