@@ -61,7 +61,8 @@
     "tooltipBills_one": "{{count}} bill due",
     "tooltipBills_other": "{{count}} bills due",
     "billOpen": "open",
-    "billPaid": "paid"
+    "billPaid": "paid",
+    "closeDay": "Close day details"
   },
   "budget": {
     "title": "Budget Status",

@@ -5,8 +5,6 @@ import {
   CardContent,
   Chip,
   CircularProgress,
-  Divider,
-  Grid,
   IconButton,
   Tooltip,
   Typography,
@@ -15,6 +13,7 @@ import {
   CalendarMonth as CalendarIcon,
   ChevronLeft as PrevIcon,
   ChevronRight as NextIcon,
+  Close as CloseIcon,
   PriorityHighRounded as OverdueGlyph,
   TaskAlt as PaidIcon,
   WarningAmberRounded as OverdueIcon,
@@ -182,8 +181,11 @@ export const CalendarHeatmapCard: React.FC<Props> = ({
           </Box>
         </Box>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} lg={8}>
+        {/* Full-width calendar by default; picking a day slides a detail
+            panel in from the right (below, on small screens) and the grid
+            compresses to make room — no dead space while nothing is chosen. */}
+        <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', lg: 'row' } }}>
+          <Box sx={{ flex: 1, minWidth: 0, transition: 'flex-basis 0.3s ease' }}>
             {isLoading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
                 <CircularProgress size={32} />
@@ -228,7 +230,9 @@ export const CalendarHeatmapCard: React.FC<Props> = ({
 
                     const cell = (
                       <Box
-                        onClick={() => setSelectedDay(isoDate)}
+                        onClick={() =>
+                          setSelectedDay((current) => (current === isoDate ? null : isoDate))
+                        }
                         role="button"
                         aria-label={isoDate}
                         sx={{
@@ -348,36 +352,59 @@ export const CalendarHeatmapCard: React.FC<Props> = ({
                     </Typography>
                   </Box>
                 </Box>
+
+                {!selectedDay && (
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: 'block', mt: 1, fontStyle: 'italic' }}
+                  >
+                    {t('calendar.selectDayHint')}
+                  </Typography>
+                )}
               </>
             )}
-          </Grid>
+          </Box>
 
-          <Grid item xs={12} lg={4}>
-            <Divider sx={{ display: { xs: 'block', lg: 'none' }, mb: 2 }} />
-            {!selectedDay ? (
+          {/* Collapsed to nothing until a day is chosen; slides open sideways
+              on desktop, downwards on mobile. Inner content keeps a fixed
+              width so text never reflows mid-animation. */}
+          <Box
+            aria-hidden={!selectedDay}
+            sx={{
+              overflow: 'hidden',
+              width: { xs: '100%', lg: selectedDay ? 340 : 0 },
+              maxHeight: { xs: selectedDay ? 640 : 0, lg: 'none' },
+              opacity: selectedDay ? 1 : 0,
+              transition: 'width 0.3s ease, max-height 0.3s ease, opacity 0.25s ease',
+            }}
+          >
+            {selectedDay && (
               <Box
                 sx={{
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textAlign: 'center',
-                  minHeight: 180,
+                  width: { xs: '100%', lg: 340 },
+                  borderLeft: { lg: '1px solid rgba(0,0,0,0.08)' },
+                  borderTop: { xs: '1px solid rgba(0,0,0,0.08)', lg: 'none' },
+                  pl: { lg: 3 },
+                  pt: { xs: 2, lg: 0 },
                 }}
               >
-                <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 240 }}>
-                  {t('calendar.selectDayHint')}
-                </Typography>
-              </Box>
-            ) : (
-              <Box>
-                <Typography fontWeight={700} sx={{ mb: 1.5 }}>
-                  {parseLocalDate(selectedDay).toLocaleDateString(locale, {
-                    weekday: 'long',
-                    day: 'numeric',
-                    month: 'long',
-                  })}
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                  <Typography fontWeight={700} sx={{ flex: 1 }}>
+                    {parseLocalDate(selectedDay).toLocaleDateString(locale, {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long',
+                    })}
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={() => setSelectedDay(null)}
+                    aria-label={t('calendar.closeDay') as string}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Box>
 
                 {selectedSummary && (
                   <Box sx={{ display: 'flex', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
@@ -464,8 +491,8 @@ export const CalendarHeatmapCard: React.FC<Props> = ({
                 )}
               </Box>
             )}
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </CardContent>
     </Card>
   );

@@ -61,7 +61,8 @@
     "tooltipBills_one": "{{count}} conta com vencimento",
     "tooltipBills_other": "{{count}} contas com vencimento",
     "billOpen": "em aberto",
-    "billPaid": "paga"
+    "billPaid": "paga",
+    "closeDay": "Fechar detalhes do dia"
   },
   "budget": {
     "title": "Status do Orçamento",
