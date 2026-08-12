@@ -109,7 +109,23 @@ export interface PaginatedTransactions {
   summary: TransactionSummary;
 }
 
+export interface CalendarDay {
+  /** Calendar date, YYYY-MM-DD. */
+  date: string;
+  income: number;
+  expense: number;
+  count: number;
+}
+
 export const transactionApi = {
+  /** Per-day totals for a month — only days with movement come back. */
+  async getCalendar(month: string, contextId?: string): Promise<CalendarDay[]> {
+    const response = await api.get('/transactions/calendar', {
+      params: { month, ...(contextId ? { contextId } : {}) },
+    });
+    return response.data;
+  },
+
   async getTransactions(filters?: TransactionFilters): Promise<PaginatedTransactions> {
     const params = new URLSearchParams();
     

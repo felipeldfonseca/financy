@@ -17,6 +17,7 @@ import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { TransactionFiltersDto } from './dto/transaction-filters.dto';
+import { CalendarFiltersDto } from './dto/calendar-filters.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('transactions')
@@ -74,6 +75,20 @@ export class TransactionsController {
   @ApiResponse({ status: 200, description: 'Merchants retrieved successfully' })
   async getMerchants(@Request() req) {
     return await this.transactionsService.getMerchants(req.user.id);
+  }
+
+  @Get('calendar')
+  @ApiOperation({ summary: 'Per-day income/expense totals for a month, for the calendar heatmap' })
+  @ApiResponse({ status: 200, description: 'Calendar summary retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request - invalid month' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - no access to context' })
+  async getCalendar(@Query() filters: CalendarFiltersDto, @Request() req) {
+    return await this.transactionsService.getCalendarSummary(
+      req.user.id,
+      filters.month,
+      filters.contextId,
+    );
   }
 
   @Get(':id')

@@ -46,15 +46,45 @@
       "cancel": "Cancelar"
     }
   },
+  "calendar": {
+    "title": "Calendario del Mes",
+    "previousMonth": "Mes anterior",
+    "nextMonth": "Mes siguiente",
+    "selectDayHint": "Toca un día para ver sus movimientos y cuentas.",
+    "emptyDay": "Sin movimientos este día.",
+    "legendExpense": "gastos",
+    "legendIncome": "ingresos",
+    "legendUpcoming": "cuenta por vencer",
+    "legendOverdue": "cuenta vencida",
+    "tooltipCount_one": "{{count}} movimiento",
+    "tooltipCount_other": "{{count}} movimientos",
+    "tooltipBills_one": "{{count}} cuenta con vencimiento",
+    "tooltipBills_other": "{{count}} cuentas con vencimiento",
+    "billOpen": "abierta",
+    "billPaid": "pagada"
+  },
+  "budget": {
+    "title": "Estado del Presupuesto",
+    "limitOf": "presupuesto de {{amount}}",
+    "noLimit": "Define un límite mensual de gastos para seguir cuánto se fue, cuánto está comprometido con cuentas y cuánto queda.",
+    "setLimit": "Definir presupuesto",
+    "editLimit": "Editar presupuesto",
+    "spent": "Gastado",
+    "committed": "Comprometido (cuentas abiertas)",
+    "remaining": "Restante",
+    "overBy": "Excedió el presupuesto en {{amount}}",
+    "invalidLimit": "Ingresa un valor válido (o deja vacío para quitar)",
+    "dialogTitle": "Presupuesto mensual",
+    "dialogLabel": "Límite de gastos por mes",
+    "dialogHint": "El límite aplica a todos los meses y se guarda en el contexto actual. Deja vacío para quitar.",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "barLabel": "Gastado {{spent}}, comprometido {{committed}}, restante {{remaining}}"
+  },
   "savingsGoals": {
     "title": "Metas de Ahorro",
     "description": "Establece objetivos financieros y rastrea tu progreso con hitos visuales y fechas objetivo.",
     "features": "Funcionalidades: Rastreo de metas • Visualización de progreso • Fechas límite"
-  },
-  "budgetManagement": {
-    "title": "Gestión de Presupuesto",
-    "description": "Crea límites de gasto por categoría y recibe alertas al acercarte a tu presupuesto.",
-    "features": "Funcionalidades: Límites por categoría • Alertas de gasto • Perspectivas de presupuesto"
   },
   "helpBanner": {
     "title": "Ayuda a Dar Forma a Estas Funcionalidades",

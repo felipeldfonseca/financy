@@ -46,15 +46,45 @@
       "cancel": "Cancel"
     }
   },
+  "calendar": {
+    "title": "Month Calendar",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "selectDayHint": "Tap a day to see its transactions and bills.",
+    "emptyDay": "No activity on this day.",
+    "legendExpense": "expenses",
+    "legendIncome": "income",
+    "legendUpcoming": "bill due",
+    "legendOverdue": "overdue bill",
+    "tooltipCount_one": "{{count}} transaction",
+    "tooltipCount_other": "{{count}} transactions",
+    "tooltipBills_one": "{{count}} bill due",
+    "tooltipBills_other": "{{count}} bills due",
+    "billOpen": "open",
+    "billPaid": "paid"
+  },
+  "budget": {
+    "title": "Budget Status",
+    "limitOf": "budget of {{amount}}",
+    "noLimit": "Set a monthly spending limit to track what is gone, what is committed to open bills, and what is left.",
+    "setLimit": "Set budget",
+    "editLimit": "Edit budget",
+    "spent": "Spent",
+    "committed": "Committed (open bills)",
+    "remaining": "Remaining",
+    "overBy": "Over budget by {{amount}}",
+    "invalidLimit": "Enter a valid amount (or leave empty to remove)",
+    "dialogTitle": "Monthly budget",
+    "dialogLabel": "Spending limit per month",
+    "dialogHint": "The limit applies to every month and is saved on the current context. Leave empty to remove.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "barLabel": "Spent {{spent}}, committed {{committed}}, remaining {{remaining}}"
+  },
   "savingsGoals": {
     "title": "Savings Goals",
     "description": "Set financial goals and track your progress with visual milestones and target dates.",
     "features": "Features: Goal tracking • Progress visualization • Target deadlines"
-  },
-  "budgetManagement": {
-    "title": "Budget Management",
-    "description": "Create spending limits by category and get alerts when approaching your budget.",
-    "features": "Features: Category limits • Spending alerts • Budget insights"
   },
   "helpBanner": {
     "title": "Help Shape These Features",

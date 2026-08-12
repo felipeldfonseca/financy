@@ -46,15 +46,45 @@
       "cancel": "Cancelar"
     }
   },
+  "calendar": {
+    "title": "Calendário do Mês",
+    "previousMonth": "Mês anterior",
+    "nextMonth": "Próximo mês",
+    "selectDayHint": "Toque em um dia para ver as movimentações e contas daquele dia.",
+    "emptyDay": "Sem movimentações neste dia.",
+    "legendExpense": "despesas",
+    "legendIncome": "receitas",
+    "legendUpcoming": "conta a vencer",
+    "legendOverdue": "conta em atraso",
+    "tooltipCount_one": "{{count}} movimentação",
+    "tooltipCount_other": "{{count}} movimentações",
+    "tooltipBills_one": "{{count}} conta com vencimento",
+    "tooltipBills_other": "{{count}} contas com vencimento",
+    "billOpen": "em aberto",
+    "billPaid": "paga"
+  },
+  "budget": {
+    "title": "Status do Orçamento",
+    "limitOf": "orçamento de {{amount}}",
+    "noLimit": "Defina um limite mensal de gastos para acompanhar quanto já foi, quanto está comprometido com contas e quanto sobra.",
+    "setLimit": "Definir orçamento",
+    "editLimit": "Editar orçamento",
+    "spent": "Gasto",
+    "committed": "Comprometido (contas em aberto)",
+    "remaining": "Restante",
+    "overBy": "Estourou o orçamento em {{amount}}",
+    "invalidLimit": "Informe um valor válido (ou deixe vazio para remover)",
+    "dialogTitle": "Orçamento mensal",
+    "dialogLabel": "Limite de gastos por mês",
+    "dialogHint": "O limite vale para todos os meses e fica salvo no contexto atual. Deixe vazio para remover.",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "barLabel": "Gasto {{spent}}, comprometido {{committed}}, restante {{remaining}}"
+  },
   "savingsGoals": {
     "title": "Metas de Economia",
     "description": "Defina objetivos financeiros e acompanhe seu progresso com marcos visuais e prazos definidos.",
     "features": "Funcionalidades: Acompanhamento de metas • Visualização de progresso • Prazos limite"
-  },
-  "budgetManagement": {
-    "title": "Gestão de Orçamento",
-    "description": "Crie limites de gastos por categoria e receba alertas ao se aproximar do seu orçamento.",
-    "features": "Funcionalidades: Limites por categoria • Alertas de gastos • Insights de orçamento"
   },
   "helpBanner": {
     "title": "Ajude a Moldar Essas Funcionalidades",

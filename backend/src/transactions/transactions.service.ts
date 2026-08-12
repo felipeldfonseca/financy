@@ -340,6 +340,55 @@ export class TransactionsService {
     return grouped;
   }
 
+  /**
+   * One row per day with money movement in the month — what a calendar heatmap
+   * paints. Aggregated in the database so a busy month costs one query, not a
+   * paginated crawl.
+   */
+  async getCalendarSummary(
+    userId: string,
+    month: string,
+    contextId?: string,
+  ): Promise<Array<{ date: string; income: number; expense: number; count: number }>> {
+    const [year, monthNumber] = month.split('-').map(Number);
+    const lastDay = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+
+    const queryBuilder = this.transactionsRepository.createQueryBuilder('transaction');
+    await this.applyScope(queryBuilder, userId, { contextId }, { includeAuthor: false });
+
+    const rows = await queryBuilder
+      .andWhere('transaction.date BETWEEN :startDate AND :endDate', {
+        startDate: `${month}-01`,
+        endDate: `${month}-${String(lastDay).padStart(2, '0')}`,
+      })
+      .andWhere('transaction.status != :cancelledStatus', {
+        cancelledStatus: TransactionStatus.CANCELLED,
+      })
+      // Cast to text so the driver cannot reinterpret the calendar date in
+      // some timezone and shift it a day.
+      .select('transaction.date::text', 'date')
+      .addSelect(
+        `SUM(CASE WHEN transaction.type = :incomeType THEN transaction.amount ELSE 0 END)`,
+        'income',
+      )
+      .addSelect(
+        `SUM(CASE WHEN transaction.type = :expenseType THEN transaction.amount ELSE 0 END)`,
+        'expense',
+      )
+      .addSelect('COUNT(*)', 'count')
+      .setParameters({ incomeType: TransactionType.INCOME, expenseType: TransactionType.EXPENSE })
+      .groupBy('transaction.date::text')
+      .orderBy('date', 'ASC')
+      .getRawMany();
+
+    return rows.map((row) => ({
+      date: String(row.date).slice(0, 10),
+      income: Number(row.income),
+      expense: Number(row.expense),
+      count: Number(row.count),
+    }));
+  }
+
   getValidDashboardCategoriesForType(transactionType: string): string[] {
     return Array.from(getValidDashboardCategories(transactionType));
   }
@@ -368,8 +417,11 @@ export class TransactionsService {
   private async applyScope(
     queryBuilder: any,
     userId: string,
-    filters: TransactionFiltersDto,
+    filters: Pick<TransactionFiltersDto, 'contextId'>,
+    options: { includeAuthor?: boolean } = {},
   ): Promise<void> {
+    const { includeAuthor = true } = options;
+
     if (!filters.contextId) {
       queryBuilder.where('transaction.userId = :userId', { userId });
       return;
@@ -394,9 +446,12 @@ export class TransactionsService {
     // In a shared list "whose expense is this?" is the first question, and the
     // answer also decides which rows offer an edit button. Only the naming
     // fields are selected — nothing else about the member is needed here.
-    queryBuilder
-      .leftJoin('transaction.user', 'author')
-      .addSelect(['author.id', 'author.firstName', 'author.lastName']);
+    // Aggregations opt out: an extra selected column would break GROUP BY.
+    if (includeAuthor) {
+      queryBuilder
+        .leftJoin('transaction.user', 'author')
+        .addSelect(['author.id', 'author.firstName', 'author.lastName']);
+    }
   }
 
   private applyFilters(queryBuilder: any, filters: TransactionFiltersDto): void {

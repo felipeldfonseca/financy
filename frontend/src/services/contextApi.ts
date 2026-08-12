@@ -27,6 +27,8 @@ export interface FinancialContext {
   isActive: boolean;
   color?: string;
   icon?: string;
+  /** Free-form context preferences; the monthly budget lives here. */
+  settings?: Record<string, any> | null;
   ownerId: string;
   createdAt: string;
   updatedAt: string;
@@ -64,6 +66,7 @@ export interface CreateContextData {
   defaultCurrency?: string;
   color?: string;
   icon?: string;
+  settings?: Record<string, any>;
 }
 
 export type UpdateContextData = Partial<CreateContextData>;
