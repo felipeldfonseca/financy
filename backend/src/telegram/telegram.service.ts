@@ -10,8 +10,13 @@ import { UsersService } from '../users/users.service';
 import { TransactionsService } from '../transactions/transactions.service';
 import { normalizeDashboardCategory } from '../transactions/category-normalizer';
 import { resolveTransactionDate } from './transaction-date';
+import { resolveBillDueDate } from './bill-detection';
+import { parsePaymentIntent, PaymentIntent } from './payment-intent';
+import { matchBills } from './bill-matcher';
 import { CreateTransactionDto } from '../transactions/dto/create-transaction.dto';
 import { ContextsService } from '../contexts/contexts.service';
+import { BillsService } from '../bills/bills.service';
+import { Bill } from '../bills/entities/bill.entity';
 import { 
   TelegramUpdate, 
   TelegramMessage, 
@@ -24,7 +29,7 @@ import { MessageProcessorService } from './message-processor.service';
 import { ContextDetectionService } from './context-detection.service';
 import { ContextSetupService } from './context-setup.service';
 import { MemberRole } from '../contexts/entities/context-member.entity';
-import { getTelegramTranslation } from './translations';
+import { getTelegramTranslation, formatTemplate, TelegramTranslations } from './translations';
 import { describeUpdate } from './utils/log-sanitizer';
 
 @Injectable()
@@ -36,6 +41,12 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
   private readonly baseUrl: string;
   private readonly telegramMode: string;
   private readonly batchTransactions = new Map<string, ParsedTransaction[]>();
+  /**
+   * Settlements waiting for the user to press "yes, mark as paid". Keyed by a
+   * temp id (never the bill id itself) so callback data stays opaque, exactly
+   * like stored transactions.
+   */
+  private readonly pendingBillPayments = new Map<string, { billId: string; amount?: number }>();
   private pollingInterval: NodeJS.Timeout | null = null;
   private lastUpdateId = 0;
   private isPolling = false;
@@ -52,6 +63,7 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
     private messageProcessor: MessageProcessorService,
     private contextDetection: ContextDetectionService,
     private contextSetup: ContextSetupService,
+    private billsService: BillsService,
   ) {
     this.botToken = this.configService.get('TELEGRAM_BOT_TOKEN');
     this.webhookUrl = this.configService.get('TELEGRAM_WEBHOOK_URL');
@@ -372,6 +384,15 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
         case 'cancel':
           await this.cancelTransaction(chatId, transactionId);
           break;
+        case 'bill':
+          await this.registerBillFromStored(chatId, transactionId, userId);
+          break;
+        case 'paybill':
+          await this.settlePendingBillPayment(chatId, transactionId, userId);
+          break;
+        case 'paycancel':
+          await this.cancelPendingBillPayment(chatId, transactionId, userId);
+          break;
         default:
           await this.sendMessage(chatId, 'Unknown action.');
       }
@@ -431,12 +452,25 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
         }
       }
 
+      // "paguei a alares" settles an open bill rather than creating a second
+      // expense. Only when a bill actually matches — otherwise the message
+      // falls through untouched and parses as a normal transaction.
+      const paymentIntent = parsePaymentIntent(text);
+      if (paymentIntent) {
+        const handled = await this.tryBillSettlement(chatId, paymentIntent, userId, message);
+        if (handled) {
+          return;
+        }
+      }
+
       await this.sendMessage(chatId, '🤔 Processing your transactions...');
 
       // Get user's default currency from their profile
       let defaultCurrency = 'USD'; // fallback default
       try {
-        const user = await this.usersRepository.findOne({ where: { telegramUserId: userId, isActive: true } });
+        // (was querying telegramUserId with the database id, so the text flow
+        // always fell back to USD)
+        const user = await this.usersRepository.findOne({ where: { id: userId, isActive: true } });
         if (user && user.defaultCurrency) {
           defaultCurrency = user.defaultCurrency;
           this.logger.log(`Using user's default currency: ${defaultCurrency}`);
@@ -630,13 +664,36 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
     }
 
     if (validTransactions.length === 1) {
-      const confirmationMessage = await this.formatTransactionConfirmation(validTransactions[0], userId);
+      const single = validTransactions[0];
+
+      // A bill is an intention, not a fact: instead of "confirm this expense"
+      // the bot asks whether it was paid. "Already paid" runs the normal
+      // confirm flow (the date clamp files it today); "bill to pay" registers
+      // it under Planning with the detected due date. Batches keep the plain
+      // flow — bills arrive as single documents.
+      const dueDate = resolveBillDueDate(single, new Date());
+      if (dueDate) {
+        single.dueDate = dueDate;
+        const message = await this.formatBillCandidate(single, dueDate, translation, userId);
+        await this.sendMessage(chatId, message, {
+          reply_markup: {
+            inline_keyboard: [[
+              { text: translation.buttons.alreadyPaid, callback_data: `confirm_${single.tempId}` },
+              { text: translation.buttons.registerBill, callback_data: `bill_${single.tempId}` },
+              { text: translation.buttons.cancel, callback_data: `cancel_${single.tempId}` },
+            ]],
+          },
+        });
+        return;
+      }
+
+      const confirmationMessage = await this.formatTransactionConfirmation(single, userId);
       await this.sendMessage(chatId, confirmationMessage, {
         reply_markup: {
           inline_keyboard: [[
-            { text: translation.buttons.confirm, callback_data: `confirm_${validTransactions[0].tempId}` },
-            { text: translation.buttons.edit, callback_data: `edit_${validTransactions[0].tempId}` },
-            { text: translation.buttons.cancel, callback_data: `cancel_${validTransactions[0].tempId}` },
+            { text: translation.buttons.confirm, callback_data: `confirm_${single.tempId}` },
+            { text: translation.buttons.edit, callback_data: `edit_${single.tempId}` },
+            { text: translation.buttons.cancel, callback_data: `cancel_${single.tempId}` },
           ]],
         },
       });
@@ -984,6 +1041,277 @@ Or just type the complete transaction again:
   private async cancelTransaction(chatId: number, tempId: string): Promise<void> {
     await this.messageProcessor.removeStoredTransaction(tempId);
     await this.sendMessage(chatId, '❌ Transaction cancelled.');
+  }
+
+  /** "This looks like a bill" card: amount, due date, and the paid-yet question. */
+  private async formatBillCandidate(
+    transaction: ParsedTransaction,
+    dueDate: string,
+    translation: TelegramTranslations,
+    userId: string,
+  ): Promise<string> {
+    const language = await this.getUserLanguage(userId);
+    const amount = this.formatMoney(Number(transaction.amount), transaction.currency, language);
+    const overdue = dueDate < new Date().toISOString().slice(0, 10);
+    const merchantLine = transaction.merchantName ? `\n🏪 ${transaction.merchantName}` : '';
+    const dueLine =
+      `📅 <b>${translation.bills.dueLabel}</b> ${this.formatDateForLanguage(dueDate, language)}` +
+      (overdue ? ` ${translation.bills.overdueTag}` : '');
+
+    return (
+      `${translation.bills.detected}\n\n` +
+      `💰 <b>${amount}</b> — ${transaction.description}${merchantLine}\n` +
+      `${dueLine}\n\n` +
+      `${translation.bills.question}`
+    );
+  }
+
+  /**
+   * The "bill to pay" button: turns a stored receipt reading into a Bill with
+   * the detected due date, instead of a transaction.
+   */
+  private async registerBillFromStored(chatId: number, tempId: string, userId: string): Promise<void> {
+    const language = await this.getUserLanguage(userId);
+    const translation = getTelegramTranslation(language);
+
+    try {
+      const transactionData = await this.messageProcessor.getStoredTransaction(tempId);
+
+      if (!transactionData) {
+        await this.sendMessage(chatId, translation.bills.expired);
+        return;
+      }
+
+      const today = new Date().toISOString().slice(0, 10);
+      const dueDate = resolveBillDueDate(transactionData, new Date()) ?? today;
+      // Bills are always money going out; normalize whatever the model said
+      // into an expense dashboard key, exactly like confirmed transactions.
+      const dashboardCategory = normalizeDashboardCategory('expense', transactionData.category);
+
+      const bill = await this.billsService.create(
+        {
+          description: transactionData.description,
+          amount: Number(transactionData.amount),
+          currency: transactionData.currency,
+          dueDate,
+          category: dashboardCategory,
+          dashboardCategory,
+          merchantName: transactionData.merchantName,
+          contextId: transactionData.contextId,
+        },
+        userId,
+      );
+
+      const template = dueDate < today ? translation.bills.registeredOverdue : translation.bills.registered;
+      await this.sendMessage(
+        chatId,
+        formatTemplate(template, {
+          description: bill.description,
+          date: this.formatDateForLanguage(dueDate, language),
+        }),
+      );
+
+      await this.messageProcessor.removeStoredTransaction(tempId);
+    } catch (error) {
+      this.logger.error('Error registering bill from receipt:', error);
+      await this.sendMessage(chatId, translation.receipt.failed);
+    }
+  }
+
+  /**
+   * The "paguei X" flow. Returns true when the message was handled as a bill
+   * settlement (a match was found, or the open bills were listed); false lets
+   * the caller parse it as an ordinary expense.
+   */
+  private async tryBillSettlement(
+    chatId: number,
+    intent: PaymentIntent,
+    userId: string,
+    message?: TelegramMessage,
+  ): Promise<boolean> {
+    const language = await this.getUserLanguage(userId);
+    const translation = getTelegramTranslation(language);
+
+    let openBills: Bill[] = [];
+    try {
+      const chatType = message?.chat?.type ?? 'private';
+      if ((chatType === 'group' || chatType === 'supergroup') && message) {
+        // In a linked group chat, settlement stays inside that context.
+        const contextId = await this.contextDetection.determineContext(message, userId);
+        openBills = await this.billsService.findAll(userId, { contextId, status: 'open' });
+      } else {
+        openBills = await this.billsService.findOpenForSettlement(userId);
+      }
+    } catch (error) {
+      this.logger.warn('Could not load open bills for settlement:', error.message);
+      return false;
+    }
+
+    if (openBills.length === 0) {
+      return false;
+    }
+
+    const matches = matchBills(openBills, intent);
+
+    if (matches.length === 1) {
+      await this.presentSettlementConfirmation(chatId, matches[0], intent.amount, translation, language);
+      return true;
+    }
+
+    if (matches.length > 1) {
+      await this.presentSettlementOptions(chatId, matches, intent.amount, translation, language);
+      return true;
+    }
+
+    // A bare "paguei" with open bills gets the list to pick from; a specific
+    // query that matched nothing falls through to the normal expense flow.
+    if (intent.tokens.length === 0 && intent.amount === undefined) {
+      await this.presentSettlementOptions(chatId, openBills, undefined, translation, language);
+      return true;
+    }
+
+    return false;
+  }
+
+  private async presentSettlementConfirmation(
+    chatId: number,
+    bill: Bill,
+    amountOverride: number | undefined,
+    translation: TelegramTranslations,
+    language: string,
+  ): Promise<void> {
+    const tempId = this.storePendingBillPayment({ billId: bill.id, amount: amountOverride });
+    const dueDateIso = String(bill.dueDate).slice(0, 10);
+    const overdue = dueDateIso < new Date().toISOString().slice(0, 10);
+
+    let text =
+      `${translation.bills.settleConfirm}\n\n` +
+      `💰 <b>${this.formatMoney(Number(bill.amount), bill.currency, language)}</b> — ${bill.description}\n` +
+      `📅 <b>${translation.bills.dueLabel}</b> ${this.formatDateForLanguage(dueDateIso, language)}` +
+      (overdue ? ` ${translation.bills.overdueTag}` : '');
+
+    // Paying late usually costs more; when the message named its own amount,
+    // say what will actually be recorded.
+    if (amountOverride !== undefined && Math.abs(amountOverride - Number(bill.amount)) >= 0.005) {
+      text += `\n${formatTemplate(translation.bills.payingAmount, {
+        amount: this.formatMoney(amountOverride, bill.currency, language),
+      })}`;
+    }
+
+    text += `\n\n${translation.bills.settleQuestion}`;
+
+    await this.sendMessage(chatId, text, {
+      reply_markup: {
+        inline_keyboard: [[
+          { text: translation.buttons.settle, callback_data: `paybill_${tempId}` },
+          { text: translation.buttons.cancel, callback_data: `paycancel_${tempId}` },
+        ]],
+      },
+    });
+  }
+
+  private async presentSettlementOptions(
+    chatId: number,
+    bills: Bill[],
+    amountOverride: number | undefined,
+    translation: TelegramTranslations,
+    language: string,
+  ): Promise<void> {
+    const rows = bills.slice(0, 3).map((bill) => {
+      const tempId = this.storePendingBillPayment({ billId: bill.id, amount: amountOverride });
+      const label = `${bill.description} — ${this.formatMoney(Number(bill.amount), bill.currency, language)}`;
+      // Telegram caps button labels; the description is the discriminator.
+      return [{ text: label.slice(0, 60), callback_data: `paybill_${tempId}` }];
+    });
+    rows.push([{ text: translation.buttons.cancel, callback_data: 'paycancel_none' }]);
+
+    await this.sendMessage(chatId, translation.bills.settleOptions, {
+      reply_markup: { inline_keyboard: rows },
+    });
+  }
+
+  private async settlePendingBillPayment(chatId: number, tempId: string, userId: string): Promise<void> {
+    const language = await this.getUserLanguage(userId);
+    const translation = getTelegramTranslation(language);
+    const pending = this.pendingBillPayments.get(tempId);
+
+    if (!pending) {
+      await this.sendMessage(chatId, translation.bills.expired);
+      return;
+    }
+
+    try {
+      const { bill, transaction } = await this.billsService.pay(
+        pending.billId,
+        { amount: pending.amount },
+        userId,
+      );
+      this.pendingBillPayments.delete(tempId);
+
+      await this.sendMessage(
+        chatId,
+        formatTemplate(translation.bills.settled, {
+          description: bill.description,
+          amount: this.formatMoney(Number(transaction.amount), transaction.currency, language),
+        }),
+      );
+    } catch (error) {
+      this.pendingBillPayments.delete(tempId);
+      const status = typeof error?.getStatus === 'function' ? error.getStatus() : error?.status;
+
+      if (status === 409) {
+        await this.sendMessage(chatId, translation.bills.alreadyPaid);
+        return;
+      }
+      if (status === 403) {
+        await this.sendMessage(chatId, translation.bills.noPermission);
+        return;
+      }
+
+      this.logger.error('Error settling bill from chat:', error);
+      await this.sendMessage(chatId, 'Error saving transaction. Please try again.');
+    }
+  }
+
+  private async cancelPendingBillPayment(chatId: number, tempId: string, userId: string): Promise<void> {
+    this.pendingBillPayments.delete(tempId);
+    const translation = getTelegramTranslation(await this.getUserLanguage(userId));
+    await this.sendMessage(chatId, translation.bills.cancelled);
+  }
+
+  private storePendingBillPayment(entry: { billId: string; amount?: number }): string {
+    const tempId = crypto.randomBytes(16).toString('hex');
+    this.pendingBillPayments.set(tempId, entry);
+
+    // Same 10-minute lifetime as stored transactions; unref so a forgotten
+    // confirmation never holds the process open.
+    const timer = setTimeout(() => this.pendingBillPayments.delete(tempId), 10 * 60 * 1000);
+    timer.unref?.();
+
+    return tempId;
+  }
+
+  private localeFor(language: string): string {
+    if (language === 'pt') return 'pt-BR';
+    if (language === 'es') return 'es-ES';
+    return 'en-US';
+  }
+
+  private formatMoney(amount: number, currency: string, language: string): string {
+    try {
+      return new Intl.NumberFormat(this.localeFor(language), {
+        style: 'currency',
+        currency,
+      }).format(amount);
+    } catch {
+      // A currency code a model invented — show it rather than crash the chat.
+      return `${currency} ${amount.toFixed(2)}`;
+    }
+  }
+
+  private formatDateForLanguage(isoDate: string, language: string): string {
+    const [year, month, day] = isoDate.split('-').map(Number);
+    return new Date(year, month - 1, day).toLocaleDateString(this.localeFor(language));
   }
 
   private async sendMessage(chatId: number, text: string, options?: any): Promise<TelegramBotResponse> {

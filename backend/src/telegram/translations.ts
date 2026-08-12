@@ -17,6 +17,9 @@ export interface TelegramTranslations {
     confirmAll: string;
     review: string;
     cancelAll: string;
+    alreadyPaid: string;
+    registerBill: string;
+    settle: string;
   };
   receipt: {
     processingPhoto: string;
@@ -26,6 +29,34 @@ export interface TelegramTranslations {
     unsupportedFile: string;
     failed: string;
   };
+  bills: {
+    detected: string;
+    dueLabel: string;
+    overdueTag: string;
+    question: string;
+    registered: string;
+    registeredOverdue: string;
+    settleConfirm: string;
+    settleQuestion: string;
+    payingAmount: string;
+    settleOptions: string;
+    settled: string;
+    alreadyPaid: string;
+    noPermission: string;
+    expired: string;
+    cancelled: string;
+  };
+}
+
+/**
+ * Fills {name} placeholders in a translated string. Kept deliberately dumb —
+ * a missing variable leaves the placeholder visible, which is easier to spot
+ * and report than a silently empty slot.
+ */
+export function formatTemplate(template: string, vars: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (match, name) =>
+    name in vars ? String(vars[name]) : match,
+  );
 }
 
 export const telegramTranslations: Record<string, TelegramTranslations> = {
@@ -78,7 +109,10 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       cancel: '❌ Cancel',
       confirmAll: '✅ Confirm All',
       review: '✏️ Review',
-      cancelAll: '❌ Cancel All'
+      cancelAll: '❌ Cancel All',
+      alreadyPaid: '✅ Already paid',
+      registerBill: '📅 Bill to pay',
+      settle: '✅ Yes, mark as paid'
     },
     receipt: {
       processingPhoto: '📷 Reading your receipt...',
@@ -87,6 +121,23 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       notRecognized: "I couldn't read a transaction from that. Try a clearer photo, or type the amount and what it was for.",
       unsupportedFile: 'I can read PDF receipts. For other files, send a photo or type the transaction.',
       failed: "Sorry, I couldn't process that file. Please try again."
+    },
+    bills: {
+      detected: '📄 <b>This looks like a bill</b>',
+      dueLabel: 'Due date:',
+      overdueTag: '⚠️ overdue',
+      question: 'Have you already paid it?',
+      registered: '📅 Bill registered: <b>{description}</b> — due {date}.\nYou will find it under Planning → Upcoming Bills.',
+      registeredOverdue: '📅 Bill registered: <b>{description}</b> — was due {date} and is <b>overdue</b>.\nYou will find it under Planning → Upcoming Bills.',
+      settleConfirm: 'I found this open bill:',
+      settleQuestion: 'Mark it as paid?',
+      payingAmount: 'I will record a payment of <b>{amount}</b>.',
+      settleOptions: 'I found these open bills. Which one did you pay?',
+      settled: '✅ Bill paid! <b>{description}</b> — the {amount} expense was recorded in your name.',
+      alreadyPaid: 'That bill is already settled.',
+      noPermission: 'You cannot record payments in that context.',
+      expired: 'That request expired. Please send the message again.',
+      cancelled: 'Ok, cancelled. To log it as a regular expense, just describe it again.'
     }
   },
   pt: {
@@ -138,7 +189,10 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       cancel: '❌ Cancelar',
       confirmAll: '✅ Confirmar Todas',
       review: '✏️ Revisar',
-      cancelAll: '❌ Cancelar Todas'
+      cancelAll: '❌ Cancelar Todas',
+      alreadyPaid: '✅ Já paguei',
+      registerBill: '📅 Conta a pagar',
+      settle: '✅ Sim, marcar como paga'
     },
     receipt: {
       processingPhoto: '📷 Lendo seu recibo...',
@@ -147,6 +201,23 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       notRecognized: 'Não consegui identificar uma transação. Tente uma foto mais nítida, ou digite o valor e do que foi.',
       unsupportedFile: 'Eu leio recibos em PDF. Para outros arquivos, mande uma foto ou digite a transação.',
       failed: 'Desculpe, não consegui processar esse arquivo. Tente novamente.'
+    },
+    bills: {
+      detected: '📄 <b>Isso parece uma conta</b>',
+      dueLabel: 'Vencimento:',
+      overdueTag: '⚠️ em atraso',
+      question: 'Você já pagou essa conta?',
+      registered: '📅 Conta registrada: <b>{description}</b> — vence {date}.\nEla aparece em Planejamento → Contas Pendentes.',
+      registeredOverdue: '📅 Conta registrada: <b>{description}</b> — venceu {date} e está <b>em atraso</b>.\nEla aparece em Planejamento → Contas Pendentes.',
+      settleConfirm: 'Encontrei esta conta em aberto:',
+      settleQuestion: 'Marcar como paga?',
+      payingAmount: 'Vou lançar um pagamento de <b>{amount}</b>.',
+      settleOptions: 'Encontrei estas contas em aberto. Qual delas você pagou?',
+      settled: '✅ Conta paga! <b>{description}</b> — a despesa de {amount} foi lançada no seu nome.',
+      alreadyPaid: 'Essa conta já estava paga.',
+      noPermission: 'Você não pode lançar pagamentos nesse contexto.',
+      expired: 'Esse pedido expirou. Envie a mensagem de novo.',
+      cancelled: 'Ok, cancelei. Para lançar como despesa normal, é só descrever de novo.'
     }
   },
   es: {
@@ -198,7 +269,10 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       cancel: '❌ Cancelar',
       confirmAll: '✅ Confirmar Todo',
       review: '✏️ Revisar',
-      cancelAll: '❌ Cancelar Todo'
+      cancelAll: '❌ Cancelar Todo',
+      alreadyPaid: '✅ Ya pagué',
+      registerBill: '📅 Cuenta por pagar',
+      settle: '✅ Sí, marcar como pagada'
     },
     receipt: {
       processingPhoto: '📷 Leyendo tu recibo...',
@@ -207,6 +281,23 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       notRecognized: 'No pude identificar una transacción. Prueba una foto más nítida, o escribe el monto y de qué fue.',
       unsupportedFile: 'Puedo leer recibos en PDF. Para otros archivos, envía una foto o escribe la transacción.',
       failed: 'Lo siento, no pude procesar ese archivo. Inténtalo de nuevo.'
+    },
+    bills: {
+      detected: '📄 <b>Esto parece una cuenta</b>',
+      dueLabel: 'Vencimiento:',
+      overdueTag: '⚠️ vencida',
+      question: '¿Ya pagaste esta cuenta?',
+      registered: '📅 Cuenta registrada: <b>{description}</b> — vence {date}.\nLa encuentras en Planificación → Cuentas Pendientes.',
+      registeredOverdue: '📅 Cuenta registrada: <b>{description}</b> — venció {date} y está <b>vencida</b>.\nLa encuentras en Planificación → Cuentas Pendientes.',
+      settleConfirm: 'Encontré esta cuenta abierta:',
+      settleQuestion: '¿Marcarla como pagada?',
+      payingAmount: 'Registraré un pago de <b>{amount}</b>.',
+      settleOptions: 'Encontré estas cuentas abiertas. ¿Cuál pagaste?',
+      settled: '✅ ¡Cuenta pagada! <b>{description}</b> — el gasto de {amount} se registró a tu nombre.',
+      alreadyPaid: 'Esa cuenta ya estaba pagada.',
+      noPermission: 'No puedes registrar pagos en ese contexto.',
+      expired: 'Esa solicitud expiró. Envía el mensaje de nuevo.',
+      cancelled: 'Ok, cancelado. Para registrarlo como gasto normal, descríbelo de nuevo.'
     }
   }
 };

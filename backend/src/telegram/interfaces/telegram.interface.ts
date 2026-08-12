@@ -372,6 +372,8 @@ export interface ParsedTransaction {
   confidence: number;
   tempId: string;
   date?: string;
+  /** Due date when the document is a bill awaiting payment, not a receipt. */
+  dueDate?: string;
   location?: string;
   originalText?: string;
   contextId?: string;

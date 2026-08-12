@@ -6,7 +6,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Brackets } from 'typeorm';
 import { Bill, BillStatus } from './entities/bill.entity';
 import { User } from '../users/entities/user.entity';
 import { ContextMember, MemberStatus } from '../contexts/entities/context-member.entity';
@@ -92,6 +92,36 @@ export class BillsService {
 
     // Soonest obligation first — the order a "what do I owe" list is read in.
     return queryBuilder
+      .orderBy('bill.dueDate', 'ASC')
+      .addOrderBy('bill.createdAt', 'ASC')
+      .getMany();
+  }
+
+  /**
+   * Every open bill the user could settle right now: their own, plus any in
+   * contexts where they may record expenses. This is the search space for
+   * "paguei a alares" in a private bot chat — a household member must find
+   * the rent bill their partner registered.
+   */
+  async findOpenForSettlement(userId: string): Promise<Bill[]> {
+    const memberships = await this.contextMembersRepository.find({
+      where: { userId, status: MemberStatus.ACTIVE },
+    });
+    const payableContextIds = memberships
+      .filter((membership) => membership.canEditTransactions())
+      .map((membership) => membership.contextId);
+
+    return this.billsRepository
+      .createQueryBuilder('bill')
+      .where('bill.status = :status', { status: BillStatus.OPEN })
+      .andWhere(
+        new Brackets((scope) => {
+          scope.where('bill.userId = :userId', { userId });
+          if (payableContextIds.length > 0) {
+            scope.orWhere('bill.contextId IN (:...payableContextIds)', { payableContextIds });
+          }
+        }),
+      )
       .orderBy('bill.dueDate', 'ASC')
       .addOrderBy('bill.createdAt', 'ASC')
       .getMany();

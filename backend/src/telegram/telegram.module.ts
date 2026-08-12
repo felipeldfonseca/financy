@@ -10,6 +10,7 @@ import { User } from '../users/entities/user.entity';
 import { ChatContext } from './entities/chat-context.entity';
 import { ContextMember } from '../contexts/entities/context-member.entity';
 import { TransactionsModule } from '../transactions/transactions.module';
+import { BillsModule } from '../bills/bills.module';
 import { ContextsModule } from '../contexts/contexts.module';
 import { CurrencyModule } from '../currency/currency.module';
 import { UsersModule } from '../users/users.module';
@@ -19,6 +20,7 @@ import { UsersModule } from '../users/users.module';
     HttpModule,
     TypeOrmModule.forFeature([User, ChatContext, ContextMember]),
     TransactionsModule,
+    BillsModule,
     ContextsModule,
     CurrencyModule,
     UsersModule,

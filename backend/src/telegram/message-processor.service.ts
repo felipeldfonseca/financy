@@ -982,6 +982,7 @@ Respond with ONLY a valid JSON object containing these fields:
   "category": "MUST be one from the allowed list below",
   "merchantName": "store/restaurant name",
   "date": "YYYY-MM-DD" (extract from receipt or use current date),
+  "dueDate": "YYYY-MM-DD" or null (ONLY for bills/invoices that ask for payment by a deadline — look for "vencimento", "vence em", "pagar até", "due date", "payment due". A completed purchase receipt has NO due date: use null),
   "confidence": number between 0.7 and 1.0
 }
 
@@ -994,6 +995,7 @@ Guidelines:
 - Identify merchant name from header/footer
 - Category is REQUIRED: use one of the exact keys listed above, or "other" if unsure
 - Extract date from receipt if visible, otherwise use current date
+- A boleto, utility bill, invoice or fatura is a REQUEST for payment: set dueDate to its deadline (even if that deadline already passed) and keep date as the issue date
 - Set confidence 0.9+ for clear receipts, 0.7+ for unclear ones
 
 Category Examples (use the key on the right, exactly):
