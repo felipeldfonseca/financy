@@ -34,7 +34,7 @@
   },
   "summaryCards": {
     "totalIncome": "Total Income",
-    "totalExpenses": "Total Expenses", 
+    "totalExpenses": "Total Expenses",
     "netAmount": "Net Amount",
     "transactions": "Transactions"
   },
@@ -42,7 +42,11 @@
     "upcomingBills": {
       "title": "Upcoming Bills",
       "description": "Track recurring bills and never miss a payment",
-      "button": "Add Bills"
+      "button": "Add Bills",
+      "viewAll": "View all",
+      "empty": "All caught up! No open bills.",
+      "totalPending": "Total pending:",
+      "overdue": "was due {{date}}"
     },
     "goalProgress": {
       "title": "Goal Progress",
@@ -50,9 +54,13 @@
       "button": "Add Goals"
     },
     "budgetStatus": {
-      "title": "Budget Status", 
+      "title": "Budget Status",
       "description": "Create budgets by category to control spending",
-      "button": "Add Budgets"
+      "button": "Add Budgets",
+      "spentOf": "{{spent}} of {{limit}} this month",
+      "remaining": "Remaining: {{amount}}",
+      "overBy": "Over by {{amount}}",
+      "details": "View budget"
     }
   },
   "charts": {

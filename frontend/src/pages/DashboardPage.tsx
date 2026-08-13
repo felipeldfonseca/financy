@@ -374,6 +374,7 @@ const DashboardPage: React.FC = () => {
               <QuickActions
                 contextType={contextType}
                 selectedGroupName={selectedGroup?.name}
+                contextId={contextType === 'groups' ? selectedGroup?.id : undefined}
               />
             </Box>
 

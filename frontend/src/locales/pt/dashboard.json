@@ -34,7 +34,7 @@
   },
   "summaryCards": {
     "totalIncome": "Total de Receitas",
-    "totalExpenses": "Total de Despesas", 
+    "totalExpenses": "Total de Despesas",
     "netAmount": "Valor Líquido",
     "transactions": "Transações"
   },
@@ -42,7 +42,11 @@
     "upcomingBills": {
       "title": "Contas Pendentes",
       "description": "Acompanhe contas recorrentes e nunca perca um pagamento",
-      "button": "Adicionar Contas"
+      "button": "Adicionar Contas",
+      "viewAll": "Ver todas",
+      "empty": "Tudo em dia! Nenhuma conta pendente.",
+      "totalPending": "Total pendente:",
+      "overdue": "venceu {{date}}"
     },
     "goalProgress": {
       "title": "Progresso das Metas",
@@ -50,9 +54,13 @@
       "button": "Adicionar Metas"
     },
     "budgetStatus": {
-      "title": "Status do Orçamento", 
+      "title": "Status do Orçamento",
       "description": "Crie orçamentos por categoria para controlar gastos",
-      "button": "Adicionar Orçamentos"
+      "button": "Adicionar Orçamentos",
+      "spentOf": "{{spent}} de {{limit}} neste mês",
+      "remaining": "Restante: {{amount}}",
+      "overBy": "Estourou em {{amount}}",
+      "details": "Ver orçamento"
     }
   },
   "charts": {

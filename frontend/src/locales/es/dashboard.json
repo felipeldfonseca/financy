@@ -34,7 +34,7 @@
   },
   "summaryCards": {
     "totalIncome": "Total de Ingresos",
-    "totalExpenses": "Total de Gastos", 
+    "totalExpenses": "Total de Gastos",
     "netAmount": "Cantidad Neta",
     "transactions": "Transacciones"
   },
@@ -42,7 +42,11 @@
     "upcomingBills": {
       "title": "Facturas Próximas",
       "description": "Rastrea facturas recurrentes y nunca pierdas un pago",
-      "button": "Agregar Facturas"
+      "button": "Agregar Facturas",
+      "viewAll": "Ver todas",
+      "empty": "¡Todo al día! Ninguna cuenta pendiente.",
+      "totalPending": "Total pendiente:",
+      "overdue": "venció {{date}}"
     },
     "goalProgress": {
       "title": "Progreso de Metas",
@@ -50,14 +54,18 @@
       "button": "Agregar Metas"
     },
     "budgetStatus": {
-      "title": "Estado del Presupuesto", 
+      "title": "Estado del Presupuesto",
       "description": "Crea presupuestos por categoría para controlar gastos",
-      "button": "Agregar Presupuestos"
+      "button": "Agregar Presupuestos",
+      "spentOf": "{{spent}} de {{limit}} este mes",
+      "remaining": "Restante: {{amount}}",
+      "overBy": "Excedido en {{amount}}",
+      "details": "Ver presupuesto"
     }
   },
   "charts": {
     "incomeVsExpenses": "Ingresos vs Gastos",
-    "financialHealth": "Salud Financiera", 
+    "financialHealth": "Salud Financiera",
     "topSpendingCategories": "Principales Categorías de Gasto",
     "spendingDistribution": "Distribución de Gastos",
     "cashFlowTrend": "Tendencia de Flujo de Efectivo",
