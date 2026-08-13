@@ -12,7 +12,7 @@ import {
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { PartialType, OmitType } from '@nestjs/mapped-types';
-import { GoalStatus } from '../entities/goal.entity';
+import { GoalStatus, GoalType } from '../entities/goal.entity';
 
 export class CreateGoalDto {
   @IsString()
@@ -20,10 +20,25 @@ export class CreateGoalDto {
   @MaxLength(200)
   name: string;
 
+  /** Defaults to 'target' (an event goal); which amounts are required follows. */
+  @IsOptional()
+  @IsIn([GoalType.TARGET, GoalType.RECURRING])
+  goalType?: GoalType;
+
+  // Required for event goals, optional finish line for monthly habits —
+  // enforced in the service where the goal type is known.
+  @IsOptional()
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0.01, { message: 'Target amount must be greater than 0' })
-  @Transform(({ value }) => parseFloat(value))
-  targetAmount: number;
+  @Transform(({ value }) => (value == null || value === '' ? undefined : parseFloat(value)))
+  targetAmount?: number;
+
+  /** The monthly deposit a habit commits to; required for recurring goals. */
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0.01, { message: 'Monthly target must be greater than 0' })
+  @Transform(({ value }) => (value == null || value === '' ? undefined : parseFloat(value)))
+  monthlyTarget?: number;
 
   @IsOptional()
   @IsString()

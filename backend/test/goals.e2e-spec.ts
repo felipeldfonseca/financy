@@ -292,6 +292,106 @@ describe('Goals (e2e)', () => {
     });
   });
 
+  describe('monthly habits (recurring goals)', () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const lastMonth = (() => {
+      const date = new Date();
+      date.setUTCMonth(date.getUTCMonth() - 1, 15);
+      return date.toISOString().slice(0, 10);
+    })();
+
+    it('requires the amounts its type can measure', async () => {
+      // A habit without a monthly deposit is unmeasurable...
+      await createGoal(owner, { goalType: 'recurring', targetAmount: undefined }).expect(400);
+      // ...and an event goal without a finish line likewise.
+      await createGoal(owner, { name: 'Sem alvo', targetAmount: undefined }).expect(400);
+    });
+
+    it('creates a habit with no finish line that is never "achieved"', async () => {
+      const response = await createGoal(owner, {
+        name: 'Dólar mensal',
+        goalType: 'recurring',
+        monthlyTarget: 500,
+        targetAmount: undefined,
+      }).expect(201);
+
+      expect(response.body.goalType).toBe('recurring');
+      expect(Number(response.body.monthlyTarget)).toBe(500);
+      expect(response.body.targetAmount).toBeNull();
+      expect(response.body.isAchieved).toBe(false);
+    });
+
+    it('measures the month: only this month deposits count for the bar', async () => {
+      const goal = await createGoal(owner, {
+        name: 'BTC mensal',
+        goalType: 'recurring',
+        monthlyTarget: 400,
+        targetAmount: undefined,
+      }).expect(201);
+
+      // Last month's discipline does not pay for this month's.
+      await request(app.getHttpServer())
+        .post(`/api/v1/goals/${goal.body.id}/contributions`)
+        .set(auth(owner))
+        .send({ amount: 999, date: lastMonth })
+        .expect(201);
+
+      const deposit = await request(app.getHttpServer())
+        .post(`/api/v1/goals/${goal.body.id}/contributions`)
+        .set(auth(owner))
+        .send({ amount: 150, date: today })
+        .expect(201);
+
+      expect(Number(deposit.body.goal.monthContributed)).toBeCloseTo(150);
+      expect(Number(deposit.body.goal.currentAmount)).toBeCloseTo(1149);
+
+      const listed = await request(app.getHttpServer())
+        .get('/api/v1/goals')
+        .set(auth(owner))
+        .expect(200);
+      const found = listed.body.find((g: any) => g.id === goal.body.id);
+      expect(Number(found.monthContributed)).toBeCloseTo(150);
+    });
+
+    it('a habit with an optional finish line can still be achieved', async () => {
+      const goal = await createGoal(owner, {
+        name: 'Hábito com teto',
+        goalType: 'recurring',
+        monthlyTarget: 100,
+        targetAmount: 200,
+      }).expect(201);
+
+      const deposit = await request(app.getHttpServer())
+        .post(`/api/v1/goals/${goal.body.id}/contributions`)
+        .set(auth(owner))
+        .send({ amount: 250 })
+        .expect(201);
+
+      expect(deposit.body.goal.isAchieved).toBe(true);
+    });
+
+    it('refuses turning a habit into an event goal without a target', async () => {
+      const goal = await createGoal(owner, {
+        name: 'Vira evento',
+        goalType: 'recurring',
+        monthlyTarget: 100,
+        targetAmount: undefined,
+      }).expect(201);
+
+      await request(app.getHttpServer())
+        .patch(`/api/v1/goals/${goal.body.id}`)
+        .set(auth(owner))
+        .send({ goalType: 'target' })
+        .expect(400);
+
+      await request(app.getHttpServer())
+        .patch(`/api/v1/goals/${goal.body.id}`)
+        .set(auth(owner))
+        .send({ goalType: 'target', targetAmount: 5000 })
+        .expect(200);
+    });
+  });
+
   describe('archiving', () => {
     it('keeps archived goals out of the default list but reachable via status=all', async () => {
       const goal = await createGoal(owner, { name: 'Antiga' }).expect(201);

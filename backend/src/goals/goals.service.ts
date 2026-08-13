@@ -3,10 +3,11 @@ import {
   NotFoundException,
   ForbiddenException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Goal, GoalStatus } from './entities/goal.entity';
+import { Goal, GoalStatus, GoalType } from './entities/goal.entity';
 import { GoalContribution } from './entities/goal-contribution.entity';
 import { User } from '../users/entities/user.entity';
 import { ContextMember, MemberStatus } from '../contexts/entities/context-member.entity';
@@ -51,8 +52,12 @@ export class GoalsService {
       contextId = await this.transactionsService.getOrCreateDefaultContext(userId);
     }
 
+    const goalType = dto.goalType ?? GoalType.TARGET;
+    this.assertAmountsMatchType(goalType, dto.targetAmount, dto.monthlyTarget);
+
     const goal = this.goalsRepository.create({
       ...dto,
+      goalType,
       targetDate: dto.targetDate ? dto.targetDate.slice(0, 10) : null,
       currency: dto.currency || user.defaultCurrency || 'USD',
       contextId,
@@ -80,7 +85,8 @@ export class GoalsService {
       queryBuilder.andWhere('goal.status = :status', { status });
     }
 
-    return queryBuilder.orderBy('goal.createdAt', 'ASC').getMany();
+    const goals = await queryBuilder.orderBy('goal.createdAt', 'ASC').getMany();
+    return this.attachMonthProgress(goals);
   }
 
   async findOne(id: string, userId: string): Promise<Goal> {
@@ -90,15 +96,19 @@ export class GoalsService {
       throw new NotFoundException('Goal not found');
     }
 
-    return goal;
+    const [withProgress] = await this.attachMonthProgress([goal]);
+    return withProgress;
   }
 
   async update(id: string, dto: UpdateGoalDto, userId: string): Promise<Goal> {
     const goal = await this.findForMutation(id, userId);
 
     Object.assign(goal, dto, dto.targetDate ? { targetDate: dto.targetDate.slice(0, 10) } : {});
+    this.assertAmountsMatchType(goal.goalType, goal.targetAmount, goal.monthlyTarget);
 
-    return this.goalsRepository.save(goal);
+    const saved = await this.goalsRepository.save(goal);
+    const [withProgress] = await this.attachMonthProgress([saved]);
+    return withProgress;
   }
 
   async remove(id: string, userId: string): Promise<void> {
@@ -134,7 +144,8 @@ export class GoalsService {
     await this.goalsRepository.increment({ id: goal.id }, 'currentAmount', dto.amount);
 
     const updated = await this.goalsRepository.findOne({ where: { id: goal.id } });
-    return { goal: updated, contribution };
+    const [withProgress] = await this.attachMonthProgress([updated]);
+    return { goal: withProgress, contribution };
   }
 
   /** The trail, newest first, with who saved each amount. */
@@ -173,6 +184,57 @@ export class GoalsService {
 
     await this.contributionsRepository.remove(contribution);
     await this.goalsRepository.decrement({ id: goal.id }, 'currentAmount', Number(contribution.amount));
+  }
+
+  /**
+   * An event goal without a finish line, or a habit without its monthly
+   * deposit, is a goal that cannot be measured — refused at the door.
+   */
+  private assertAmountsMatchType(
+    goalType: GoalType,
+    targetAmount?: number | null,
+    monthlyTarget?: number | null,
+  ): void {
+    if (goalType === GoalType.TARGET && targetAmount == null) {
+      throw new BadRequestException('An event goal needs a target amount');
+    }
+    if (goalType === GoalType.RECURRING && monthlyTarget == null) {
+      throw new BadRequestException('A monthly habit needs a monthly target');
+    }
+  }
+
+  /**
+   * The current month's deposits, summed per habit — what its progress bar
+   * measures, reset by the calendar rather than by any stored state.
+   */
+  private async attachMonthProgress(goals: Goal[]): Promise<Goal[]> {
+    const habits = goals.filter((goal) => goal.goalType === GoalType.RECURRING);
+    if (habits.length === 0) {
+      return goals;
+    }
+
+    const month = new Date().toISOString().slice(0, 7);
+    const [year, monthNumber] = month.split('-').map(Number);
+    const lastDay = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+
+    const rows = await this.contributionsRepository
+      .createQueryBuilder('contribution')
+      .select('contribution.goalId', 'goalId')
+      .addSelect('SUM(contribution.amount)', 'total')
+      .where('contribution.goalId IN (:...goalIds)', { goalIds: habits.map((goal) => goal.id) })
+      .andWhere('contribution.date BETWEEN :start AND :end', {
+        start: `${month}-01`,
+        end: `${month}-${String(lastDay).padStart(2, '0')}`,
+      })
+      .groupBy('contribution.goalId')
+      .getRawMany();
+
+    const totals = new Map(rows.map((row) => [row.goalId, Number(row.total)]));
+    habits.forEach((goal) => {
+      goal.monthContributed = totals.get(goal.id) ?? 0;
+    });
+
+    return goals;
   }
 
   private membershipIn(contextId: string, userId: string): Promise<ContextMember | null> {

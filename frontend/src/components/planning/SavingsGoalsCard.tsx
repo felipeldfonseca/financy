@@ -17,6 +17,7 @@ import {
 import {
   Add as AddIcon,
   Celebration as AchievedIcon,
+  CheckCircle as MonthDoneIcon,
   Delete as DeleteIcon,
   ExpandMore as ExpandIcon,
   MoreVert as MoreVertIcon,
@@ -232,7 +233,12 @@ export const SavingsGoalsCard: React.FC = () => {
         ) : (
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             {goals.map((goal) => {
-              const progress = goalProgress(Number(goal.currentAmount), Number(goal.targetAmount));
+              // A habit's bar measures the month; an event's bar, the journey.
+              const isHabit = goal.goalType === 'recurring';
+              const progress = isHabit
+                ? goalProgress(Number(goal.monthContributed ?? 0), Number(goal.monthlyTarget ?? 0))
+                : goalProgress(Number(goal.currentAmount), Number(goal.targetAmount ?? 0));
+              const monthDone = isHabit && progress.ratio >= 1;
               const canModify = canModifyTransaction({
                 transactionUserId: goal.userId,
                 currentUserId,
@@ -263,6 +269,35 @@ export const SavingsGoalsCard: React.FC = () => {
                     <Typography fontWeight={600} noWrap sx={{ flex: 1 }}>
                       {goal.name}
                     </Typography>
+
+                    <Chip
+                      size="small"
+                      label={isHabit ? `🔁 ${t('goals.habitChip')}` : `🎯 ${t('goals.eventChip')}`}
+                      sx={{
+                        height: 22,
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        color: 'text.secondary',
+                        background: 'rgba(0,0,0,0.05)',
+                        border: '1px solid rgba(0,0,0,0.1)',
+                      }}
+                    />
+
+                    {monthDone && (
+                      <Chip
+                        size="small"
+                        icon={<MonthDoneIcon sx={{ fontSize: 14 }} />}
+                        label={t('goals.monthComplete')}
+                        sx={{
+                          height: 22,
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          color: ACCENT,
+                          background: `${ACCENT}1a`,
+                          border: `1px solid ${ACCENT}66`,
+                        }}
+                      />
+                    )}
 
                     {goal.isAchieved && (
                       <Chip
@@ -340,18 +375,33 @@ export const SavingsGoalsCard: React.FC = () => {
 
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.75, gap: 1, flexWrap: 'wrap' }}>
                     <Typography variant="caption" color="text.secondary">
-                      {t('goals.progressLabel', {
-                        current: formatCurrency(Number(goal.currentAmount), goal.currency),
-                        target: formatCurrency(Number(goal.targetAmount), goal.currency),
-                        percent: Math.round(progress.ratio * 100),
-                      })}
+                      {isHabit
+                        ? t('goals.monthProgressLabel', {
+                            current: formatCurrency(Number(goal.monthContributed ?? 0), goal.currency),
+                            target: formatCurrency(Number(goal.monthlyTarget ?? 0), goal.currency),
+                            month: new Date().toLocaleDateString(i18n.language, { month: 'long' }),
+                            percent: Math.round(progress.ratio * 100),
+                          })
+                        : t('goals.progressLabel', {
+                            current: formatCurrency(Number(goal.currentAmount), goal.currency),
+                            target: formatCurrency(Number(goal.targetAmount ?? 0), goal.currency),
+                            percent: Math.round(progress.ratio * 100),
+                          })}
                     </Typography>
-                    {goal.targetDate && (
+                    {isHabit ? (
                       <Typography variant="caption" color="text.secondary">
-                        {t('goals.byDate', {
-                          date: parseLocalDate(goal.targetDate).toLocaleDateString(i18n.language),
+                        {t('goals.accumulated', {
+                          total: formatCurrency(Number(goal.currentAmount), goal.currency),
                         })}
                       </Typography>
+                    ) : (
+                      goal.targetDate && (
+                        <Typography variant="caption" color="text.secondary">
+                          {t('goals.byDate', {
+                            date: parseLocalDate(goal.targetDate).toLocaleDateString(i18n.language),
+                          })}
+                        </Typography>
+                      )
                     )}
                   </Box>
 

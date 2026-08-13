@@ -125,7 +125,14 @@
       "targetDate": "Plazo (opcional)",
       "targetDateHint": "Deja vacío para una meta sin plazo",
       "save": "Guardar",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "type": "Tipo de meta",
+      "typeTarget": "Evento único",
+      "typeRecurring": "Hábito mensual",
+      "monthlyTarget": "Aporte mensual objetivo",
+      "monthlyTargetInvalid": "Ingresa un aporte mensual mayor que cero",
+      "optionalTarget": "Objetivo total (opcional)",
+      "optionalTargetHint": "Para un hábito con línea de meta"
     },
     "contribute": {
       "title": "Registrar aporte",
@@ -135,7 +142,12 @@
       "hint": "El aporte queda registrado a tu nombre en el historial de la meta.",
       "confirm": "Confirmar aporte",
       "cancel": "Cancelar"
-    }
+    },
+    "habitChip": "Hábito mensual",
+    "eventChip": "Evento",
+    "monthComplete": "Mes completo",
+    "monthProgressLabel": "{{current}} de {{target}} en {{month}} · {{percent}}%",
+    "accumulated": "Total acumulado: {{total}}"
   },
   "helpBanner": {
     "title": "Ayuda a Dar Forma a Estas Funcionalidades",

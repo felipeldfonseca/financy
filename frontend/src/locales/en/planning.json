@@ -125,7 +125,14 @@
       "targetDate": "Deadline (optional)",
       "targetDateHint": "Leave empty for an open-ended goal",
       "save": "Save",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "type": "Goal type",
+      "typeTarget": "One-time event",
+      "typeRecurring": "Monthly habit",
+      "monthlyTarget": "Monthly deposit target",
+      "monthlyTargetInvalid": "Enter a monthly deposit greater than zero",
+      "optionalTarget": "Total target (optional)",
+      "optionalTargetHint": "For a habit with a finish line"
     },
     "contribute": {
       "title": "Record contribution",
@@ -135,7 +142,12 @@
       "hint": "The contribution is recorded in your name on the goal's trail.",
       "confirm": "Confirm contribution",
       "cancel": "Cancel"
-    }
+    },
+    "habitChip": "Monthly habit",
+    "eventChip": "Event",
+    "monthComplete": "Month complete",
+    "monthProgressLabel": "{{current}} of {{target}} in {{month}} · {{percent}}%",
+    "accumulated": "Total so far: {{total}}"
   },
   "helpBanner": {
     "title": "Help Shape These Features",

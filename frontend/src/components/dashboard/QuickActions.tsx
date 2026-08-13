@@ -276,12 +276,16 @@ const QuickActions: React.FC<QuickActionsProps> = ({ contextId }) => {
                       <>
                         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1.25, minHeight: 0, justifyContent: 'center' }}>
                           {activeGoals.slice(0, 3).map((goal) => {
-                            const progress = goalProgress(Number(goal.currentAmount), Number(goal.targetAmount));
+                            // Habits show this month's progress; events, the whole journey.
+                            const isHabit = goal.goalType === 'recurring';
+                            const progress = isHabit
+                              ? goalProgress(Number(goal.monthContributed ?? 0), Number(goal.monthlyTarget ?? 0))
+                              : goalProgress(Number(goal.currentAmount), Number(goal.targetAmount ?? 0));
                             return (
                               <Box key={goal.id}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}>
                                   <Typography variant="body2" noWrap sx={{ flex: 1 }}>
-                                    {goal.name}
+                                    {isHabit ? `🔁 ${goal.name}` : goal.name}
                                   </Typography>
                                   <Typography variant="caption" color="text.secondary" fontWeight={700}>
                                     {Math.round(progress.ratio * 100)}%

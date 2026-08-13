@@ -17,6 +17,13 @@ export enum GoalStatus {
   ARCHIVED = 'archived',
 }
 
+export enum GoalType {
+  /** A finish line: reach targetAmount, optionally by targetDate. */
+  TARGET = 'target',
+  /** A habit: deposit monthlyTarget every month, indefinitely. */
+  RECURRING = 'recurring',
+}
+
 /**
  * A savings goal: money being put aside on purpose — a trip, an emergency
  * fund. currentAmount is the running sum of its contributions, kept
@@ -33,8 +40,17 @@ export class Goal {
   @Column({ length: 200 })
   name: string;
 
-  @Column('decimal', { precision: 12, scale: 2 })
+  // An event goal races towards this; a monthly habit may not have one at
+  // all — its measure is the month, not a finish line.
+  @Column('decimal', { precision: 12, scale: 2, nullable: true })
   targetAmount: number;
+
+  @Column({ type: 'enum', enum: GoalType, default: GoalType.TARGET })
+  goalType: GoalType;
+
+  /** The habit's monthly deposit target; null for event goals. */
+  @Column('decimal', { precision: 12, scale: 2, nullable: true })
+  monthlyTarget: number;
 
   @Column('decimal', { precision: 12, scale: 2, default: 0 })
   currentAmount: number;
@@ -74,8 +90,19 @@ export class Goal {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  /**
+   * Sum of this month's contributions, attached by the service for monthly
+   * habits — the number their progress bar measures. Not persisted: it
+   * describes the current month, not the goal.
+   */
+  monthContributed?: number;
+
   @Expose()
   get isAchieved(): boolean {
+    // A habit without a finish line is never "done" — that is the point.
+    if (this.targetAmount == null) {
+      return false;
+    }
     return Number(this.currentAmount) >= Number(this.targetAmount);
   }
 }

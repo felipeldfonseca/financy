@@ -2,10 +2,19 @@ import api from './api';
 
 export type GoalStatus = 'active' | 'archived';
 
+/** 'target' = event goal (finish line); 'recurring' = monthly habit. */
+export type GoalType = 'target' | 'recurring';
+
 export interface Goal {
   id: string;
   name: string;
-  targetAmount: number;
+  goalType: GoalType;
+  /** Event goals always have one; habits may not. */
+  targetAmount?: number | null;
+  /** The habit's monthly deposit target; null for event goals. */
+  monthlyTarget?: number | null;
+  /** This month's deposits, attached by the server for habits. */
+  monthContributed?: number;
   currentAmount: number;
   currency: string;
   /** Optional deadline, YYYY-MM-DD. */
@@ -33,7 +42,9 @@ export interface GoalContribution {
 
 export interface CreateGoalData {
   name: string;
-  targetAmount: number;
+  goalType?: GoalType;
+  targetAmount?: number;
+  monthlyTarget?: number;
   currency?: string;
   targetDate?: string;
   color?: string;

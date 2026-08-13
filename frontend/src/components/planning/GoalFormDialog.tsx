@@ -10,9 +10,11 @@ import {
   Grid,
   MenuItem,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { Goal, CreateGoalData } from '../../services/goalApi';
+import { Goal, GoalType, CreateGoalData } from '../../services/goalApi';
 
 const CURRENCIES = ['BRL', 'USD', 'EUR', 'GBP', 'JPY', 'CNY'];
 const PALETTE = ['#10b981', '#1976d2', '#7b1fa2', '#ef6c00', '#c2185b', '#455a64'];
@@ -37,7 +39,9 @@ export const GoalFormDialog: React.FC<Props> = ({
 
   const [values, setValues] = useState({
     name: '',
+    goalType: 'target' as GoalType,
     targetAmount: '',
+    monthlyTarget: '',
     currency: defaultCurrency,
     targetDate: '',
     color: PALETTE[0],
@@ -50,7 +54,9 @@ export const GoalFormDialog: React.FC<Props> = ({
     setError(null);
     setValues({
       name: goal?.name ?? '',
-      targetAmount: goal ? String(goal.targetAmount) : '',
+      goalType: goal?.goalType ?? 'target',
+      targetAmount: goal?.targetAmount != null ? String(goal.targetAmount) : '',
+      monthlyTarget: goal?.monthlyTarget != null ? String(goal.monthlyTarget) : '',
       currency: goal?.currency ?? defaultCurrency,
       targetDate: goal?.targetDate?.slice(0, 10) ?? '',
       color: goal?.color ?? PALETTE[0],
@@ -60,14 +66,27 @@ export const GoalFormDialog: React.FC<Props> = ({
   const change = (field: keyof typeof values) => (event: React.ChangeEvent<HTMLInputElement>) =>
     setValues((current) => ({ ...current, [field]: event.target.value }));
 
+  const isHabit = values.goalType === 'recurring';
+
   const submit = async () => {
-    const targetAmount = parseFloat(values.targetAmount);
+    const targetAmount = values.targetAmount === '' ? undefined : parseFloat(values.targetAmount);
+    const monthlyTarget = values.monthlyTarget === '' ? undefined : parseFloat(values.monthlyTarget);
 
     if (!values.name.trim()) {
       setError(t('goals.form.nameRequired'));
       return;
     }
-    if (!Number.isFinite(targetAmount) || targetAmount <= 0) {
+    if (isHabit) {
+      if (monthlyTarget == null || !Number.isFinite(monthlyTarget) || monthlyTarget <= 0) {
+        setError(t('goals.form.monthlyTargetInvalid'));
+        return;
+      }
+      // The finish line is optional for a habit, but nonsense is still nonsense.
+      if (targetAmount != null && (!Number.isFinite(targetAmount) || targetAmount <= 0)) {
+        setError(t('goals.form.targetInvalid'));
+        return;
+      }
+    } else if (targetAmount == null || !Number.isFinite(targetAmount) || targetAmount <= 0) {
       setError(t('goals.form.targetInvalid'));
       return;
     }
@@ -77,9 +96,11 @@ export const GoalFormDialog: React.FC<Props> = ({
     try {
       await onSubmit({
         name: values.name.trim(),
+        goalType: values.goalType,
         targetAmount,
+        monthlyTarget: isHabit ? monthlyTarget : undefined,
         currency: values.currency,
-        targetDate: values.targetDate || undefined,
+        targetDate: !isHabit && values.targetDate ? values.targetDate : undefined,
         color: values.color,
       });
       onClose();
@@ -103,6 +124,25 @@ export const GoalFormDialog: React.FC<Props> = ({
 
         <Grid container spacing={2} sx={{ mt: 0 }}>
           <Grid item xs={12}>
+            <ToggleButtonGroup
+              exclusive
+              fullWidth
+              value={values.goalType}
+              onChange={(_event, goalType: GoalType | null) => {
+                if (goalType) setValues((current) => ({ ...current, goalType }));
+              }}
+              aria-label={t('goals.form.type') as string}
+            >
+              <ToggleButton value="target" sx={{ textTransform: 'none', fontWeight: 600 }}>
+                🎯 {t('goals.form.typeTarget')}
+              </ToggleButton>
+              <ToggleButton value="recurring" sx={{ textTransform: 'none', fontWeight: 600 }}>
+                🔁 {t('goals.form.typeRecurring')}
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Grid>
+
+          <Grid item xs={12}>
             <TextField
               label={t('goals.form.name')}
               value={values.name}
@@ -115,9 +155,9 @@ export const GoalFormDialog: React.FC<Props> = ({
 
           <Grid item xs={7} sm={8}>
             <TextField
-              label={t('goals.form.target')}
-              value={values.targetAmount}
-              onChange={change('targetAmount')}
+              label={isHabit ? t('goals.form.monthlyTarget') : t('goals.form.target')}
+              value={isHabit ? values.monthlyTarget : values.targetAmount}
+              onChange={change(isHabit ? 'monthlyTarget' : 'targetAmount')}
               fullWidth
               type="number"
               inputProps={{ min: 0.01, step: 0.01 }}
@@ -140,17 +180,31 @@ export const GoalFormDialog: React.FC<Props> = ({
             </TextField>
           </Grid>
 
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label={t('goals.form.targetDate')}
-              value={values.targetDate}
-              onChange={change('targetDate')}
-              fullWidth
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              helperText={t('goals.form.targetDateHint')}
-            />
-          </Grid>
+          {isHabit ? (
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label={t('goals.form.optionalTarget')}
+                value={values.targetAmount}
+                onChange={change('targetAmount')}
+                fullWidth
+                type="number"
+                inputProps={{ min: 0.01, step: 0.01 }}
+                helperText={t('goals.form.optionalTargetHint')}
+              />
+            </Grid>
+          ) : (
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label={t('goals.form.targetDate')}
+                value={values.targetDate}
+                onChange={change('targetDate')}
+                fullWidth
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                helperText={t('goals.form.targetDateHint')}
+              />
+            </Grid>
+          )}
 
           <Grid item xs={12}>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
