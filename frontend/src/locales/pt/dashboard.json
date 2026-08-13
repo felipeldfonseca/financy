@@ -51,7 +51,8 @@
     "goalProgress": {
       "title": "Progresso das Metas",
       "description": "Defina metas financeiras e acompanhe seu progresso",
-      "button": "Adicionar Metas"
+      "button": "Adicionar Metas",
+      "viewAll": "Ver metas"
     },
     "budgetStatus": {
       "title": "Status do Orçamento",

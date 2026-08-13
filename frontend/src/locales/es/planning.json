@@ -1,7 +1,6 @@
 {
   "title": "Planificación Financiera",
   "description": "Planifica tus finanzas con facturas recurrentes, metas de ahorro y presupuestos por categoría.",
-  "comingSoon": "Próximamente",
   "bills": {
     "title": "Cuentas Pendientes",
     "add": "Nueva cuenta",
@@ -94,10 +93,49 @@
     "cancel": "Cancelar",
     "barLabel": "Gastado {{spent}}, comprometido {{committed}}, restante {{remaining}}"
   },
-  "savingsGoals": {
+  "goals": {
     "title": "Metas de Ahorro",
-    "description": "Establece objetivos financieros y rastrea tu progreso con hitos visuales y fechas objetivo.",
-    "features": "Funcionalidades: Rastreo de metas • Visualización de progreso • Fechas límite"
+    "add": "Nueva meta",
+    "empty": "Ninguna meta todavía. ¡Crea la primera y empieza a ahorrar!",
+    "achieved": "Lograda",
+    "achievedMessage": "¡Meta lograda! 🎉",
+    "saved": "Aporte registrado a tu nombre.",
+    "contributeAction": "Aportar",
+    "toggleTrail": "Ver aportes",
+    "rowMenu": "Más acciones",
+    "noContributions": "Ningún aporte todavía.",
+    "undoContribution": "Deshacer aporte",
+    "totalSaved": "Total ahorrado",
+    "progressLabel": "{{current}} de {{target}} · {{percent}}%",
+    "byDate": "hasta {{date}}",
+    "deleteConfirm": "¿Eliminar la meta \"{{name}}\" y todos sus aportes?",
+    "menu": {
+      "edit": "Editar",
+      "archive": "Archivar",
+      "delete": "Eliminar"
+    },
+    "form": {
+      "addTitle": "Nueva meta de ahorro",
+      "editTitle": "Editar meta",
+      "name": "Nombre",
+      "nameRequired": "El nombre es obligatorio",
+      "target": "Importe objetivo",
+      "targetInvalid": "Ingresa un objetivo mayor que cero",
+      "currency": "Moneda",
+      "targetDate": "Plazo (opcional)",
+      "targetDateHint": "Deja vacío para una meta sin plazo",
+      "save": "Guardar",
+      "cancel": "Cancelar"
+    },
+    "contribute": {
+      "title": "Registrar aporte",
+      "amount": "Importe",
+      "date": "Fecha",
+      "invalid": "Ingresa un importe mayor que cero",
+      "hint": "El aporte queda registrado a tu nombre en el historial de la meta.",
+      "confirm": "Confirmar aporte",
+      "cancel": "Cancelar"
+    }
   },
   "helpBanner": {
     "title": "Ayuda a Dar Forma a Estas Funcionalidades",

@@ -1,0 +1,234 @@
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  ConflictException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Goal, GoalStatus } from './entities/goal.entity';
+import { GoalContribution } from './entities/goal-contribution.entity';
+import { User } from '../users/entities/user.entity';
+import { ContextMember, MemberStatus } from '../contexts/entities/context-member.entity';
+import { TransactionsService } from '../transactions/transactions.service';
+import { CreateGoalDto, UpdateGoalDto, GoalFiltersDto, ContributeDto } from './dto/goal.dtos';
+
+/**
+ * Savings goals follow the exact permission grammar bills established:
+ * members who can record expenses can create goals and contribute to them —
+ * each contribution in the contributor's own name — while editing or removing
+ * a goal stays with its author or a context owner/admin.
+ */
+@Injectable()
+export class GoalsService {
+  constructor(
+    @InjectRepository(Goal)
+    private goalsRepository: Repository<Goal>,
+    @InjectRepository(GoalContribution)
+    private contributionsRepository: Repository<GoalContribution>,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+    @InjectRepository(ContextMember)
+    private contextMembersRepository: Repository<ContextMember>,
+    private transactionsService: TransactionsService,
+  ) {}
+
+  async create(dto: CreateGoalDto, userId: string): Promise<Goal> {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId, isActive: true },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found or inactive');
+    }
+
+    let contextId = dto.contextId;
+    if (contextId) {
+      const membership = await this.membershipIn(contextId, userId);
+      if (!membership || !membership.canEditTransactions()) {
+        throw new ForbiddenException('You do not have permission to create goals in this context');
+      }
+    } else {
+      contextId = await this.transactionsService.getOrCreateDefaultContext(userId);
+    }
+
+    const goal = this.goalsRepository.create({
+      ...dto,
+      targetDate: dto.targetDate ? dto.targetDate.slice(0, 10) : null,
+      currency: dto.currency || user.defaultCurrency || 'USD',
+      contextId,
+      userId,
+    });
+
+    return this.goalsRepository.save(goal);
+  }
+
+  async findAll(userId: string, filters: GoalFiltersDto): Promise<Goal[]> {
+    const queryBuilder = this.goalsRepository.createQueryBuilder('goal');
+
+    if (filters.contextId) {
+      const membership = await this.membershipIn(filters.contextId, userId);
+      if (!membership || !membership.canViewTransactions()) {
+        throw new ForbiddenException('You do not have access to this context');
+      }
+      queryBuilder.where('goal.contextId = :contextId', { contextId: filters.contextId });
+    } else {
+      queryBuilder.where('goal.userId = :userId', { userId });
+    }
+
+    const status = filters.status ?? GoalStatus.ACTIVE;
+    if (status !== 'all') {
+      queryBuilder.andWhere('goal.status = :status', { status });
+    }
+
+    return queryBuilder.orderBy('goal.createdAt', 'ASC').getMany();
+  }
+
+  async findOne(id: string, userId: string): Promise<Goal> {
+    const goal = await this.goalsRepository.findOne({ where: { id } });
+
+    if (!goal || !(await this.canRead(goal, userId))) {
+      throw new NotFoundException('Goal not found');
+    }
+
+    return goal;
+  }
+
+  async update(id: string, dto: UpdateGoalDto, userId: string): Promise<Goal> {
+    const goal = await this.findForMutation(id, userId);
+
+    Object.assign(goal, dto, dto.targetDate ? { targetDate: dto.targetDate.slice(0, 10) } : {});
+
+    return this.goalsRepository.save(goal);
+  }
+
+  async remove(id: string, userId: string): Promise<void> {
+    const goal = await this.findForMutation(id, userId);
+    await this.goalsRepository.remove(goal);
+  }
+
+  /**
+   * A deposit towards the goal, in the depositor's own name. The running
+   * total is incremented atomically so two simultaneous savers never lose
+   * each other's money.
+   */
+  async contribute(
+    goalId: string,
+    dto: ContributeDto,
+    userId: string,
+  ): Promise<{ goal: Goal; contribution: GoalContribution }> {
+    const goal = await this.findContributable(goalId, userId);
+
+    if (goal.status !== GoalStatus.ACTIVE) {
+      throw new ConflictException('Only an active goal accepts contributions');
+    }
+
+    const contribution = await this.contributionsRepository.save(
+      this.contributionsRepository.create({
+        goalId: goal.id,
+        userId,
+        amount: dto.amount,
+        date: (dto.date ?? new Date().toISOString()).slice(0, 10),
+      }),
+    );
+
+    await this.goalsRepository.increment({ id: goal.id }, 'currentAmount', dto.amount);
+
+    const updated = await this.goalsRepository.findOne({ where: { id: goal.id } });
+    return { goal: updated, contribution };
+  }
+
+  /** The trail, newest first, with who saved each amount. */
+  async listContributions(goalId: string, userId: string): Promise<GoalContribution[]> {
+    await this.findOne(goalId, userId); // read permission gate
+
+    return this.contributionsRepository
+      .createQueryBuilder('contribution')
+      .where('contribution.goalId = :goalId', { goalId })
+      .leftJoin('contribution.user', 'author')
+      .addSelect(['author.id', 'author.firstName', 'author.lastName'])
+      .orderBy('contribution.date', 'DESC')
+      .addOrderBy('contribution.createdAt', 'DESC')
+      .getMany();
+  }
+
+  /** Undo a deposit: its author, or a context owner/admin tidying up. */
+  async removeContribution(goalId: string, contributionId: string, userId: string): Promise<void> {
+    const goal = await this.findOne(goalId, userId);
+
+    const contribution = await this.contributionsRepository.findOne({
+      where: { id: contributionId, goalId: goal.id },
+    });
+    if (!contribution) {
+      throw new NotFoundException('Contribution not found');
+    }
+
+    if (contribution.userId !== userId) {
+      const membership = await this.membershipIn(goal.contextId, userId);
+      if (!membership?.canModerateTransactions()) {
+        throw new ForbiddenException(
+          'Only the member who made this contribution, or a context owner or admin, can remove it',
+        );
+      }
+    }
+
+    await this.contributionsRepository.remove(contribution);
+    await this.goalsRepository.decrement({ id: goal.id }, 'currentAmount', Number(contribution.amount));
+  }
+
+  private membershipIn(contextId: string, userId: string): Promise<ContextMember | null> {
+    return this.contextMembersRepository.findOne({
+      where: { contextId, userId, status: MemberStatus.ACTIVE },
+    });
+  }
+
+  private async canRead(goal: Goal, userId: string): Promise<boolean> {
+    if (goal.userId === userId) {
+      return true;
+    }
+    const membership = await this.membershipIn(goal.contextId, userId);
+    return Boolean(membership?.canViewTransactions());
+  }
+
+  private async findForMutation(id: string, userId: string): Promise<Goal> {
+    const goal = await this.goalsRepository.findOne({ where: { id } });
+
+    if (!goal) {
+      throw new NotFoundException('Goal not found');
+    }
+    if (goal.userId === userId) {
+      return goal;
+    }
+
+    const membership = await this.membershipIn(goal.contextId, userId);
+    if (membership?.canModerateTransactions()) {
+      return goal;
+    }
+    if (membership?.canViewTransactions()) {
+      throw new ForbiddenException(
+        'Only the member who created this goal, or a context owner or admin, can change it',
+      );
+    }
+    throw new NotFoundException('Goal not found');
+  }
+
+  /** Saving is wider than editing: any member who records expenses may deposit. */
+  private async findContributable(id: string, userId: string): Promise<Goal> {
+    const goal = await this.goalsRepository.findOne({ where: { id } });
+
+    if (!goal) {
+      throw new NotFoundException('Goal not found');
+    }
+    if (goal.userId === userId) {
+      return goal;
+    }
+
+    const membership = await this.membershipIn(goal.contextId, userId);
+    if (membership?.canEditTransactions()) {
+      return goal;
+    }
+    if (membership?.canViewTransactions()) {
+      throw new ForbiddenException('Only members who can record expenses may contribute');
+    }
+    throw new NotFoundException('Goal not found');
+  }
+}

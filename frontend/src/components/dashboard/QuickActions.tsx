@@ -19,10 +19,12 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { billApi, Bill } from '../../services/billApi';
+import { goalApi, Goal } from '../../services/goalApi';
 import { transactionApi } from '../../services/transactionApi';
 import { useFinancialContexts } from '../../contexts/ContextsContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { computeBudget } from '../../utils/budget';
+import { goalProgress } from '../../utils/goals';
 import { isBillOverdue, parseLocalDate, sumByCurrency } from '../../utils/bills';
 import { projectBillsIntoMonth } from '../../utils/recurrence';
 import { monthKey, EXPENSE_POLE } from '../../utils/calendar';
@@ -51,21 +53,25 @@ const QuickActions: React.FC<QuickActionsProps> = ({ contextId }) => {
   const { state: authState } = useAuth();
 
   const [openBills, setOpenBills] = useState<Bill[]>([]);
+  const [activeGoals, setActiveGoals] = useState<Goal[]>([]);
   const [monthSpent, setMonthSpent] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   const load = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [bills, days] = await Promise.all([
+      const [bills, days, goals] = await Promise.all([
         billApi.list({ status: 'open', contextId }),
         transactionApi.getCalendar(monthKey(new Date()), contextId),
+        goalApi.list({ status: 'active', contextId }),
       ]);
       setOpenBills(bills);
       setMonthSpent(days.reduce((sum, day) => sum + Number(day.expense), 0));
+      setActiveGoals(goals);
     } catch {
       setOpenBills([]);
       setMonthSpent(0);
+      setActiveGoals([]);
     } finally {
       setIsLoading(false);
     }
@@ -235,20 +241,74 @@ const QuickActions: React.FC<QuickActionsProps> = ({ contextId }) => {
                     <GoalIcon sx={{ fontSize: 24, color: '#10b981' }} />
                     <Typography variant="h6" fontWeight={600}>{t('quickActions.goalProgress.title')}</Typography>
                   </Box>
-                  <Box sx={{ ...sectionFrame('#10b981'), alignItems: 'center', justifyContent: 'center' }}>
-                    <GoalIcon sx={{ fontSize: 40, color: 'rgba(16, 185, 129, 0.3)', mb: 1 }} />
-                    <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mb: 2 }}>
-                      {t('quickActions.goalProgress.description')}
-                    </Typography>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      startIcon={<AddIcon />}
-                      onClick={() => navigate('/planning')}
-                      sx={{ borderColor: '#10b981', color: '#10b981', textTransform: 'none' }}
-                    >
-                      {t('quickActions.goalProgress.button')}
-                    </Button>
+                  <Box sx={sectionFrame('#10b981')}>
+                    {isLoading ? (
+                      <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <CircularProgress size={22} />
+                      </Box>
+                    ) : activeGoals.length === 0 ? (
+                      <Box
+                        sx={{
+                          flex: 1,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 1,
+                          textAlign: 'center',
+                        }}
+                      >
+                        <GoalIcon sx={{ fontSize: 40, color: 'rgba(16, 185, 129, 0.3)' }} />
+                        <Typography variant="body2" color="text.secondary" textAlign="center">
+                          {t('quickActions.goalProgress.description')}
+                        </Typography>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          startIcon={<AddIcon />}
+                          onClick={() => navigate('/planning')}
+                          sx={{ borderColor: '#10b981', color: '#10b981', textTransform: 'none' }}
+                        >
+                          {t('quickActions.goalProgress.button')}
+                        </Button>
+                      </Box>
+                    ) : (
+                      <>
+                        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1.25, minHeight: 0, justifyContent: 'center' }}>
+                          {activeGoals.slice(0, 3).map((goal) => {
+                            const progress = goalProgress(Number(goal.currentAmount), Number(goal.targetAmount));
+                            return (
+                              <Box key={goal.id}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}>
+                                  <Typography variant="body2" noWrap sx={{ flex: 1 }}>
+                                    {goal.name}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary" fontWeight={700}>
+                                    {Math.round(progress.ratio * 100)}%
+                                  </Typography>
+                                </Box>
+                                <Box sx={{ mt: 0.5, height: 8, borderRadius: '4px', background: 'rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+                                  <Box
+                                    sx={{
+                                      width: `${progress.percent}%`,
+                                      height: '100%',
+                                      background: goal.color || '#10b981',
+                                    }}
+                                  />
+                                </Box>
+                              </Box>
+                            );
+                          })}
+                        </Box>
+                        <Button
+                          size="small"
+                          onClick={() => navigate('/planning')}
+                          sx={{ color: '#10b981', textTransform: 'none', alignSelf: 'flex-start', minWidth: 0, px: 0, mt: 1 }}
+                        >
+                          {t('quickActions.goalProgress.viewAll')}
+                        </Button>
+                      </>
+                    )}
                   </Box>
                 </Box>
               </Grid>

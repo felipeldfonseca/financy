@@ -27,7 +27,7 @@ describe('Database schema (e2e)', () => {
     expect(pendingChanges.upQueries.map((query) => query.query)).toEqual([]);
   });
 
-  it.each(['users', 'transactions', 'contexts', 'context_members', 'chat_contexts', 'bills'])(
+  it.each(['users', 'transactions', 'contexts', 'context_members', 'chat_contexts', 'bills', 'goals', 'goal_contributions'])(
     'creates the %s table',
     async (table) => {
       expect(await dataSource.query('SELECT to_regclass($1) AS table', [table])).toEqual([

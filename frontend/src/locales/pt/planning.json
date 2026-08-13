@@ -1,7 +1,6 @@
 {
   "title": "Planejamento Financeiro",
   "description": "Planeje suas finanças com contas recorrentes, metas de economia e orçamentos por categoria.",
-  "comingSoon": "Em Breve",
   "bills": {
     "title": "Contas Pendentes",
     "add": "Nova conta",
@@ -94,10 +93,49 @@
     "cancel": "Cancelar",
     "barLabel": "Gasto {{spent}}, comprometido {{committed}}, restante {{remaining}}"
   },
-  "savingsGoals": {
+  "goals": {
     "title": "Metas de Economia",
-    "description": "Defina objetivos financeiros e acompanhe seu progresso com marcos visuais e prazos definidos.",
-    "features": "Funcionalidades: Acompanhamento de metas • Visualização de progresso • Prazos limite"
+    "add": "Nova meta",
+    "empty": "Nenhuma meta ainda. Crie a primeira e comece a guardar!",
+    "achieved": "Concluída",
+    "achievedMessage": "Meta atingida! 🎉",
+    "saved": "Aporte registrado no seu nome.",
+    "contributeAction": "Aportar",
+    "toggleTrail": "Ver aportes",
+    "rowMenu": "Mais ações",
+    "noContributions": "Nenhum aporte ainda.",
+    "undoContribution": "Desfazer aporte",
+    "totalSaved": "Total guardado",
+    "progressLabel": "{{current}} de {{target}} · {{percent}}%",
+    "byDate": "até {{date}}",
+    "deleteConfirm": "Excluir a meta \"{{name}}\" e todos os aportes?",
+    "menu": {
+      "edit": "Editar",
+      "archive": "Arquivar",
+      "delete": "Excluir"
+    },
+    "form": {
+      "addTitle": "Nova meta de economia",
+      "editTitle": "Editar meta",
+      "name": "Nome",
+      "nameRequired": "Nome é obrigatório",
+      "target": "Valor alvo",
+      "targetInvalid": "Informe um valor alvo maior que zero",
+      "currency": "Moeda",
+      "targetDate": "Prazo (opcional)",
+      "targetDateHint": "Deixe vazio para meta sem prazo",
+      "save": "Salvar",
+      "cancel": "Cancelar"
+    },
+    "contribute": {
+      "title": "Registrar aporte",
+      "amount": "Valor",
+      "date": "Data",
+      "invalid": "Informe um valor maior que zero",
+      "hint": "O aporte fica registrado no seu nome no extrato da meta.",
+      "confirm": "Confirmar aporte",
+      "cancel": "Cancelar"
+    }
   },
   "helpBanner": {
     "title": "Ajude a Moldar Essas Funcionalidades",

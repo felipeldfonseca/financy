@@ -51,7 +51,8 @@
     "goalProgress": {
       "title": "Goal Progress",
       "description": "Set financial goals and track your progress",
-      "button": "Add Goals"
+      "button": "Add Goals",
+      "viewAll": "View goals"
     },
     "budgetStatus": {
       "title": "Budget Status",

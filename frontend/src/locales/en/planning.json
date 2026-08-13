@@ -1,7 +1,6 @@
 {
   "title": "Financial Planning",
   "description": "Plan your finances with recurring bills, savings goals, and category budgets.",
-  "comingSoon": "Coming Soon",
   "bills": {
     "title": "Upcoming Bills",
     "add": "New bill",
@@ -94,10 +93,49 @@
     "cancel": "Cancel",
     "barLabel": "Spent {{spent}}, committed {{committed}}, remaining {{remaining}}"
   },
-  "savingsGoals": {
+  "goals": {
     "title": "Savings Goals",
-    "description": "Set financial goals and track your progress with visual milestones and target dates.",
-    "features": "Features: Goal tracking • Progress visualization • Target deadlines"
+    "add": "New goal",
+    "empty": "No goals yet. Create the first one and start saving!",
+    "achieved": "Achieved",
+    "achievedMessage": "Goal achieved! 🎉",
+    "saved": "Contribution recorded in your name.",
+    "contributeAction": "Contribute",
+    "toggleTrail": "View contributions",
+    "rowMenu": "More actions",
+    "noContributions": "No contributions yet.",
+    "undoContribution": "Undo contribution",
+    "totalSaved": "Total saved",
+    "progressLabel": "{{current}} of {{target}} · {{percent}}%",
+    "byDate": "by {{date}}",
+    "deleteConfirm": "Delete the goal \"{{name}}\" and all its contributions?",
+    "menu": {
+      "edit": "Edit",
+      "archive": "Archive",
+      "delete": "Delete"
+    },
+    "form": {
+      "addTitle": "New savings goal",
+      "editTitle": "Edit goal",
+      "name": "Name",
+      "nameRequired": "Name is required",
+      "target": "Target amount",
+      "targetInvalid": "Enter a target greater than zero",
+      "currency": "Currency",
+      "targetDate": "Deadline (optional)",
+      "targetDateHint": "Leave empty for an open-ended goal",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "contribute": {
+      "title": "Record contribution",
+      "amount": "Amount",
+      "date": "Date",
+      "invalid": "Enter an amount greater than zero",
+      "hint": "The contribution is recorded in your name on the goal's trail.",
+      "confirm": "Confirm contribution",
+      "cancel": "Cancel"
+    }
   },
   "helpBanner": {
     "title": "Help Shape These Features",
