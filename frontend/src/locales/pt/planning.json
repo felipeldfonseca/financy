@@ -132,7 +132,11 @@
       "monthlyTarget": "Aporte mensal alvo",
       "monthlyTargetInvalid": "Informe um aporte mensal maior que zero",
       "optionalTarget": "Alvo total (opcional)",
-      "optionalTargetHint": "Para hábito com linha de chegada"
+      "optionalTargetHint": "Para hábito com linha de chegada",
+      "growthRate": "Rendimento esperado (% a.m., opcional)",
+      "growthRateHint": "Usado só nas projeções",
+      "growthRateEquivalent": "≈ {{annual}}% ao ano · usado só nas projeções",
+      "growthRateInvalid": "Informe um % a.m. entre 0 e 50"
     },
     "contribute": {
       "title": "Registrar aporte",
@@ -147,7 +151,42 @@
     "eventChip": "Evento",
     "monthComplete": "Mês completo",
     "monthProgressLabel": "{{current}} de {{target}} em {{month}} · {{percent}}%",
-    "accumulated": "Total acumulado: {{total}}"
+    "accumulated": "Total acumulado: {{total}}",
+    "adjusted": "Saldo ajustado.",
+    "adjustmentEntry": "ajuste",
+    "projections": {
+      "title": "Projeções",
+      "horizon1": "1 ano",
+      "horizon5": "5 anos",
+      "horizon10": "10 anos",
+      "withoutYield": "Sem rendimento",
+      "withYield": "Com {{rate}}% a.m.",
+      "chartLabel": "Projeção de 24 meses, com e sem rendimento",
+      "today": "hoje",
+      "oneYear": "1 ano",
+      "twoYears": "2 anos"
+    },
+    "pace": {
+      "needed": "Necessário: {{amount}}/mês até {{date}}",
+      "average": "Seu ritmo (últimos 3 meses): {{amount}}/mês",
+      "behind": "Ritmo abaixo do necessário",
+      "onTrack": "No ritmo para chegar lá"
+    },
+    "adjust": {
+      "action": "Ajustar saldo",
+      "title": "Ajustar saldo",
+      "direction": "Sentido do ajuste",
+      "increase": "Aumentar",
+      "decrease": "Diminuir",
+      "amount": "Valor",
+      "date": "Data",
+      "note": "Motivo (opcional)",
+      "notePlaceholder": "rendimento de julho, saque…",
+      "invalid": "Informe um valor maior que zero",
+      "hint": "Ajustes aparecem no extrato marcados com ≈, separados dos aportes, e não contam na barra do mês.",
+      "confirm": "Confirmar ajuste",
+      "cancel": "Cancelar"
+    }
   },
   "helpBanner": {
     "title": "Ajude a Moldar Essas Funcionalidades",

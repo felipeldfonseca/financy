@@ -132,7 +132,11 @@
       "monthlyTarget": "Monthly deposit target",
       "monthlyTargetInvalid": "Enter a monthly deposit greater than zero",
       "optionalTarget": "Total target (optional)",
-      "optionalTargetHint": "For a habit with a finish line"
+      "optionalTargetHint": "For a habit with a finish line",
+      "growthRate": "Expected yield (%/mo, optional)",
+      "growthRateHint": "Used only for projections",
+      "growthRateEquivalent": "≈ {{annual}}%/year · used only for projections",
+      "growthRateInvalid": "Enter a monthly % between 0 and 50"
     },
     "contribute": {
       "title": "Record contribution",
@@ -147,7 +151,42 @@
     "eventChip": "Event",
     "monthComplete": "Month complete",
     "monthProgressLabel": "{{current}} of {{target}} in {{month}} · {{percent}}%",
-    "accumulated": "Total so far: {{total}}"
+    "accumulated": "Total so far: {{total}}",
+    "adjusted": "Balance adjusted.",
+    "adjustmentEntry": "adjustment",
+    "projections": {
+      "title": "Projections",
+      "horizon1": "1 year",
+      "horizon5": "5 years",
+      "horizon10": "10 years",
+      "withoutYield": "Without yield",
+      "withYield": "At {{rate}}%/mo",
+      "chartLabel": "24-month projection, with and without yield",
+      "today": "today",
+      "oneYear": "1 year",
+      "twoYears": "2 years"
+    },
+    "pace": {
+      "needed": "Needed: {{amount}}/month until {{date}}",
+      "average": "Your pace (last 3 months): {{amount}}/month",
+      "behind": "Behind the needed pace",
+      "onTrack": "On track to get there"
+    },
+    "adjust": {
+      "action": "Adjust balance",
+      "title": "Adjust balance",
+      "direction": "Adjustment direction",
+      "increase": "Increase",
+      "decrease": "Decrease",
+      "amount": "Amount",
+      "date": "Date",
+      "note": "Reason (optional)",
+      "notePlaceholder": "July yield, withdrawal…",
+      "invalid": "Enter an amount greater than zero",
+      "hint": "Adjustments show in the trail marked with ≈, apart from deposits, and never count towards the month bar.",
+      "confirm": "Confirm adjustment",
+      "cancel": "Cancel"
+    }
   },
   "helpBanner": {
     "title": "Help Shape These Features",

@@ -15,7 +15,13 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { GoalsService } from './goals.service';
-import { CreateGoalDto, UpdateGoalDto, GoalFiltersDto, ContributeDto } from './dto/goal.dtos';
+import {
+  CreateGoalDto,
+  UpdateGoalDto,
+  GoalFiltersDto,
+  ContributeDto,
+  AdjustBalanceDto,
+} from './dto/goal.dtos';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('goals')
@@ -79,6 +85,18 @@ export class GoalsController {
     @Request() req,
   ) {
     return await this.goalsService.contribute(id, contributeDto, req.user.id);
+  }
+
+  @Post(':id/adjust')
+  @ApiOperation({ summary: 'Adjust the goal balance by ± (yield, loss, recount)' })
+  @ApiResponse({ status: 201, description: 'Adjustment recorded in the trail' })
+  @ApiResponse({ status: 409, description: 'Adjustment would make the balance negative' })
+  async adjust(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() adjustDto: AdjustBalanceDto,
+    @Request() req,
+  ) {
+    return await this.goalsService.adjust(id, adjustDto, req.user.id);
   }
 
   @Get(':id/contributions')

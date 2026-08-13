@@ -24,7 +24,14 @@ import {
   TrackChanges as GoalIcon,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
-import { goalApi, Goal, GoalContribution, CreateGoalData, ContributeData } from '../../services/goalApi';
+import {
+  goalApi,
+  Goal,
+  GoalContribution,
+  CreateGoalData,
+  ContributeData,
+  AdjustBalanceData,
+} from '../../services/goalApi';
 import { useFinancialContexts } from '../../contexts/ContextsContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { canModifyTransaction } from '../../utils/contextPermissions';
@@ -32,6 +39,8 @@ import { canPayBills, parseLocalDate, sumByCurrency } from '../../utils/bills';
 import { goalProgress } from '../../utils/goals';
 import { GoalFormDialog } from './GoalFormDialog';
 import { ContributeDialog } from './ContributeDialog';
+import { AdjustBalanceDialog } from './AdjustBalanceDialog';
+import { GoalProjectionsPanel } from './GoalProjectionsPanel';
 
 const ACCENT = '#10b981';
 
@@ -51,6 +60,7 @@ export const SavingsGoalsCard: React.FC = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [contributingGoal, setContributingGoal] = useState<Goal | null>(null);
+  const [adjustingGoal, setAdjustingGoal] = useState<Goal | null>(null);
   const [menuAnchor, setMenuAnchor] = useState<{ element: HTMLElement; goal: Goal } | null>(null);
   const [expandedGoalId, setExpandedGoalId] = useState<string | null>(null);
   const [trail, setTrail] = useState<GoalContribution[]>([]);
@@ -130,6 +140,20 @@ export const SavingsGoalsCard: React.FC = () => {
     await load();
     if (expandedGoalId === contributingGoal.id) {
       await loadTrail(contributingGoal.id);
+    }
+  };
+
+  const adjustBalance = async (data: AdjustBalanceData) => {
+    if (!adjustingGoal) return;
+    const result = await goalApi.adjust(adjustingGoal.id, data);
+    setMessage(
+      result.goal.isAchieved
+        ? (t('goals.achievedMessage') as string)
+        : (t('goals.adjusted') as string),
+    );
+    await load();
+    if (expandedGoalId === adjustingGoal.id) {
+      await loadTrail(adjustingGoal.id);
     }
   };
 
@@ -407,6 +431,26 @@ export const SavingsGoalsCard: React.FC = () => {
 
                   <Collapse in={expanded} unmountOnExit>
                     <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+                      <GoalProjectionsPanel goal={goal} trail={trail} trailLoading={trailLoading} />
+
+                      {canPayBills(contextRole) && (
+                        <Chip
+                          size="small"
+                          label={`± ${t('goals.adjust.action')}`}
+                          onClick={() => setAdjustingGoal(goal)}
+                          sx={{
+                            mb: 1.5,
+                            height: 24,
+                            fontSize: '0.72rem',
+                            fontWeight: 600,
+                            color: 'text.secondary',
+                            background: 'rgba(0,0,0,0.05)',
+                            border: '1px solid rgba(0,0,0,0.12)',
+                            '&:hover': { background: 'rgba(0,0,0,0.1)' },
+                          }}
+                        />
+                      )}
+
                       {trailLoading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', py: 1.5 }}>
                           <CircularProgress size={18} />
@@ -417,18 +461,30 @@ export const SavingsGoalsCard: React.FC = () => {
                         </Typography>
                       ) : (
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                          {trail.map((contribution) => (
+                          {trail.map((contribution) => {
+                            const isAdjustment = contribution.kind === 'adjustment';
+                            const amount = Number(contribution.amount);
+                            return (
                             <Box
                               key={contribution.id}
                               sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                             >
-                              <Typography variant="body2" fontWeight={700} sx={{ color: ACCENT }}>
-                                +{formatCurrency(Number(contribution.amount), goal.currency)}
+                              <Typography
+                                variant="body2"
+                                fontWeight={700}
+                                sx={{ color: isAdjustment ? 'text.secondary' : ACCENT }}
+                              >
+                                {isAdjustment
+                                  ? `≈ ${amount < 0 ? '−' : '+'}${formatCurrency(Math.abs(amount), goal.currency)}`
+                                  : `+${formatCurrency(amount, goal.currency)}`}
                               </Typography>
                               <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>
                                 {parseLocalDate(contribution.date).toLocaleDateString(i18n.language)}
                                 {contribution.user
                                   ? ` · ${contribution.user.firstName} ${contribution.user.lastName}`
+                                  : ''}
+                                {isAdjustment
+                                  ? ` · ${t('goals.adjustmentEntry')}${contribution.note ? `: ${contribution.note}` : ''}`
                                   : ''}
                               </Typography>
                               {canUndoContribution(contribution) && (
@@ -441,7 +497,8 @@ export const SavingsGoalsCard: React.FC = () => {
                                 </IconButton>
                               )}
                             </Box>
-                          ))}
+                            );
+                          })}
                         </Box>
                       )}
                     </Box>
@@ -508,6 +565,12 @@ export const SavingsGoalsCard: React.FC = () => {
           goal={contributingGoal}
           onClose={() => setContributingGoal(null)}
           onConfirm={contribute}
+        />
+
+        <AdjustBalanceDialog
+          goal={adjustingGoal}
+          onClose={() => setAdjustingGoal(null)}
+          onConfirm={adjustBalance}
         />
 
         <Snackbar

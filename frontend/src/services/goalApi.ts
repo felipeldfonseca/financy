@@ -15,6 +15,8 @@ export interface Goal {
   monthlyTarget?: number | null;
   /** This month's deposits, attached by the server for habits. */
   monthContributed?: number;
+  /** Expected growth in % per month (0.8 = 0.8% a.m.); projections only. */
+  expectedMonthlyGrowthRate?: number | null;
   currentAmount: number;
   currency: string;
   /** Optional deadline, YYYY-MM-DD. */
@@ -29,9 +31,16 @@ export interface Goal {
   isAchieved: boolean;
 }
 
+/** 'deposit' counts towards the month bar; 'adjustment' only moves the total. */
+export type ContributionKind = 'deposit' | 'adjustment';
+
 export interface GoalContribution {
   id: string;
+  /** Negative only for adjustments. */
   amount: number;
+  kind: ContributionKind;
+  /** Why the balance was adjusted; null on deposits. */
+  note?: string | null;
   date: string;
   goalId: string;
   userId: string;
@@ -45,6 +54,8 @@ export interface CreateGoalData {
   goalType?: GoalType;
   targetAmount?: number;
   monthlyTarget?: number;
+  /** Expected growth in % per month; projections only. */
+  expectedMonthlyGrowthRate?: number;
   currency?: string;
   targetDate?: string;
   color?: string;
@@ -59,6 +70,13 @@ export interface UpdateGoalData extends Partial<Omit<CreateGoalData, 'contextId'
 export interface ContributeData {
   amount: number;
   /** When the money was put aside; the server defaults to today. */
+  date?: string;
+}
+
+export interface AdjustBalanceData {
+  /** Signed: positive for yield, negative for a loss or withdrawal. */
+  amount: number;
+  note?: string;
   date?: string;
 }
 
@@ -94,6 +112,15 @@ export const goalApi = {
     data: ContributeData,
   ): Promise<{ goal: Goal; contribution: GoalContribution }> {
     const response = await api.post(`/goals/${id}/contributions`, data);
+    return response.data;
+  },
+
+  /** ± balance correction, recorded in the trail as an adjustment. */
+  async adjust(
+    id: string,
+    data: AdjustBalanceData,
+  ): Promise<{ goal: Goal; contribution: GoalContribution }> {
+    const response = await api.post(`/goals/${id}/adjust`, data);
     return response.data;
   },
 

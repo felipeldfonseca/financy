@@ -132,7 +132,11 @@
       "monthlyTarget": "Aporte mensual objetivo",
       "monthlyTargetInvalid": "Ingresa un aporte mensual mayor que cero",
       "optionalTarget": "Objetivo total (opcional)",
-      "optionalTargetHint": "Para un hábito con línea de meta"
+      "optionalTargetHint": "Para un hábito con línea de meta",
+      "growthRate": "Rendimiento esperado (% a.m., opcional)",
+      "growthRateHint": "Usado solo en las proyecciones",
+      "growthRateEquivalent": "≈ {{annual}}% al año · usado solo en las proyecciones",
+      "growthRateInvalid": "Ingresa un % a.m. entre 0 y 50"
     },
     "contribute": {
       "title": "Registrar aporte",
@@ -147,7 +151,42 @@
     "eventChip": "Evento",
     "monthComplete": "Mes completo",
     "monthProgressLabel": "{{current}} de {{target}} en {{month}} · {{percent}}%",
-    "accumulated": "Total acumulado: {{total}}"
+    "accumulated": "Total acumulado: {{total}}",
+    "adjusted": "Saldo ajustado.",
+    "adjustmentEntry": "ajuste",
+    "projections": {
+      "title": "Proyecciones",
+      "horizon1": "1 año",
+      "horizon5": "5 años",
+      "horizon10": "10 años",
+      "withoutYield": "Sin rendimiento",
+      "withYield": "Con {{rate}}% a.m.",
+      "chartLabel": "Proyección de 24 meses, con y sin rendimiento",
+      "today": "hoy",
+      "oneYear": "1 año",
+      "twoYears": "2 años"
+    },
+    "pace": {
+      "needed": "Necesario: {{amount}}/mes hasta {{date}}",
+      "average": "Tu ritmo (últimos 3 meses): {{amount}}/mes",
+      "behind": "Ritmo por debajo de lo necesario",
+      "onTrack": "A buen ritmo para lograrlo"
+    },
+    "adjust": {
+      "action": "Ajustar saldo",
+      "title": "Ajustar saldo",
+      "direction": "Sentido del ajuste",
+      "increase": "Aumentar",
+      "decrease": "Disminuir",
+      "amount": "Monto",
+      "date": "Fecha",
+      "note": "Motivo (opcional)",
+      "notePlaceholder": "rendimiento de julio, retiro…",
+      "invalid": "Ingresa un monto mayor que cero",
+      "hint": "Los ajustes aparecen en el historial marcados con ≈, separados de los aportes, y no cuentan en la barra del mes.",
+      "confirm": "Confirmar ajuste",
+      "cancel": "Cancelar"
+    }
   },
   "helpBanner": {
     "title": "Ayuda a Dar Forma a Estas Funcionalidades",

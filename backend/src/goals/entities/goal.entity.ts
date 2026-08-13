@@ -52,6 +52,13 @@ export class Goal {
   @Column('decimal', { precision: 12, scale: 2, nullable: true })
   monthlyTarget: number;
 
+  /**
+   * Expected growth in % per month (0.8 = 0.8% a.m.), as the user quoted it.
+   * Used only for projections — the stored balance never grows by itself.
+   */
+  @Column('decimal', { precision: 6, scale: 3, nullable: true })
+  expectedMonthlyGrowthRate: number;
+
   @Column('decimal', { precision: 12, scale: 2, default: 0 })
   currentAmount: number;
 

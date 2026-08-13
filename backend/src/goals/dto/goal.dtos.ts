@@ -8,6 +8,7 @@ import {
   IsIn,
   IsUUID,
   Min,
+  Max,
   MaxLength,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
@@ -39,6 +40,17 @@ export class CreateGoalDto {
   @Min(0.01, { message: 'Monthly target must be greater than 0' })
   @Transform(({ value }) => (value == null || value === '' ? undefined : parseFloat(value)))
   monthlyTarget?: number;
+
+  /**
+   * Expected growth in % per month (0.8 = 0.8% a.m.), used only for
+   * projections. Zero means "project without yield", same as leaving it out.
+   */
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @Min(0, { message: 'Growth rate cannot be negative' })
+  @Max(50, { message: 'Growth rate must be a monthly percentage, 50% a.m. at most' })
+  @Transform(({ value }) => (value == null || value === '' ? undefined : parseFloat(value)))
+  expectedMonthlyGrowthRate?: number;
 
   @IsOptional()
   @IsString()
@@ -83,6 +95,24 @@ export class ContributeDto {
   amount: number;
 
   /** When the money was put aside; defaults to today. */
+  @IsOptional()
+  @IsDateString()
+  date?: string;
+}
+
+/** A ± balance correction — yield, a loss, a recount. Not a deposit. */
+export class AdjustBalanceDto {
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Transform(({ value }) => parseFloat(value))
+  amount: number;
+
+  /** Why the balance moved; shows up in the trail next to the "≈" mark. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  note?: string;
+
+  /** When it happened; defaults to today. */
   @IsOptional()
   @IsDateString()
   date?: string;

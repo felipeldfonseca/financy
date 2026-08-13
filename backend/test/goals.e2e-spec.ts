@@ -392,6 +392,146 @@ describe('Goals (e2e)', () => {
     });
   });
 
+  describe('balance adjustments and growth rate', () => {
+    const adjust = (account: Account, goalId: string, body: Record<string, unknown>) =>
+      request(app.getHttpServer())
+        .post(`/api/v1/goals/${goalId}/adjust`)
+        .set(auth(account))
+        .send(body);
+
+    it('stores the expected monthly growth rate and validates its bounds', async () => {
+      const created = await createGoal(owner, {
+        name: 'Dólar',
+        goalType: 'recurring',
+        targetAmount: undefined,
+        monthlyTarget: 500,
+        expectedMonthlyGrowthRate: 0.8,
+      }).expect(201);
+      expect(Number(created.body.expectedMonthlyGrowthRate)).toBe(0.8);
+
+      const patched = await request(app.getHttpServer())
+        .patch(`/api/v1/goals/${created.body.id}`)
+        .set(auth(owner))
+        .send({ expectedMonthlyGrowthRate: 1.25 })
+        .expect(200);
+      expect(Number(patched.body.expectedMonthlyGrowthRate)).toBe(1.25);
+
+      await createGoal(owner, { expectedMonthlyGrowthRate: -1 }).expect(400);
+      await createGoal(owner, { expectedMonthlyGrowthRate: 51 }).expect(400);
+    });
+
+    it('adjusts the balance up and down, marked in the trail with its note', async () => {
+      const goal = await createGoal(owner, { name: 'Com rendimento', targetAmount: 1000 }).expect(
+        201,
+      );
+      await request(app.getHttpServer())
+        .post(`/api/v1/goals/${goal.body.id}/contributions`)
+        .set(auth(owner))
+        .send({ amount: 200 })
+        .expect(201);
+
+      const up = await adjust(owner, goal.body.id, {
+        amount: 35.5,
+        note: 'rendimento de julho',
+      }).expect(201);
+      expect(Number(up.body.goal.currentAmount)).toBe(235.5);
+      expect(up.body.contribution.kind).toBe('adjustment');
+
+      const down = await adjust(owner, goal.body.id, { amount: -35.5, note: 'saque' }).expect(201);
+      expect(Number(down.body.goal.currentAmount)).toBe(200);
+
+      const trail = await request(app.getHttpServer())
+        .get(`/api/v1/goals/${goal.body.id}/contributions`)
+        .set(auth(owner))
+        .expect(200);
+      const kinds = trail.body.map((entry: any) => entry.kind);
+      expect(kinds.filter((kind: string) => kind === 'adjustment')).toHaveLength(2);
+      expect(trail.body.find((entry: any) => entry.note === 'rendimento de julho')).toBeDefined();
+    });
+
+    it('refuses an adjustment that would push the balance below zero, and a zero one', async () => {
+      const goal = await createGoal(owner, { name: 'Fundo raso', targetAmount: 1000 }).expect(201);
+      await request(app.getHttpServer())
+        .post(`/api/v1/goals/${goal.body.id}/contributions`)
+        .set(auth(owner))
+        .send({ amount: 50 })
+        .expect(201);
+
+      await adjust(owner, goal.body.id, { amount: -50.01 }).expect(409);
+      await adjust(owner, goal.body.id, { amount: 0 }).expect(400);
+
+      const after = await request(app.getHttpServer())
+        .get(`/api/v1/goals/${goal.body.id}`)
+        .set(auth(owner))
+        .expect(200);
+      expect(Number(after.body.currentAmount)).toBe(50);
+    });
+
+    it('keeps adjustments in the total but out of the month bar', async () => {
+      const goal = await createGoal(owner, {
+        name: 'Hábito ajustado',
+        goalType: 'recurring',
+        targetAmount: undefined,
+        monthlyTarget: 500,
+      }).expect(201);
+
+      await request(app.getHttpServer())
+        .post(`/api/v1/goals/${goal.body.id}/contributions`)
+        .set(auth(owner))
+        .send({ amount: 200 })
+        .expect(201);
+      await adjust(owner, goal.body.id, { amount: 300, note: 'rendimento' }).expect(201);
+
+      const fetched = await request(app.getHttpServer())
+        .get(`/api/v1/goals/${goal.body.id}`)
+        .set(auth(owner))
+        .expect(200);
+      expect(Number(fetched.body.currentAmount)).toBe(500);
+      expect(Number(fetched.body.monthContributed)).toBe(200);
+    });
+
+    it('blocks undoing a deposit that a negative adjustment already spent', async () => {
+      const goal = await createGoal(owner, { name: 'Undo raso', targetAmount: 1000 }).expect(201);
+      const deposit = await request(app.getHttpServer())
+        .post(`/api/v1/goals/${goal.body.id}/contributions`)
+        .set(auth(owner))
+        .send({ amount: 100 })
+        .expect(201);
+      await adjust(owner, goal.body.id, { amount: -80, note: 'saque' }).expect(201);
+
+      // Balance is 20; removing the 100 deposit would leave it at -80.
+      await request(app.getHttpServer())
+        .delete(`/api/v1/goals/${goal.body.id}/contributions/${deposit.body.contribution.id}`)
+        .set(auth(owner))
+        .expect(409);
+
+      const after = await request(app.getHttpServer())
+        .get(`/api/v1/goals/${goal.body.id}`)
+        .set(auth(owner))
+        .expect(200);
+      expect(Number(after.body.currentAmount)).toBe(20);
+    });
+
+    it('lets contributing members adjust, but not viewers', async () => {
+      const goal = await createGoal(owner, {
+        name: 'Ajuste em grupo',
+        contextId,
+        targetAmount: 2000,
+      }).expect(201);
+      await request(app.getHttpServer())
+        .post(`/api/v1/goals/${goal.body.id}/contributions`)
+        .set(auth(owner))
+        .send({ amount: 100 })
+        .expect(201);
+
+      const byMember = await adjust(member, goal.body.id, { amount: 10 }).expect(201);
+      expect(byMember.body.contribution.userId).toBe(member.id);
+
+      await adjust(viewer, goal.body.id, { amount: 10 }).expect(403);
+      await adjust(stranger, goal.body.id, { amount: 10 }).expect(404);
+    });
+  });
+
   describe('archiving', () => {
     it('keeps archived goals out of the default list but reachable via status=all', async () => {
       const goal = await createGoal(owner, { name: 'Antiga' }).expect(201);

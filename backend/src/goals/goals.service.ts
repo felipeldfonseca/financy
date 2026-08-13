@@ -8,11 +8,17 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Goal, GoalStatus, GoalType } from './entities/goal.entity';
-import { GoalContribution } from './entities/goal-contribution.entity';
+import { GoalContribution, ContributionKind } from './entities/goal-contribution.entity';
 import { User } from '../users/entities/user.entity';
 import { ContextMember, MemberStatus } from '../contexts/entities/context-member.entity';
 import { TransactionsService } from '../transactions/transactions.service';
-import { CreateGoalDto, UpdateGoalDto, GoalFiltersDto, ContributeDto } from './dto/goal.dtos';
+import {
+  CreateGoalDto,
+  UpdateGoalDto,
+  GoalFiltersDto,
+  ContributeDto,
+  AdjustBalanceDto,
+} from './dto/goal.dtos';
 
 /**
  * Savings goals follow the exact permission grammar bills established:
@@ -137,11 +143,60 @@ export class GoalsService {
         goalId: goal.id,
         userId,
         amount: dto.amount,
+        kind: ContributionKind.DEPOSIT,
         date: (dto.date ?? new Date().toISOString()).slice(0, 10),
       }),
     );
 
     await this.goalsRepository.increment({ id: goal.id }, 'currentAmount', dto.amount);
+
+    const updated = await this.goalsRepository.findOne({ where: { id: goal.id } });
+    const [withProgress] = await this.attachMonthProgress([updated]);
+    return { goal: withProgress, contribution };
+  }
+
+  /**
+   * A ± correction of the balance — yield that landed, a loss, a recount.
+   * It joins the trail marked as an adjustment (so the month bar ignores it)
+   * and may never push the balance below zero: the guard and the arithmetic
+   * are one atomic statement, so two simultaneous corrections cannot
+   * conspire into a negative pot.
+   */
+  async adjust(
+    goalId: string,
+    dto: AdjustBalanceDto,
+    userId: string,
+  ): Promise<{ goal: Goal; contribution: GoalContribution }> {
+    const goal = await this.findContributable(goalId, userId);
+
+    if (goal.status !== GoalStatus.ACTIVE) {
+      throw new ConflictException('Only an active goal accepts adjustments');
+    }
+    if (!dto.amount) {
+      throw new BadRequestException('An adjustment of zero changes nothing');
+    }
+
+    if (!(await this.applyBalanceDelta(goal.id, dto.amount))) {
+      throw new ConflictException('This adjustment would make the goal balance negative');
+    }
+
+    let contribution: GoalContribution;
+    try {
+      contribution = await this.contributionsRepository.save(
+        this.contributionsRepository.create({
+          goalId: goal.id,
+          userId,
+          amount: dto.amount,
+          kind: ContributionKind.ADJUSTMENT,
+          note: dto.note ?? null,
+          date: (dto.date ?? new Date().toISOString()).slice(0, 10),
+        }),
+      );
+    } catch (error) {
+      // The balance moved but the trail entry did not land: put it back.
+      await this.applyBalanceDelta(goal.id, -dto.amount);
+      throw error;
+    }
 
     const updated = await this.goalsRepository.findOne({ where: { id: goal.id } });
     const [withProgress] = await this.attachMonthProgress([updated]);
@@ -182,8 +237,33 @@ export class GoalsService {
       }
     }
 
-    await this.contributionsRepository.remove(contribution);
-    await this.goalsRepository.decrement({ id: goal.id }, 'currentAmount', Number(contribution.amount));
+    // With negative adjustments in the trail, undoing a deposit can strand
+    // the balance below zero — same atomic guard as adjusting.
+    if (!(await this.applyBalanceDelta(goal.id, -Number(contribution.amount)))) {
+      throw new ConflictException('Removing this entry would make the goal balance negative');
+    }
+
+    const deleted = await this.contributionsRepository.delete({ id: contribution.id });
+    if (!deleted.affected) {
+      // A concurrent undo beat us to the row and already took the amount out;
+      // give ours back so the balance is subtracted exactly once.
+      await this.applyBalanceDelta(goal.id, Number(contribution.amount));
+      throw new NotFoundException('Contribution not found');
+    }
+  }
+
+  /**
+   * currentAmount += delta, refused (false) if the result would be negative.
+   * Guard and update are a single statement — no read-then-write window.
+   */
+  private async applyBalanceDelta(goalId: string, delta: number): Promise<boolean> {
+    const result = await this.goalsRepository
+      .createQueryBuilder()
+      .update(Goal)
+      .set({ currentAmount: () => '"currentAmount" + :delta' })
+      .where('id = :id AND "currentAmount" + :delta >= 0', { id: goalId, delta })
+      .execute();
+    return Boolean(result.affected);
   }
 
   /**
@@ -222,6 +302,9 @@ export class GoalsService {
       .select('contribution.goalId', 'goalId')
       .addSelect('SUM(contribution.amount)', 'total')
       .where('contribution.goalId IN (:...goalIds)', { goalIds: habits.map((goal) => goal.id) })
+      // Adjustments move the total, never the month bar: the habit is about
+      // money deliberately put aside, not about the market's mood.
+      .andWhere('contribution.kind = :kind', { kind: ContributionKind.DEPOSIT })
       .andWhere('contribution.date BETWEEN :start AND :end', {
         start: `${month}-01`,
         end: `${month}-${String(lastDay).padStart(2, '0')}`,

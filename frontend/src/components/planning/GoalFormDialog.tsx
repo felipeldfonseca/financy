@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { Goal, GoalType, CreateGoalData } from '../../services/goalApi';
+import { annualEquivalentPercent } from '../../utils/projections';
 
 const CURRENCIES = ['BRL', 'USD', 'EUR', 'GBP', 'JPY', 'CNY'];
 const PALETTE = ['#10b981', '#1976d2', '#7b1fa2', '#ef6c00', '#c2185b', '#455a64'];
@@ -42,6 +43,7 @@ export const GoalFormDialog: React.FC<Props> = ({
     goalType: 'target' as GoalType,
     targetAmount: '',
     monthlyTarget: '',
+    growthRate: '',
     currency: defaultCurrency,
     targetDate: '',
     color: PALETTE[0],
@@ -57,6 +59,8 @@ export const GoalFormDialog: React.FC<Props> = ({
       goalType: goal?.goalType ?? 'target',
       targetAmount: goal?.targetAmount != null ? String(goal.targetAmount) : '',
       monthlyTarget: goal?.monthlyTarget != null ? String(goal.monthlyTarget) : '',
+      growthRate:
+        goal?.expectedMonthlyGrowthRate != null ? String(goal.expectedMonthlyGrowthRate) : '',
       currency: goal?.currency ?? defaultCurrency,
       targetDate: goal?.targetDate?.slice(0, 10) ?? '',
       color: goal?.color ?? PALETTE[0],
@@ -71,9 +75,14 @@ export const GoalFormDialog: React.FC<Props> = ({
   const submit = async () => {
     const targetAmount = values.targetAmount === '' ? undefined : parseFloat(values.targetAmount);
     const monthlyTarget = values.monthlyTarget === '' ? undefined : parseFloat(values.monthlyTarget);
+    const growthRate = values.growthRate === '' ? undefined : parseFloat(values.growthRate);
 
     if (!values.name.trim()) {
       setError(t('goals.form.nameRequired'));
+      return;
+    }
+    if (growthRate != null && (!Number.isFinite(growthRate) || growthRate < 0 || growthRate > 50)) {
+      setError(t('goals.form.growthRateInvalid'));
       return;
     }
     if (isHabit) {
@@ -99,6 +108,8 @@ export const GoalFormDialog: React.FC<Props> = ({
         goalType: values.goalType,
         targetAmount,
         monthlyTarget: isHabit ? monthlyTarget : undefined,
+        // 0 clears the rate for projections — same as never having set one.
+        expectedMonthlyGrowthRate: growthRate,
         currency: values.currency,
         targetDate: !isHabit && values.targetDate ? values.targetDate : undefined,
         color: values.color,
@@ -205,6 +216,27 @@ export const GoalFormDialog: React.FC<Props> = ({
               />
             </Grid>
           )}
+
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label={t('goals.form.growthRate')}
+              value={values.growthRate}
+              onChange={change('growthRate')}
+              fullWidth
+              type="number"
+              inputProps={{ min: 0, max: 50, step: 0.1 }}
+              helperText={
+                parseFloat(values.growthRate) > 0
+                  ? t('goals.form.growthRateEquivalent', {
+                      annual: annualEquivalentPercent(parseFloat(values.growthRate)).toLocaleString(
+                        undefined,
+                        { maximumFractionDigits: 1 },
+                      ),
+                    })
+                  : t('goals.form.growthRateHint')
+              }
+            />
+          </Grid>
 
           <Grid item xs={12}>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
