@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Goal, GoalStatus, GoalType } from './entities/goal.entity';
+import { Goal, GoalStatus, GoalType, GrowthRatePeriod } from './entities/goal.entity';
 import { GoalContribution, ContributionKind } from './entities/goal-contribution.entity';
 import { User } from '../users/entities/user.entity';
 import { ContextMember, MemberStatus } from '../contexts/entities/context-member.entity';
@@ -60,6 +60,10 @@ export class GoalsService {
 
     const goalType = dto.goalType ?? GoalType.TARGET;
     this.assertAmountsMatchType(goalType, dto.targetAmount, dto.monthlyTarget);
+    this.assertGrowthRateFitsPeriod(
+      dto.expectedGrowthRate,
+      dto.growthRatePeriod ?? GrowthRatePeriod.YEARLY,
+    );
 
     const goal = this.goalsRepository.create({
       ...dto,
@@ -111,6 +115,7 @@ export class GoalsService {
 
     Object.assign(goal, dto, dto.targetDate ? { targetDate: dto.targetDate.slice(0, 10) } : {});
     this.assertAmountsMatchType(goal.goalType, goal.targetAmount, goal.monthlyTarget);
+    this.assertGrowthRateFitsPeriod(goal.expectedGrowthRate, goal.growthRatePeriod);
 
     const saved = await this.goalsRepository.save(goal);
     const [withProgress] = await this.attachMonthProgress([saved]);
@@ -280,6 +285,19 @@ export class GoalsService {
     }
     if (goalType === GoalType.RECURRING && monthlyTarget == null) {
       throw new BadRequestException('A monthly habit needs a monthly target');
+    }
+  }
+
+  /**
+   * The DTO caps the rate at 500% for either period; a rate quoted per
+   * month gets the tighter ceiling only the merged state can check.
+   */
+  private assertGrowthRateFitsPeriod(
+    rate?: number | null,
+    period?: GrowthRatePeriod,
+  ): void {
+    if (rate != null && period === GrowthRatePeriod.MONTHLY && Number(rate) > 50) {
+      throw new BadRequestException('A monthly growth rate must be at most 50% a.m.');
     }
   }
 

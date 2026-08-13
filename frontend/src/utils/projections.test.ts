@@ -1,5 +1,6 @@
 import {
   annualEquivalentPercent,
+  monthlyPercentFrom,
   futureValue,
   projectionSeries,
   requiredMonthlyDeposit,
@@ -11,6 +12,26 @@ describe('annualEquivalentPercent', () => {
   it('compounds twelve months, not multiplies them', () => {
     expect(annualEquivalentPercent(1)).toBeCloseTo(12.6825, 3);
     expect(annualEquivalentPercent(0)).toBe(0);
+  });
+});
+
+describe('monthlyPercentFrom', () => {
+  it('converts a yearly quote by the twelfth root, not by dividing by 12', () => {
+    expect(monthlyPercentFrom(12, 'yearly')).toBeCloseTo(0.9489, 4);
+    expect(monthlyPercentFrom(12, 'yearly')).toBeLessThan(1);
+  });
+
+  it('passes a monthly quote through untouched', () => {
+    expect(monthlyPercentFrom(0.8, 'monthly')).toBe(0.8);
+  });
+
+  it('round-trips with annualEquivalentPercent', () => {
+    expect(annualEquivalentPercent(monthlyPercentFrom(12, 'yearly'))).toBeCloseTo(12, 6);
+  });
+
+  it('treats zero and negatives as no yield', () => {
+    expect(monthlyPercentFrom(0, 'yearly')).toBe(0);
+    expect(monthlyPercentFrom(-3, 'monthly')).toBe(0);
   });
 });
 

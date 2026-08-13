@@ -5,6 +5,9 @@ export type GoalStatus = 'active' | 'archived';
 /** 'target' = event goal (finish line); 'recurring' = monthly habit. */
 export type GoalType = 'target' | 'recurring';
 
+/** Which period the expected growth rate was quoted in. */
+export type GrowthRatePeriod = 'monthly' | 'yearly';
+
 export interface Goal {
   id: string;
   name: string;
@@ -15,8 +18,10 @@ export interface Goal {
   monthlyTarget?: number | null;
   /** This month's deposits, attached by the server for habits. */
   monthContributed?: number;
-  /** Expected growth in % per month (0.8 = 0.8% a.m.); projections only. */
-  expectedMonthlyGrowthRate?: number | null;
+  /** Expected growth rate in %, exactly as quoted; projections only. */
+  expectedGrowthRate?: number | null;
+  /** Whether the rate is % per month or % per year; the server defaults to yearly. */
+  growthRatePeriod?: GrowthRatePeriod;
   currentAmount: number;
   currency: string;
   /** Optional deadline, YYYY-MM-DD. */
@@ -54,8 +59,9 @@ export interface CreateGoalData {
   goalType?: GoalType;
   targetAmount?: number;
   monthlyTarget?: number;
-  /** Expected growth in % per month; projections only. */
-  expectedMonthlyGrowthRate?: number;
+  /** Expected growth rate in %, in the period below; projections only. */
+  expectedGrowthRate?: number;
+  growthRatePeriod?: GrowthRatePeriod;
   currency?: string;
   targetDate?: string;
   color?: string;

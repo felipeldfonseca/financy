@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { Goal, GoalContribution } from '../../services/goalApi';
 import {
   futureValue,
+  monthlyPercentFrom,
   projectionSeries,
   requiredMonthlyDeposit,
   monthsUntil,
@@ -34,7 +35,10 @@ interface Props {
 export const GoalProjectionsPanel: React.FC<Props> = ({ goal, trail, trailLoading }) => {
   const { t, i18n } = useTranslation('planning');
 
-  const rate = Number(goal.expectedMonthlyGrowthRate ?? 0);
+  // All the math runs on % a.m.; the labels echo the unit the user typed.
+  const quotedRate = Number(goal.expectedGrowthRate ?? 0);
+  const ratePeriod = goal.growthRatePeriod ?? 'yearly';
+  const rate = monthlyPercentFrom(quotedRate, ratePeriod);
   const hasYield = rate > 0;
   const principal = Number(goal.currentAmount);
   const monthly = Number(goal.monthlyTarget ?? 0);
@@ -164,7 +168,18 @@ export const GoalProjectionsPanel: React.FC<Props> = ({ goal, trail, trailLoadin
                 <Box component="th">{''}</Box>
                 <Box component="th">{t('goals.projections.withoutYield')}</Box>
                 {hasYield && (
-                  <Box component="th">{t('goals.projections.withYield', { rate })}</Box>
+                  <Box component="th">
+                    {t(
+                      ratePeriod === 'monthly'
+                        ? 'goals.projections.withYieldMonthly'
+                        : 'goals.projections.withYieldYearly',
+                      {
+                        rate: quotedRate.toLocaleString(i18n.language, {
+                          maximumFractionDigits: 3,
+                        }),
+                      },
+                    )}
+                  </Box>
                 )}
               </Box>
             </Box>

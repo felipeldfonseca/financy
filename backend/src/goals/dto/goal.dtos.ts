@@ -13,7 +13,7 @@ import {
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { PartialType, OmitType } from '@nestjs/mapped-types';
-import { GoalStatus, GoalType } from '../entities/goal.entity';
+import { GoalStatus, GoalType, GrowthRatePeriod } from '../entities/goal.entity';
 
 export class CreateGoalDto {
   @IsString()
@@ -42,15 +42,22 @@ export class CreateGoalDto {
   monthlyTarget?: number;
 
   /**
-   * Expected growth in % per month (0.8 = 0.8% a.m.), used only for
-   * projections. Zero means "project without yield", same as leaving it out.
+   * Expected growth rate in %, in the period below. Used only for
+   * projections; zero means "project without yield", same as leaving it out.
+   * The period-aware ceiling (50% a.m. / 500% a.a.) lives in the service,
+   * where the merged period is known.
    */
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 3 })
   @Min(0, { message: 'Growth rate cannot be negative' })
-  @Max(50, { message: 'Growth rate must be a monthly percentage, 50% a.m. at most' })
+  @Max(500, { message: 'Growth rate must be at most 500%' })
   @Transform(({ value }) => (value == null || value === '' ? undefined : parseFloat(value)))
-  expectedMonthlyGrowthRate?: number;
+  expectedGrowthRate?: number;
+
+  /** Whether the rate above is % per month or % per year; defaults to yearly. */
+  @IsOptional()
+  @IsIn([GrowthRatePeriod.MONTHLY, GrowthRatePeriod.YEARLY])
+  growthRatePeriod?: GrowthRatePeriod;
 
   @IsOptional()
   @IsString()

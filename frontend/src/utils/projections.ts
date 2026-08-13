@@ -11,6 +11,25 @@ export const annualEquivalentPercent = (monthlyPercent: number): number => {
 };
 
 /**
+ * The rate as the user quoted it (% a.m. or % a.a.) → the monthly percent
+ * every formula here runs on. Yearly quotes convert by the twelfth root —
+ * 12% a.a. is ~0.949% a.m., not 1%.
+ */
+export const monthlyPercentFrom = (
+  rate: number,
+  period: 'monthly' | 'yearly',
+): number => {
+  const quoted = Number(rate) || 0;
+  if (quoted <= 0) {
+    return 0;
+  }
+  if (period === 'monthly') {
+    return quoted;
+  }
+  return (Math.pow(1 + quoted / 100, 1 / 12) - 1) * 100;
+};
+
+/**
  * Balance after `months`, starting from `principal`, depositing
  * `monthlyDeposit` at the end of each month, growing at `monthlyPercent`
  * % a.m. Rate zero (or negative input, clamped) degenerates to the linear

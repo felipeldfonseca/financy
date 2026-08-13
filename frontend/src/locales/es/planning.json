@@ -133,10 +133,15 @@
       "monthlyTargetInvalid": "Ingresa un aporte mensual mayor que cero",
       "optionalTarget": "Objetivo total (opcional)",
       "optionalTargetHint": "Para un hábito con línea de meta",
-      "growthRate": "Rendimiento esperado (% a.m., opcional)",
+      "growthRate": "Rendimiento esperado (opcional)",
       "growthRateHint": "Usado solo en las proyecciones",
       "growthRateEquivalent": "≈ {{annual}}% al año · usado solo en las proyecciones",
-      "growthRateInvalid": "Ingresa un % a.m. entre 0 y 50"
+      "growthRatePeriod": "Período",
+      "perYear": "al año",
+      "perMonth": "al mes",
+      "growthRateEquivalentMonthly": "≈ {{monthly}}% al mes · usado solo en las proyecciones",
+      "growthRateInvalidMonthly": "Ingresa un % a.m. entre 0 y 50",
+      "growthRateInvalidYearly": "Ingresa un % a.a. entre 0 y 500"
     },
     "contribute": {
       "title": "Registrar aporte",
@@ -160,11 +165,12 @@
       "horizon5": "5 años",
       "horizon10": "10 años",
       "withoutYield": "Sin rendimiento",
-      "withYield": "Con {{rate}}% a.m.",
       "chartLabel": "Proyección de 24 meses, con y sin rendimiento",
       "today": "hoy",
       "oneYear": "1 año",
-      "twoYears": "2 años"
+      "twoYears": "2 años",
+      "withYieldMonthly": "Con {{rate}}% a.m.",
+      "withYieldYearly": "Con {{rate}}% a.a."
     },
     "pace": {
       "needed": "Necesario: {{amount}}/mes hasta {{date}}",

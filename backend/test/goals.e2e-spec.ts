@@ -399,25 +399,49 @@ describe('Goals (e2e)', () => {
         .set(auth(account))
         .send(body);
 
-    it('stores the expected monthly growth rate and validates its bounds', async () => {
+    it('stores the growth rate as quoted, defaulting the period to yearly', async () => {
       const created = await createGoal(owner, {
         name: 'Dólar',
         goalType: 'recurring',
         targetAmount: undefined,
         monthlyTarget: 500,
-        expectedMonthlyGrowthRate: 0.8,
+        expectedGrowthRate: 12,
       }).expect(201);
-      expect(Number(created.body.expectedMonthlyGrowthRate)).toBe(0.8);
+      expect(Number(created.body.expectedGrowthRate)).toBe(12);
+      expect(created.body.growthRatePeriod).toBe('yearly');
 
+      // Switching to a monthly quote keeps the number exactly as typed.
       const patched = await request(app.getHttpServer())
         .patch(`/api/v1/goals/${created.body.id}`)
         .set(auth(owner))
-        .send({ expectedMonthlyGrowthRate: 1.25 })
+        .send({ expectedGrowthRate: 0.8, growthRatePeriod: 'monthly' })
         .expect(200);
-      expect(Number(patched.body.expectedMonthlyGrowthRate)).toBe(1.25);
+      expect(Number(patched.body.expectedGrowthRate)).toBe(0.8);
+      expect(patched.body.growthRatePeriod).toBe('monthly');
 
-      await createGoal(owner, { expectedMonthlyGrowthRate: -1 }).expect(400);
-      await createGoal(owner, { expectedMonthlyGrowthRate: 51 }).expect(400);
+      await createGoal(owner, { expectedGrowthRate: -1 }).expect(400);
+      await createGoal(owner, { expectedGrowthRate: 501 }).expect(400);
+    });
+
+    it('caps a monthly-quoted rate at 50% a.m., even via merge on update', async () => {
+      await createGoal(owner, {
+        name: 'Sonho demais',
+        expectedGrowthRate: 80,
+        growthRatePeriod: 'monthly',
+      }).expect(400);
+
+      // 80% a.a. is fine…
+      const yearly = await createGoal(owner, {
+        name: 'Agressiva',
+        expectedGrowthRate: 80,
+      }).expect(201);
+
+      // …but re-quoting the same 80 as monthly is not.
+      await request(app.getHttpServer())
+        .patch(`/api/v1/goals/${yearly.body.id}`)
+        .set(auth(owner))
+        .send({ growthRatePeriod: 'monthly' })
+        .expect(400);
     });
 
     it('adjusts the balance up and down, marked in the trail with its note', async () => {

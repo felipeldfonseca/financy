@@ -133,10 +133,15 @@
       "monthlyTargetInvalid": "Enter a monthly deposit greater than zero",
       "optionalTarget": "Total target (optional)",
       "optionalTargetHint": "For a habit with a finish line",
-      "growthRate": "Expected yield (%/mo, optional)",
+      "growthRate": "Expected yield (optional)",
       "growthRateHint": "Used only for projections",
       "growthRateEquivalent": "≈ {{annual}}%/year · used only for projections",
-      "growthRateInvalid": "Enter a monthly % between 0 and 50"
+      "growthRatePeriod": "Period",
+      "perYear": "per year",
+      "perMonth": "per month",
+      "growthRateEquivalentMonthly": "≈ {{monthly}}%/mo · used only for projections",
+      "growthRateInvalidMonthly": "Enter a monthly % between 0 and 50",
+      "growthRateInvalidYearly": "Enter a yearly % between 0 and 500"
     },
     "contribute": {
       "title": "Record contribution",
@@ -160,11 +165,12 @@
       "horizon5": "5 years",
       "horizon10": "10 years",
       "withoutYield": "Without yield",
-      "withYield": "At {{rate}}%/mo",
       "chartLabel": "24-month projection, with and without yield",
       "today": "today",
       "oneYear": "1 year",
-      "twoYears": "2 years"
+      "twoYears": "2 years",
+      "withYieldMonthly": "At {{rate}}%/mo",
+      "withYieldYearly": "At {{rate}}%/yr"
     },
     "pace": {
       "needed": "Needed: {{amount}}/month until {{date}}",

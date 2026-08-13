@@ -24,6 +24,12 @@ export enum GoalType {
   RECURRING = 'recurring',
 }
 
+/** Which period the user quoted the expected growth rate in. */
+export enum GrowthRatePeriod {
+  MONTHLY = 'monthly',
+  YEARLY = 'yearly',
+}
+
 /**
  * A savings goal: money being put aside on purpose — a trip, an emergency
  * fund. currentAmount is the running sum of its contributions, kept
@@ -53,11 +59,15 @@ export class Goal {
   monthlyTarget: number;
 
   /**
-   * Expected growth in % per month (0.8 = 0.8% a.m.), as the user quoted it.
-   * Used only for projections — the stored balance never grows by itself.
+   * Expected growth rate in %, kept exactly as the user quoted it — the
+   * period column says whether that was per month or per year. Used only
+   * for projections; the stored balance never grows by itself.
    */
-  @Column('decimal', { precision: 6, scale: 3, nullable: true })
-  expectedMonthlyGrowthRate: number;
+  @Column('decimal', { precision: 7, scale: 3, nullable: true })
+  expectedGrowthRate: number;
+
+  @Column({ type: 'enum', enum: GrowthRatePeriod, default: GrowthRatePeriod.YEARLY })
+  growthRatePeriod: GrowthRatePeriod;
 
   @Column('decimal', { precision: 12, scale: 2, default: 0 })
   currentAmount: number;
