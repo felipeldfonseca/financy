@@ -30,6 +30,7 @@ const buildService = () => {
     null as any,
     null as any,
     null as any,
+    null as any,
   );
 
   const buttonsOf = (call: { body: any }): Array<{ text: string; callback_data: string }> =>

@@ -20,6 +20,7 @@ export interface TelegramTranslations {
     alreadyPaid: string;
     registerBill: string;
     settle: string;
+    contribute: string;
   };
   receipt: {
     processingPhoto: string;
@@ -50,6 +51,26 @@ export interface TelegramTranslations {
     reminderDueToday: string;
     reminderOverdue: string;
     reminderHint: string;
+  };
+  goals: {
+    confirmQuestion: string;
+    monthLine: string;
+    totalLine: string;
+    totalOpenLine: string;
+    askAmount: string;
+    options: string;
+    contributed: string;
+    monthComplete: string;
+    achieved: string;
+    archived: string;
+    noPermission: string;
+    notFound: string;
+    expired: string;
+    cancelled: string;
+    reminder: string;
+    reminderHint: string;
+    registerMissing: string;
+    monthAlreadyComplete: string;
   };
 }
 
@@ -117,7 +138,8 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       cancelAll: '❌ Cancel All',
       alreadyPaid: '✅ Already paid',
       registerBill: '📅 Bill to pay',
-      settle: '✅ Yes, mark as paid'
+      settle: '✅ Yes, mark as paid',
+      contribute: '💰 Yes, deposit'
     },
     receipt: {
       processingPhoto: '📷 Reading your receipt...',
@@ -148,6 +170,26 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       reminderDueToday: '🔔 <b>Bill due today</b>\n\n💰 <b>{amount}</b> — {description}\n📅 Due: {date}',
       reminderOverdue: '🔔 <b>Overdue bill</b>\n\n💰 <b>{amount}</b> — {description}\n📅 Was due: {date}',
       reminderHint: 'Already paid it? Tap below and I will record the expense in your name.'
+    },
+    goals: {
+      confirmQuestion: 'Deposit <b>{amount}</b> into "{name}"?',
+      monthLine: '🔁 {month}: {current} of {target}',
+      totalLine: '🎯 Total: {current} of {target}',
+      totalOpenLine: '💰 Total saved: {current}',
+      askAmount: 'How much did you put aside? Include the amount, like "saved 500 into the dollar goal".',
+      options: 'Which goal did you deposit into?',
+      contributed: '✅ Deposited! <b>{amount}</b> into "{name}", in your name.',
+      monthComplete: '✓ Month complete! 🎉',
+      achieved: '🏁 Goal achieved! 🎉',
+      archived: 'That goal is archived — reactivate it in Planning first.',
+      noPermission: 'You cannot deposit in that context.',
+      notFound: 'I could not find that goal anymore.',
+      expired: 'That request expired. Please send the message again.',
+      cancelled: 'Ok, cancelled. Nothing was recorded.',
+      reminder: '🔁 <b>{name}</b>: {missing} to go to close {month} — {current} of {target} so far.',
+      reminderHint: 'Tap below and I will record the missing deposit in your name.',
+      registerMissing: '💰 Record {amount}',
+      monthAlreadyComplete: 'This month is already complete for "{name}" 🎉'
     }
   },
   pt: {
@@ -202,7 +244,8 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       cancelAll: '❌ Cancelar Todas',
       alreadyPaid: '✅ Já paguei',
       registerBill: '📅 Conta a pagar',
-      settle: '✅ Sim, marcar como paga'
+      settle: '✅ Sim, marcar como paga',
+      contribute: '💰 Sim, aportar'
     },
     receipt: {
       processingPhoto: '📷 Lendo seu recibo...',
@@ -233,6 +276,26 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       reminderDueToday: '🔔 <b>Conta vence hoje</b>\n\n💰 <b>{amount}</b> — {description}\n📅 Vencimento: {date}',
       reminderOverdue: '🔔 <b>Conta em atraso</b>\n\n💰 <b>{amount}</b> — {description}\n📅 Venceu: {date}',
       reminderHint: 'Já pagou? Toque abaixo que eu lanço a despesa no seu nome.'
+    },
+    goals: {
+      confirmQuestion: 'Aportar <b>{amount}</b> em "{name}"?',
+      monthLine: '🔁 {month}: {current} de {target}',
+      totalLine: '🎯 Total: {current} de {target}',
+      totalOpenLine: '💰 Total guardado: {current}',
+      askAmount: 'Quanto você guardou? Inclua o valor, tipo "aportei 500 no dólar".',
+      options: 'Em qual meta você aportou?',
+      contributed: '✅ Aporte feito! <b>{amount}</b> em "{name}", no seu nome.',
+      monthComplete: '✓ Mês completo! 🎉',
+      achieved: '🏁 Meta atingida! 🎉',
+      archived: 'Essa meta está arquivada — reative em Planejamento primeiro.',
+      noPermission: 'Você não pode aportar nesse contexto.',
+      notFound: 'Não encontrei mais essa meta.',
+      expired: 'Esse pedido expirou. Envie a mensagem de novo.',
+      cancelled: 'Ok, cancelei. Nada foi registrado.',
+      reminder: '🔁 <b>{name}</b>: faltam {missing} para fechar {month} — até agora {current} de {target}.',
+      reminderHint: 'Toque abaixo que eu registro o aporte que falta no seu nome.',
+      registerMissing: '💰 Registrar {amount}',
+      monthAlreadyComplete: 'O mês de "{name}" já está completo 🎉'
     }
   },
   es: {
@@ -287,7 +350,8 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       cancelAll: '❌ Cancelar Todo',
       alreadyPaid: '✅ Ya pagué',
       registerBill: '📅 Cuenta por pagar',
-      settle: '✅ Sí, marcar como pagada'
+      settle: '✅ Sí, marcar como pagada',
+      contribute: '💰 Sí, aportar'
     },
     receipt: {
       processingPhoto: '📷 Leyendo tu recibo...',
@@ -318,6 +382,26 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       reminderDueToday: '🔔 <b>Cuenta vence hoy</b>\n\n💰 <b>{amount}</b> — {description}\n📅 Vencimiento: {date}',
       reminderOverdue: '🔔 <b>Cuenta vencida</b>\n\n💰 <b>{amount}</b> — {description}\n📅 Venció: {date}',
       reminderHint: '¿Ya la pagaste? Toca abajo y registro el gasto a tu nombre.'
+    },
+    goals: {
+      confirmQuestion: '¿Aportar <b>{amount}</b> a "{name}"?',
+      monthLine: '🔁 {month}: {current} de {target}',
+      totalLine: '🎯 Total: {current} de {target}',
+      totalOpenLine: '💰 Total ahorrado: {current}',
+      askAmount: '¿Cuánto guardaste? Incluye el monto, como "ahorré 500 en el dólar".',
+      options: '¿A qué meta aportaste?',
+      contributed: '✅ ¡Aporte hecho! <b>{amount}</b> a "{name}", a tu nombre.',
+      monthComplete: '✓ ¡Mes completo! 🎉',
+      achieved: '🏁 ¡Meta lograda! 🎉',
+      archived: 'Esa meta está archivada — reactívala en Planificación primero.',
+      noPermission: 'No puedes aportar en ese contexto.',
+      notFound: 'Ya no encuentro esa meta.',
+      expired: 'Esa solicitud expiró. Envía el mensaje de nuevo.',
+      cancelled: 'Ok, cancelado. No se registró nada.',
+      reminder: '🔁 <b>{name}</b>: faltan {missing} para cerrar {month} — hasta ahora {current} de {target}.',
+      reminderHint: 'Toca abajo y registro el aporte que falta a tu nombre.',
+      registerMissing: '💰 Registrar {amount}',
+      monthAlreadyComplete: 'El mes de "{name}" ya está completo 🎉'
     }
   }
 };

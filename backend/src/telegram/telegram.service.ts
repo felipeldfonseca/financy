@@ -13,10 +13,14 @@ import { resolveTransactionDate } from './transaction-date';
 import { resolveBillDueDate } from './bill-detection';
 import { parsePaymentIntent, PaymentIntent } from './payment-intent';
 import { matchBills } from './bill-matcher';
+import { parseContributionIntent, ContributionIntent } from './goal-contribution-intent';
+import { matchGoals } from './goal-matcher';
 import { CreateTransactionDto } from '../transactions/dto/create-transaction.dto';
 import { ContextsService } from '../contexts/contexts.service';
 import { BillsService } from '../bills/bills.service';
 import { Bill } from '../bills/entities/bill.entity';
+import { GoalsService } from '../goals/goals.service';
+import { Goal, GoalType } from '../goals/entities/goal.entity';
 import { 
   TelegramUpdate, 
   TelegramMessage, 
@@ -47,6 +51,8 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
    * like stored transactions.
    */
   private readonly pendingBillPayments = new Map<string, { billId: string; amount?: number }>();
+  /** Goal deposits waiting for "yes, deposit" — same opaque temp-id scheme. */
+  private readonly pendingGoalContributions = new Map<string, { goalId: string; amount: number }>();
   private pollingInterval: NodeJS.Timeout | null = null;
   private lastUpdateId = 0;
   private isPolling = false;
@@ -64,6 +70,7 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
     private contextDetection: ContextDetectionService,
     private contextSetup: ContextSetupService,
     private billsService: BillsService,
+    private goalsService: GoalsService,
   ) {
     this.botToken = this.configService.get('TELEGRAM_BOT_TOKEN');
     this.webhookUrl = this.configService.get('TELEGRAM_WEBHOOK_URL');
@@ -398,6 +405,17 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
           // outlive any short-lived pending-payment store.
           await this.completeBillPayment(chatId, transactionId, undefined, userId);
           break;
+        case 'goalpay':
+          await this.settlePendingGoalContribution(chatId, transactionId, userId);
+          break;
+        case 'goalcancel':
+          await this.cancelPendingGoalContribution(chatId, transactionId, userId);
+          break;
+        case 'goalremind':
+          // From a month-end reminder: the id is the goal itself, and the
+          // missing amount is recomputed at press time, never trusted stale.
+          await this.completeGoalTopUp(chatId, transactionId, userId);
+          break;
         default:
           await this.sendMessage(chatId, 'Unknown action.');
       }
@@ -463,6 +481,16 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
       const paymentIntent = parsePaymentIntent(text);
       if (paymentIntent) {
         const handled = await this.tryBillSettlement(chatId, paymentIntent, userId, message);
+        if (handled) {
+          return;
+        }
+      }
+
+      // "aportei 500 no dólar" tops up a savings goal rather than logging an
+      // expense. Same discipline as bills: only when a goal actually matches.
+      const contributionIntent = parseContributionIntent(text);
+      if (contributionIntent) {
+        const handled = await this.tryGoalContribution(chatId, contributionIntent, userId);
         if (handled) {
           return;
         }
@@ -1301,6 +1329,262 @@ Or just type the complete transaction again:
       this.logger.error('Error settling bill from chat:', error);
       await this.sendMessage(chatId, 'Error saving transaction. Please try again.');
     }
+  }
+
+
+  /**
+   * Handles a "saved / aportei" message. Returns true when it owned the
+   * conversation (a goal matched, options were listed, or the amount was
+   * asked for); false lets the caller parse it as an ordinary transaction.
+   */
+  private async tryGoalContribution(
+    chatId: number,
+    intent: ContributionIntent,
+    userId: string,
+  ): Promise<boolean> {
+    const language = await this.getUserLanguage(userId);
+    const translation = getTelegramTranslation(language);
+
+    let goals: Goal[] = [];
+    try {
+      goals = await this.goalsService.findOpenForContribution(userId);
+    } catch (error) {
+      this.logger.warn('Could not load goals for contribution:', error.message);
+      return false;
+    }
+
+    if (goals.length === 0) {
+      return false;
+    }
+
+    // Specific words that match nothing are not ours to answer — the message
+    // is probably an ordinary transaction ("guardei o recibo do mercado").
+    const matches = intent.tokens.length > 0 ? matchGoals(goals, intent.tokens) : goals;
+    if (intent.tokens.length > 0 && matches.length === 0) {
+      return false;
+    }
+
+    if (intent.amount === undefined) {
+      await this.sendMessage(chatId, translation.goals.askAmount);
+      return true;
+    }
+
+    if (matches.length === 1) {
+      await this.presentGoalContributionConfirmation(
+        chatId,
+        matches[0],
+        intent.amount,
+        translation,
+        language,
+      );
+      return true;
+    }
+
+    await this.presentGoalContributionOptions(chatId, matches, intent.amount, translation, language);
+    return true;
+  }
+
+  private goalProgressLines(goal: Goal, translation: TelegramTranslations, language: string): string {
+    const lines: string[] = [];
+
+    if (goal.goalType === GoalType.RECURRING && goal.monthlyTarget != null) {
+      lines.push(
+        formatTemplate(translation.goals.monthLine, {
+          month: this.formatMonthName(language),
+          current: this.formatMoney(Number(goal.monthContributed ?? 0), goal.currency, language),
+          target: this.formatMoney(Number(goal.monthlyTarget), goal.currency, language),
+        }),
+      );
+      if (Number(goal.monthContributed ?? 0) >= Number(goal.monthlyTarget)) {
+        lines.push(translation.goals.monthComplete);
+      }
+    }
+
+    if (goal.targetAmount != null) {
+      lines.push(
+        formatTemplate(translation.goals.totalLine, {
+          current: this.formatMoney(Number(goal.currentAmount), goal.currency, language),
+          target: this.formatMoney(Number(goal.targetAmount), goal.currency, language),
+        }),
+      );
+      if (goal.isAchieved) {
+        lines.push(translation.goals.achieved);
+      }
+    } else if (goal.goalType === GoalType.RECURRING) {
+      lines.push(
+        formatTemplate(translation.goals.totalOpenLine, {
+          current: this.formatMoney(Number(goal.currentAmount), goal.currency, language),
+        }),
+      );
+    }
+
+    return lines.join('\n');
+  }
+
+  private async presentGoalContributionConfirmation(
+    chatId: number,
+    goal: Goal,
+    amount: number,
+    translation: TelegramTranslations,
+    language: string,
+  ): Promise<void> {
+    const tempId = this.storePendingGoalContribution({ goalId: goal.id, amount });
+
+    const text =
+      formatTemplate(translation.goals.confirmQuestion, {
+        amount: this.formatMoney(amount, goal.currency, language),
+        name: goal.name,
+      }) +
+      '\n\n' +
+      this.goalProgressLines(goal, translation, language);
+
+    await this.sendMessage(chatId, text, {
+      reply_markup: {
+        inline_keyboard: [[
+          { text: translation.buttons.contribute, callback_data: `goalpay_${tempId}` },
+          { text: translation.buttons.cancel, callback_data: `goalcancel_${tempId}` },
+        ]],
+      },
+    });
+  }
+
+  private async presentGoalContributionOptions(
+    chatId: number,
+    goals: Goal[],
+    amount: number,
+    translation: TelegramTranslations,
+    language: string,
+  ): Promise<void> {
+    const rows = goals.slice(0, 3).map((goal) => {
+      const tempId = this.storePendingGoalContribution({ goalId: goal.id, amount });
+      const label = `${goal.name} — ${this.formatMoney(amount, goal.currency, language)}`;
+      return [{ text: label.slice(0, 60), callback_data: `goalpay_${tempId}` }];
+    });
+    rows.push([{ text: translation.buttons.cancel, callback_data: 'goalcancel_none' }]);
+
+    await this.sendMessage(chatId, translation.goals.options, {
+      reply_markup: { inline_keyboard: rows },
+    });
+  }
+
+  private async settlePendingGoalContribution(
+    chatId: number,
+    tempId: string,
+    userId: string,
+  ): Promise<void> {
+    const pending = this.pendingGoalContributions.get(tempId);
+
+    if (!pending) {
+      const translation = getTelegramTranslation(await this.getUserLanguage(userId));
+      await this.sendMessage(chatId, translation.goals.expired);
+      return;
+    }
+
+    this.pendingGoalContributions.delete(tempId);
+    await this.completeGoalContribution(chatId, pending.goalId, pending.amount, userId);
+  }
+
+  private async cancelPendingGoalContribution(
+    chatId: number,
+    tempId: string,
+    userId: string,
+  ): Promise<void> {
+    this.pendingGoalContributions.delete(tempId);
+    const translation = getTelegramTranslation(await this.getUserLanguage(userId));
+    await this.sendMessage(chatId, translation.goals.cancelled);
+  }
+
+  /**
+   * The shared end of every deposit path — confirmation button, pick list,
+   * month-end reminder: record the deposit in the presser's name and answer
+   * with the goal's fresh progress.
+   */
+  private async completeGoalContribution(
+    chatId: number,
+    goalId: string,
+    amount: number,
+    userId: string,
+  ): Promise<void> {
+    const language = await this.getUserLanguage(userId);
+    const translation = getTelegramTranslation(language);
+
+    try {
+      const { goal } = await this.goalsService.contribute(goalId, { amount }, userId);
+
+      const text =
+        formatTemplate(translation.goals.contributed, {
+          amount: this.formatMoney(amount, goal.currency, language),
+          name: goal.name,
+        }) +
+        '\n' +
+        this.goalProgressLines(goal, translation, language);
+
+      await this.sendMessage(chatId, text);
+    } catch (error) {
+      const status = typeof error?.getStatus === 'function' ? error.getStatus() : error?.status;
+
+      if (status === 409) {
+        await this.sendMessage(chatId, translation.goals.archived);
+        return;
+      }
+      if (status === 403) {
+        await this.sendMessage(chatId, translation.goals.noPermission);
+        return;
+      }
+      if (status === 404) {
+        await this.sendMessage(chatId, translation.goals.notFound);
+        return;
+      }
+
+      this.logger.error('Error recording goal contribution from chat:', error);
+      await this.sendMessage(chatId, 'Error saving transaction. Please try again.');
+    }
+  }
+
+  /**
+   * The month-end reminder's button: deposit exactly what is still missing
+   * this month, measured now — the amount printed on the button may be
+   * minutes or days stale.
+   */
+  private async completeGoalTopUp(chatId: number, goalId: string, userId: string): Promise<void> {
+    const language = await this.getUserLanguage(userId);
+    const translation = getTelegramTranslation(language);
+
+    let goal: Goal;
+    try {
+      goal = await this.goalsService.findOne(goalId, userId);
+    } catch {
+      await this.sendMessage(chatId, translation.goals.notFound);
+      return;
+    }
+
+    const missing = Number(goal.monthlyTarget ?? 0) - Number(goal.monthContributed ?? 0);
+    if (missing <= 0) {
+      await this.sendMessage(
+        chatId,
+        formatTemplate(translation.goals.monthAlreadyComplete, { name: goal.name }),
+      );
+      return;
+    }
+
+    await this.completeGoalContribution(chatId, goalId, Math.round(missing * 100) / 100, userId);
+  }
+
+  private storePendingGoalContribution(entry: { goalId: string; amount: number }): string {
+    const tempId = crypto.randomBytes(16).toString('hex');
+    this.pendingGoalContributions.set(tempId, entry);
+
+    const timer = setTimeout(() => this.pendingGoalContributions.delete(tempId), 10 * 60 * 1000);
+    if (typeof timer.unref === 'function') {
+      timer.unref();
+    }
+
+    return tempId;
+  }
+
+  /** "agosto", "August", "agosto" — the chat's own language. */
+  formatMonthName(language: string, date: Date = new Date()): string {
+    return new Intl.DateTimeFormat(language, { month: 'long' }).format(date);
   }
 
   /** Public seams for bot-adjacent services (the due-date reminder job). */

@@ -6,7 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { Goal, GoalStatus, GoalType, GrowthRatePeriod } from './entities/goal.entity';
 import { GoalContribution, ContributionKind } from './entities/goal-contribution.entity';
 import { User } from '../users/entities/user.entity';
@@ -108,6 +108,38 @@ export class GoalsService {
 
     const [withProgress] = await this.attachMonthProgress([goal]);
     return withProgress;
+  }
+
+  /**
+   * Every active goal the user could deposit into from a chat message:
+   * their own, plus any in contexts where they can record expenses — the
+   * mirror of the bills settlement scope.
+   */
+  async findOpenForContribution(userId: string): Promise<Goal[]> {
+    const memberships = await this.contextMembersRepository.find({
+      where: { userId, status: MemberStatus.ACTIVE },
+    });
+    const contributableContextIds = memberships
+      .filter((membership) => membership.canEditTransactions())
+      .map((membership) => membership.contextId);
+
+    const queryBuilder = this.goalsRepository
+      .createQueryBuilder('goal')
+      .where('goal.status = :status', { status: GoalStatus.ACTIVE });
+
+    queryBuilder.andWhere(
+      new Brackets((scope) => {
+        scope.where('goal.userId = :userId', { userId });
+        if (contributableContextIds.length > 0) {
+          scope.orWhere('goal.contextId IN (:...contributableContextIds)', {
+            contributableContextIds,
+          });
+        }
+      }),
+    );
+
+    const goals = await queryBuilder.orderBy('goal.createdAt', 'ASC').getMany();
+    return this.attachMonthProgress(goals);
   }
 
   async update(id: string, dto: UpdateGoalDto, userId: string): Promise<Goal> {
@@ -311,7 +343,29 @@ export class GoalsService {
       return goals;
     }
 
-    const month = new Date().toISOString().slice(0, 7);
+    const totals = await this.monthDepositsFor(
+      habits.map((goal) => goal.id),
+      new Date(),
+    );
+    habits.forEach((goal) => {
+      goal.monthContributed = totals.get(goal.id) ?? 0;
+    });
+
+    return goals;
+  }
+
+  /**
+   * Deposits summed per goal for the calendar month `now` falls in.
+   * Adjustments move the total, never the month bar: the habit is about
+   * money deliberately put aside, not about the market's mood. Public so
+   * the month-end reminder can measure any month it is asked about.
+   */
+  async monthDepositsFor(goalIds: string[], now: Date): Promise<Map<string, number>> {
+    if (goalIds.length === 0) {
+      return new Map();
+    }
+
+    const month = now.toISOString().slice(0, 7);
     const [year, monthNumber] = month.split('-').map(Number);
     const lastDay = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
 
@@ -319,9 +373,7 @@ export class GoalsService {
       .createQueryBuilder('contribution')
       .select('contribution.goalId', 'goalId')
       .addSelect('SUM(contribution.amount)', 'total')
-      .where('contribution.goalId IN (:...goalIds)', { goalIds: habits.map((goal) => goal.id) })
-      // Adjustments move the total, never the month bar: the habit is about
-      // money deliberately put aside, not about the market's mood.
+      .where('contribution.goalId IN (:...goalIds)', { goalIds })
       .andWhere('contribution.kind = :kind', { kind: ContributionKind.DEPOSIT })
       .andWhere('contribution.date BETWEEN :start AND :end', {
         start: `${month}-01`,
@@ -330,12 +382,7 @@ export class GoalsService {
       .groupBy('contribution.goalId')
       .getRawMany();
 
-    const totals = new Map(rows.map((row) => [row.goalId, Number(row.total)]));
-    habits.forEach((goal) => {
-      goal.monthContributed = totals.get(goal.id) ?? 0;
-    });
-
-    return goals;
+    return new Map(rows.map((row) => [row.goalId, Number(row.total)]));
   }
 
   private membershipIn(contextId: string, userId: string): Promise<ContextMember | null> {

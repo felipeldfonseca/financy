@@ -69,6 +69,14 @@ export class Goal {
   @Column({ type: 'enum', enum: GrowthRatePeriod, default: GrowthRatePeriod.YEARLY })
   growthRatePeriod: GrowthRatePeriod;
 
+  /**
+   * When this month's end-of-month nudge went out for a habit, so a restarted
+   * job never sends it twice; a value from an older month means "not yet this
+   * month". Null on event goals and never-reminded habits.
+   */
+  @Column({ type: 'timestamp', nullable: true })
+  monthReminderSentAt: Date;
+
   @Column('decimal', { precision: 12, scale: 2, default: 0 })
   currentAmount: number;
 
