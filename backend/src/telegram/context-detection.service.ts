@@ -31,11 +31,10 @@ export class ContextDetectionService {
       });
 
       if (existingChatContext) {
-        // Verify user has access to this context
-        const hasAccess = await this.checkUserContextAccess(userId, existingChatContext.contextId);
-        if (hasAccess) {
-          return existingChatContext.contextId;
-        }
+        // A mapped chat always answers with its context. Whether a
+        // non-member may act there is the permission gate's decision
+        // (enrollGroupSender), never a silent side effect of asking.
+        return existingChatContext.contextId;
       }
 
       // Create new context based on chat type
@@ -172,6 +171,104 @@ export class ContextDetectionService {
     });
 
     return !!membership && membership.status === MemberStatus.ACTIVE;
+  }
+
+  /**
+   * The single gate for content sent in a group: may this sender record
+   * things in the group's context? Members who can edit pass; strangers are
+   * enrolled only where the chat's own wizard created the context with that
+   * "everyone in the group" promise (autoEnroll) — a chat linked to a
+   * pre-existing context never enrolls anyone, joining it takes an invite.
+   */
+  async enrollGroupSender(
+    userId: string,
+    chatId: string,
+    chatType: 'group' | 'supergroup',
+  ): Promise<{ allowed: boolean; reason?: 'no-access' | 'cannot-post'; contextName?: string }> {
+    const mapping = await this.chatContextRepository.findOne({
+      where: { chatId, chatType },
+      relations: ['context'],
+    });
+
+    if (!mapping) {
+      return { allowed: true }; // unmapped group — the legacy flow may still create its context
+    }
+
+    const contextName = mapping.context?.name ?? mapping.chatTitle ?? '';
+
+    const membership = await this.contextMemberRepository.findOne({
+      where: { userId, contextId: mapping.contextId },
+    });
+
+    if (membership?.status === MemberStatus.ACTIVE) {
+      return membership.canEditTransactions()
+        ? { allowed: true }
+        : { allowed: false, reason: 'cannot-post', contextName };
+    }
+
+    // A past or pending membership is never silently resurrected.
+    if (!membership && mapping.autoEnroll) {
+      await this.addUserToContext(userId, mapping.contextId, MemberRole.MEMBER);
+      return { allowed: true };
+    }
+
+    return { allowed: false, reason: 'no-access', contextName };
+  }
+
+  /**
+   * The contexts a chat could be linked to by this user: shared ones (never
+   * personal) where they are owner or admin — linking a group is context
+   * administration, not something any member does.
+   */
+  async linkableContextsFor(userId: string): Promise<Context[]> {
+    const memberships = await this.contextMemberRepository.find({
+      where: { userId, status: MemberStatus.ACTIVE },
+      relations: ['context'],
+    });
+
+    return memberships
+      .filter(
+        (membership) =>
+          membership.canModerateTransactions() &&
+          membership.context &&
+          membership.context.type !== ContextType.PERSONAL,
+      )
+      .map((membership) => membership.context);
+  }
+
+  /** Whether this user may link or re-link a chat to the given context. */
+  async canLinkContext(userId: string, contextId: string): Promise<boolean> {
+    const membership = await this.contextMemberRepository.findOne({
+      where: { userId, contextId, status: MemberStatus.ACTIVE },
+    });
+    return Boolean(membership?.canModerateTransactions());
+  }
+
+  /**
+   * Points the chat at an existing context, replacing any previous mapping —
+   * always with enrollment off: the group linked to real family finances is
+   * a window into them, not a door.
+   */
+  async linkChatToContext(
+    chatId: string,
+    chatType: 'private' | 'group' | 'supergroup' | 'channel',
+    contextId: string,
+    chatTitle?: string,
+  ): Promise<void> {
+    const existing = await this.chatContextRepository.findOne({ where: { chatId, chatType } });
+
+    if (existing) {
+      existing.contextId = contextId;
+      existing.autoEnroll = false;
+      existing.chatTitle = chatTitle ?? existing.chatTitle;
+      await this.chatContextRepository.save(existing);
+    } else {
+      await this.chatContextRepository.save(
+        this.chatContextRepository.create({ chatId, chatType, contextId, chatTitle, autoEnroll: false }),
+      );
+    }
+
+    this.logger.log(`Linked chat ${chatId} to existing context ${contextId}`);
   }
 
   async getContextInfo(contextId: string, userId: string): Promise<{ name: string; type: string; chatTitle?: string }> {

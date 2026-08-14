@@ -21,6 +21,16 @@ export class ChatContext {
   @Column({ type: 'uuid', name: 'context_id' })
   contextId: string;
 
+  /**
+   * Whether texting in this chat may silently enroll the sender into the
+   * context. True for wizard-created group contexts (their designed "everyone
+   * in the group" semantics); false when the chat was linked to a
+   * pre-existing context — joining the family's finances takes an invite,
+   * never a group membership.
+   */
+  @Column({ type: 'boolean', name: 'auto_enroll', default: true })
+  autoEnroll: boolean;
+
   // Without an explicit join column the relation would generate a second,
   // redundant "contextId" column alongside the "context_id" above.
   @ManyToOne(() => Context, { onDelete: 'CASCADE' })

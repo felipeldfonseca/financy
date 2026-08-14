@@ -72,6 +72,14 @@ export interface TelegramTranslations {
     registerMissing: string;
     monthAlreadyComplete: string;
   };
+  groups: {
+    linkIntro: string;
+    linkNew: string;
+    linked: string;
+    linkDenied: string;
+    noAccess: string;
+    cannotPost: string;
+  };
 }
 
 /**
@@ -190,6 +198,14 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       reminderHint: 'Tap below and I will record the missing deposit in your name.',
       registerMissing: '💰 Record {amount}',
       monthAlreadyComplete: 'This month is already complete for "{name}" 🎉'
+    },
+    groups: {
+      linkIntro: '👋 <b>Welcome to Financy!</b>\n\nThis group can post into one of your existing contexts, or start a brand-new one. Where should its expenses go?',
+      linkNew: '🆕 Create a new context',
+      linked: '✅ Group linked to <b>{name}</b>. Messages here now post into that context, each in its sender\'s name.',
+      linkDenied: 'Only an owner or admin of that context can link this group to it.',
+      noAccess: 'This group posts into <b>{name}</b>, and your account is not a member there. Ask for an invite in the app first.',
+      cannotPost: 'This group posts into <b>{name}</b>, and your role there cannot record expenses.'
     }
   },
   pt: {
@@ -296,6 +312,14 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       reminderHint: 'Toque abaixo que eu registro o aporte que falta no seu nome.',
       registerMissing: '💰 Registrar {amount}',
       monthAlreadyComplete: 'O mês de "{name}" já está completo 🎉'
+    },
+    groups: {
+      linkIntro: '👋 <b>Bem-vindo ao Financy!</b>\n\nEste grupo pode lançar num contexto que você já tem, ou começar um novo. Para onde vão as despesas daqui?',
+      linkNew: '🆕 Criar um contexto novo',
+      linked: '✅ Grupo vinculado a <b>{name}</b>. As mensagens daqui agora lançam nesse contexto, cada uma no nome de quem mandou.',
+      linkDenied: 'Só quem é dono ou admin desse contexto pode vincular este grupo a ele.',
+      noAccess: 'Este grupo lança em <b>{name}</b>, e a sua conta não participa desse contexto. Peça um convite pelo app primeiro.',
+      cannotPost: 'Este grupo lança em <b>{name}</b>, e o seu papel lá não permite lançar despesas.'
     }
   },
   es: {
@@ -402,6 +426,14 @@ export const telegramTranslations: Record<string, TelegramTranslations> = {
       reminderHint: 'Toca abajo y registro el aporte que falta a tu nombre.',
       registerMissing: '💰 Registrar {amount}',
       monthAlreadyComplete: 'El mes de "{name}" ya está completo 🎉'
+    },
+    groups: {
+      linkIntro: '👋 <b>¡Bienvenido a Financy!</b>\n\nEste grupo puede registrar en un contexto que ya tienes, o empezar uno nuevo. ¿A dónde van los gastos de aquí?',
+      linkNew: '🆕 Crear un contexto nuevo',
+      linked: '✅ Grupo vinculado a <b>{name}</b>. Los mensajes de aquí ahora registran en ese contexto, cada uno a nombre de quien lo envió.',
+      linkDenied: 'Solo un dueño o admin de ese contexto puede vincular este grupo.',
+      noAccess: 'Este grupo registra en <b>{name}</b>, y tu cuenta no participa en ese contexto. Pide una invitación en la app primero.',
+      cannotPost: 'Este grupo registra en <b>{name}</b>, y tu rol allí no permite registrar gastos.'
     }
   }
 };

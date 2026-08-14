@@ -342,7 +342,29 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
     // Handle different message types
     if (message.text?.startsWith('/')) {
       await this.handleCommand(chatId, message.text, userId, telegramUserId, telegramUsername);
-    } else if (message.voice) {
+      return;
+    }
+
+    // One gate for every kind of content in a group — text, voice, photo,
+    // PDF: only members who can record expenses in the group's context get
+    // through, and nobody is enrolled as a side effect unless the chat's own
+    // wizard created its context with that "everyone here" promise.
+    if (message.chat.type === 'group' || message.chat.type === 'supergroup') {
+      const gate = await this.contextDetection.enrollGroupSender(
+        userId,
+        chatId.toString(),
+        message.chat.type,
+      );
+      if (!gate.allowed) {
+        const translation = getTelegramTranslation(await this.getUserLanguage(userId));
+        const template =
+          gate.reason === 'cannot-post' ? translation.groups.cannotPost : translation.groups.noAccess;
+        await this.sendMessage(chatId, formatTemplate(template, { name: gate.contextName ?? '' }));
+        return;
+      }
+    }
+
+    if (message.voice) {
       await this.handleVoiceMessage(chatId, message.voice, userId);
     } else if (message.photo && message.photo.length > 0) {
       await this.handlePhotoMessage(chatId, message.photo, userId);
@@ -466,14 +488,7 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
 
   private async handleTextMessage(chatId: number, text: string, userId: string, message?: TelegramMessage): Promise<void> {
     try {
-      // Check if user can add transactions in this context
-      if (message && (message.chat.type === 'group' || message.chat.type === 'supergroup')) {
-        const canAddTransaction = await this.checkUserTransactionPermission(chatId, userId);
-        if (!canAddTransaction) {
-          await this.sendMessage(chatId, 'You don\'t have permission to add transactions in this group. Please contact a group admin.');
-          return;
-        }
-      }
+      // Group senders were already gated in processMessage.
 
       // "paguei a alares" settles an open bill rather than creating a second
       // expense. Only when a bill actually matches — otherwise the message
@@ -490,7 +505,7 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
       // expense. Same discipline as bills: only when a goal actually matches.
       const contributionIntent = parseContributionIntent(text);
       if (contributionIntent) {
-        const handled = await this.tryGoalContribution(chatId, contributionIntent, userId);
+        const handled = await this.tryGoalContribution(chatId, contributionIntent, userId, message);
         if (handled) {
           return;
         }
@@ -1341,6 +1356,7 @@ Or just type the complete transaction again:
     chatId: number,
     intent: ContributionIntent,
     userId: string,
+    message?: TelegramMessage,
   ): Promise<boolean> {
     const language = await this.getUserLanguage(userId);
     const translation = getTelegramTranslation(language);
@@ -1348,6 +1364,14 @@ Or just type the complete transaction again:
     let goals: Goal[] = [];
     try {
       goals = await this.goalsService.findOpenForContribution(userId);
+
+      // In a linked group chat, deposits stay inside that context — the
+      // same scope discipline bill settlements follow.
+      const chatType = message?.chat?.type ?? 'private';
+      if ((chatType === 'group' || chatType === 'supergroup') && message) {
+        const groupContextId = await this.contextDetection.determineContext(message, userId);
+        goals = goals.filter((goal) => goal.contextId === groupContextId);
+      }
     } catch (error) {
       this.logger.warn('Could not load goals for contribution:', error.message);
       return false;
@@ -1982,13 +2006,29 @@ Once you're registered and linked, you'll be able to set up expense tracking for
         return;
       }
       
-      // User is registered - start context setup
+      // User is registered — offer their existing shared contexts first;
+      // the create-new wizard stays one button away.
       this.contextSetup.startSetup(chat.id.toString(), addedByUserId, chat);
-      
-      const welcomeMessage = this.contextSetup.getWelcomeMessage();
-      const keyboard = this.contextSetup.getContextTypeKeyboard();
-      
-      await this.sendMessage(chat.id, welcomeMessage, { reply_markup: keyboard });
+
+      const language = await this.getUserLanguage(userId);
+      const translation = getTelegramTranslation(language);
+      const linkable = await this.contextDetection.linkableContextsFor(userId);
+
+      if (linkable.length === 0) {
+        const welcomeMessage = this.contextSetup.getWelcomeMessage();
+        const keyboard = this.contextSetup.getContextTypeKeyboard();
+        await this.sendMessage(chat.id, welcomeMessage, { reply_markup: keyboard });
+        return;
+      }
+
+      const rows = linkable.slice(0, 6).map((context) => [
+        { text: `🔗 ${context.name}`.slice(0, 60), callback_data: `setup_link_${context.id}` },
+      ]);
+      rows.push([{ text: translation.groups.linkNew, callback_data: 'setup_new' }]);
+
+      await this.sendMessage(chat.id, translation.groups.linkIntro, {
+        reply_markup: { inline_keyboard: rows },
+      });
     }
   }
 
@@ -1997,6 +2037,51 @@ Once you're registered and linked, you'll be able to set up expense tracking for
     
     if (!setupState) {
       await this.sendMessage(chatId, 'Setup session expired. Please add the bot to the group again to restart setup.');
+      await this.answerCallbackQuery(callbackQueryId);
+      return;
+    }
+
+    if (data.startsWith('setup_link_')) {
+      const contextId = data.replace('setup_link_', '');
+      const translation = getTelegramTranslation(await this.getUserLanguage(userId));
+
+      // Re-validated at press time: the button proves nothing about who
+      // pressed it, and linking a chat is context administration.
+      if (!(await this.contextDetection.canLinkContext(userId, contextId))) {
+        await this.sendMessage(chatId, translation.groups.linkDenied);
+        await this.answerCallbackQuery(callbackQueryId);
+        return;
+      }
+
+      try {
+        const context = await this.contextsService.findOne(contextId, userId);
+        const chatInfo = await this.getChatInfo(chatId);
+        await this.contextDetection.linkChatToContext(
+          chatId.toString(),
+          'group',
+          contextId,
+          chatInfo?.title,
+        );
+        await this.sendMessage(
+          chatId,
+          formatTemplate(translation.groups.linked, { name: context.name }),
+        );
+        this.contextSetup.completeSetup(chatId.toString());
+      } catch (error) {
+        this.logger.error('Error linking chat to context:', error);
+        await this.sendMessage(chatId, 'Error linking this group. Please try again later.');
+      }
+
+      await this.answerCallbackQuery(callbackQueryId);
+      return;
+    }
+
+    if (data === 'setup_new') {
+      this.contextSetup.updateSetupState(chatId.toString(), { step: 'type' });
+
+      const welcomeMessage = this.contextSetup.getWelcomeMessage();
+      const keyboard = this.contextSetup.getContextTypeKeyboard();
+      await this.sendMessage(chatId, welcomeMessage, { reply_markup: keyboard });
       await this.answerCallbackQuery(callbackQueryId);
       return;
     }
@@ -2151,30 +2236,4 @@ Once you're registered and linked, you'll be able to set up expense tracking for
     }
   }
 
-  private async checkUserTransactionPermission(chatId: number, userId: string): Promise<boolean> {
-    try {
-      // First, check if user is registered
-      if (!userId) {
-        return false;
-      }
-
-      // Get the context for this chat
-      const chatContext = await this.contextDetection.getUserContextsForChat(userId, chatId.toString());
-      if (!chatContext || chatContext.length === 0) {
-        return false;
-      }
-
-      const context = chatContext[0];
-      
-      // Check if context has permission settings in metadata
-      // For now, we'll assume if user has any access to the context, they can add transactions
-      // Later this could be enhanced with the metadata-based permission system
-      const hasAccess = await this.contextDetection.checkUserContextAccess(userId, context.id);
-      
-      return hasAccess;
-    } catch (error) {
-      this.logger.error('Error checking user transaction permission:', error);
-      return false;
-    }
-  }
 }
