@@ -87,7 +87,9 @@
       "expenses": "Expenses",
       "saved": "Saved",
       "spent": "Spent"
-    }
+    },
+    "evolutionMonthly": "Monthly evolution",
+    "evolutionDaily": "This month, day by day"
   },
   "contextSwitcher": {
     "personal": "PERSONAL",
@@ -104,5 +106,15 @@
   },
   "errors": {
     "failedToLoad": "Failed to load dashboard data"
+  },
+  "periodFilter": {
+    "thisMonth": "This month",
+    "sixMonths": "6 months",
+    "twelveMonths": "12 months",
+    "hint": "drives the summary, categories and charts"
+  },
+  "memberSpending": {
+    "title": "Who spent",
+    "total": "Group total"
   }
 }

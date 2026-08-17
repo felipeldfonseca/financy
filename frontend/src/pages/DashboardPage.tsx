@@ -21,6 +21,16 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useFinancialContexts } from '../contexts/ContextsContext';
+import { PeriodFilter } from '../components/dashboard/PeriodFilter';
+import { MemberSpendingCard, MemberSpending } from '../components/dashboard/MemberSpendingCard';
+import {
+  DashboardPeriod,
+  periodRange,
+  periodMonths,
+  cumulativeFromCalendar,
+  hasMonthlyHistory,
+  EvolutionPoint,
+} from '../utils/dashboardPeriod';
 import SummaryCards from '../components/dashboard/SummaryCards';
 import ChartSection from '../components/dashboard/ChartSection';
 import QuickActions from '../components/dashboard/QuickActions';
@@ -37,13 +47,6 @@ interface DashboardData {
     netAmount: number;
     transactionCount: number;
   };
-  monthlyData: Array<{
-    month: string;
-    income: number;
-    expenses: number;
-    netAmount: number;
-    savingsRate: number;
-  }>;
   categoryData: Array<{
     name: string;
     value: number;
@@ -60,7 +63,7 @@ interface DashboardData {
 }
 
 const DashboardPage: React.FC = () => {
-  const { t } = useTranslation('dashboard');
+  const { t, i18n } = useTranslation('dashboard');
   const { state, logout } = useAuth();
   const navigate = useNavigate();
   const [data, setData] = useState<DashboardData | null>(null);
@@ -82,6 +85,15 @@ const DashboardPage: React.FC = () => {
   );
   const contextType: 'personal' | 'groups' =
     selectedGroup || groupsModeRequested ? 'groups' : 'personal';
+
+  // Which window the whole dashboard reads. Monthly is the default; with
+  // too little history the page falls back to this month's run — once.
+  const [period, setPeriod] = useState<DashboardPeriod>('6m');
+  const [evolution, setEvolution] = useState<
+    { mode: 'monthly' | 'daily'; points: EvolutionPoint[] } | undefined
+  >(undefined);
+  const [memberSpending, setMemberSpending] = useState<MemberSpending[]>([]);
+  const autoFallbackDone = React.useRef(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [hasTransactions, setHasTransactions] = useState(false);
 
@@ -97,21 +109,54 @@ const DashboardPage: React.FC = () => {
       try {
         setIsLoading(true);
 
-        // Fetch real transaction data with current month filter
-        const now = new Date();
-        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        const monthStartStr = monthStart.toISOString().split('T')[0];
-        const todayStr = now.toISOString().split('T')[0];
+        // The period filter decides the window for everything below.
+        const { startDate, endDate } = periodRange(period);
 
-        const response = await transactionApi.getTransactions({
-          startDate: monthStartStr,
-          endDate: todayStr,
-          page: 1,
-          limit: 100,
-          sortBy: 'date',
-          sortOrder: 'DESC',
-          contextId: selectedGroup?.id,
-        });
+        const [response, monthlySeries, calendarDays, members] = await Promise.all([
+          transactionApi.getTransactions({
+            startDate,
+            endDate,
+            page: 1,
+            limit: 100,
+            sortBy: 'date',
+            sortOrder: 'DESC',
+            contextId: selectedGroup?.id,
+          }),
+          period !== 'this-month'
+            ? transactionApi.getMonthly(periodMonths(period), selectedGroup?.id)
+            : Promise.resolve(null),
+          period === 'this-month'
+            ? transactionApi.getCalendar(endDate.slice(0, 7), selectedGroup?.id)
+            : Promise.resolve(null),
+          selectedGroup
+            ? transactionApi.getByMember(selectedGroup.id, startDate, endDate)
+            : Promise.resolve([]),
+        ]);
+
+        // Not enough months to draw a trend: fall back to this month's
+        // day-by-day run, once — the user can still pick any period by hand.
+        if (monthlySeries && !hasMonthlyHistory(monthlySeries) && !autoFallbackDone.current) {
+          autoFallbackDone.current = true;
+          setPeriod('this-month');
+          return;
+        }
+
+        setMemberSpending(members);
+
+        if (monthlySeries) {
+          setEvolution({
+            mode: 'monthly',
+            points: monthlySeries.map((entry) => ({
+              label: new Date(`${entry.month}-01T12:00:00Z`).toLocaleDateString(i18n.language, {
+                month: 'short',
+              }),
+              income: entry.income,
+              expense: entry.expense,
+            })),
+          });
+        } else if (calendarDays) {
+          setEvolution({ mode: 'daily', points: cumulativeFromCalendar(calendarDays, endDate) });
+        }
 
         // Check if user has any transactions
         const hasData = response.transactions.length > 0;
@@ -128,7 +173,6 @@ const DashboardPage: React.FC = () => {
               netAmount: response.summary.netAmount,
               transactionCount: response.summary.transactionCount,
             },
-            monthlyData: [], // TODO: Implement monthly aggregation endpoint
             categoryData: response.summary.categories.map((cat, index) => ({
               name: cat.category || 'Uncategorized',
               value: Math.abs(cat.amount),
@@ -161,7 +205,7 @@ const DashboardPage: React.FC = () => {
       loadDashboardData();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.isAuthenticated, selectedGroup?.id]);
+  }, [state.isAuthenticated, selectedGroup?.id, period]);
 
   const handleAddTransaction = () => {
     navigate('/transactions');
@@ -376,6 +420,11 @@ const DashboardPage: React.FC = () => {
               />
             </Box>
 
+            {/* Period filter — one row that drives everything below */}
+            <Box sx={{ mb: 4 }}>
+              <PeriodFilter value={period} onChange={setPeriod} />
+            </Box>
+
             {/* Summary Cards */}
             <Box sx={{ mb: 4 }}>
               <SummaryCards data={data?.summary} isLoading={isLoading} userCurrency={state.user?.defaultCurrency} />
@@ -390,10 +439,21 @@ const DashboardPage: React.FC = () => {
               />
             </Box>
 
+            {/* Who spent — the group-only chart */}
+            {selectedGroup && memberSpending.length > 0 && (
+              <Box sx={{ mb: 4 }}>
+                <MemberSpendingCard
+                  members={memberSpending}
+                  currency={state.user?.defaultCurrency || 'BRL'}
+                  periodLabel={t(`periodFilter.${period === 'this-month' ? 'thisMonth' : period === '6m' ? 'sixMonths' : 'twelveMonths'}`)}
+                />
+              </Box>
+            )}
+
             {/* Charts Section */}
             <Box>
               <ChartSection
-                monthlyData={data?.monthlyData}
+                evolution={evolution}
                 categoryData={data?.categoryData}
                 isLoading={isLoading}
                 userCurrency={state.user?.defaultCurrency}

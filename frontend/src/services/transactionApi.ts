@@ -119,6 +119,28 @@ export interface CalendarDay {
 
 export const transactionApi = {
   /** Per-day totals for a month — only days with movement come back. */
+  /** Income and expense per month for the last N months, zero-filled. */
+  async getMonthly(
+    months: number,
+    contextId?: string,
+  ): Promise<Array<{ month: string; income: number; expense: number }>> {
+    const params = new URLSearchParams({ months: String(months) });
+    if (contextId) params.append('contextId', contextId);
+    const response = await api.get(`/transactions/monthly?${params.toString()}`);
+    return response.data;
+  },
+
+  /** Expenses per member of a shared context in the date range. */
+  async getByMember(
+    contextId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<Array<{ userId: string; firstName: string; lastName: string; expense: number }>> {
+    const params = new URLSearchParams({ contextId, startDate, endDate });
+    const response = await api.get(`/transactions/by-member?${params.toString()}`);
+    return response.data;
+  },
+
   async getCalendar(month: string, contextId?: string): Promise<CalendarDay[]> {
     const response = await api.get('/transactions/calendar', {
       params: { month, ...(contextId ? { contextId } : {}) },

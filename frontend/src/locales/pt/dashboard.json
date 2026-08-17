@@ -87,7 +87,9 @@
       "expenses": "Despesas",
       "saved": "Poupado",
       "spent": "Gasto"
-    }
+    },
+    "evolutionMonthly": "Evolução mensal",
+    "evolutionDaily": "Este mês, dia a dia"
   },
   "contextSwitcher": {
     "personal": "PESSOAL",
@@ -104,5 +106,15 @@
   },
   "errors": {
     "failedToLoad": "Falha ao carregar dados do painel"
+  },
+  "periodFilter": {
+    "thisMonth": "Este mês",
+    "sixMonths": "6 meses",
+    "twelveMonths": "12 meses",
+    "hint": "controla o resumo, as categorias e os gráficos"
+  },
+  "memberSpending": {
+    "title": "Quem gastou",
+    "total": "Total do grupo"
   }
 }

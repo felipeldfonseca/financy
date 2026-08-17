@@ -23,6 +23,7 @@ import {
   Cell,
   BarChart,
   Bar,
+  Legend,
 } from 'recharts';
 
 // Elegant SVG Icons
@@ -55,22 +56,21 @@ const InsightIcon: React.FC<{ sx?: any }> = ({ sx }) => (
   </SvgIcon>
 );
 
-interface MonthlyData {
-  month: string;
-  income: number;
-  expenses: number;
-  netAmount: number;
-  savingsRate: number; // percentage
-}
-
 interface CategoryData {
   name: string;
   value: number;
   color: string;
 }
 
+export interface EvolutionPoint {
+  label: string;
+  income: number;
+  expense: number;
+}
+
 interface ChartSectionProps {
-  monthlyData?: MonthlyData[];
+  /** Income × expense over time: per month, or the month's day-by-day run. */
+  evolution?: { mode: 'monthly' | 'daily'; points: EvolutionPoint[] };
   categoryData?: CategoryData[];
   isLoading?: boolean;
   userCurrency?: string;
@@ -118,7 +118,7 @@ const ChartCard: React.FC<{
 );
 
 const ChartSection: React.FC<ChartSectionProps> = ({
-  monthlyData = [],
+  evolution,
   categoryData = [],
   isLoading = false,
   userCurrency = 'USD',
@@ -135,7 +135,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
   const progress = (transactionCount / MIN_TRANSACTIONS) * 100;
 
   // Check if we have sufficient data for meaningful charts
-  const hasMonthlyData = monthlyData.length >= 2; // Need at least 2 data points for trend
+  const hasEvolution = (evolution?.points.length ?? 0) >= 2;
   const hasCategoryData = categoryData.length > 0;
 
   const formatCurrency = (value: number) => {
@@ -197,57 +197,6 @@ const ChartSection: React.FC<ChartSectionProps> = ({
           </Typography>
           <Typography variant="body2" sx={{ color: data.payload.color }}>
             <Typography component="span" variant="numeric">{formatCurrency(data.value)}</Typography>
-          </Typography>
-        </Box>
-      );
-    }
-    return null;
-  };
-
-  // Custom tooltips
-  const CashFlowTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <Box
-          sx={{
-            bgcolor: 'background.paper',
-            p: 1.5,
-            border: 1,
-            borderColor: 'divider',
-            borderRadius: 1,
-            boxShadow: 2,
-          }}
-        >
-          <Typography variant="body2" fontWeight="bold">
-            {label}
-          </Typography>
-          <Typography variant="body2" sx={{ color: payload[0].color }}>
-            {t('charts.labels.cashFlow')}: <Typography component="span" variant="numeric">{formatCurrency(payload[0].value)}</Typography>
-          </Typography>
-        </Box>
-      );
-    }
-    return null;
-  };
-
-  const SavingsTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <Box
-          sx={{
-            bgcolor: 'background.paper',
-            p: 1.5,
-            border: 1,
-            borderColor: 'divider',
-            borderRadius: 1,
-            boxShadow: 2,
-          }}
-        >
-          <Typography variant="body2" fontWeight="bold">
-            {label}
-          </Typography>
-          <Typography variant="body2" sx={{ color: payload[0].color }}>
-            {t('charts.labels.savingsRate')}: <Typography component="span" variant="numeric">{payload[0].value.toFixed(1)}%</Typography>
           </Typography>
         </Box>
       );
@@ -487,77 +436,61 @@ const ChartSection: React.FC<ChartSectionProps> = ({
         </Grid>
       )}
 
-      {/* Cash Flow Trend */}
-      {hasMonthlyData && (
-        <Grid item xs={12} lg={6}>
-          <ChartCard title={t('charts.cashFlowTrend')} isLoading={isLoading}>
+      {/* Income × expense over time — monthly, or this month's run */}
+      {hasEvolution && evolution && (
+        <Grid item xs={12}>
+          <ChartCard
+            title={
+              evolution.mode === 'daily'
+                ? t('charts.evolutionDaily')
+                : t('charts.evolutionMonthly')
+            }
+            isLoading={isLoading}
+          >
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="5 5" stroke="rgba(255,255,255,0.1)" />
+              <LineChart data={evolution.points} margin={{ top: 8, right: 24, left: 8, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="5 5" stroke="rgba(0,0,0,0.07)" vertical={false} />
                 <XAxis
-                  dataKey="month"
+                  dataKey="label"
                   tick={{ fontSize: 12, fill: '#8b8b8b' }}
-                  stroke="rgba(255,255,255,0.2)"
+                  stroke="rgba(0,0,0,0.1)"
                   axisLine={false}
                   tickLine={false}
+                  interval="preserveStartEnd"
                 />
                 <YAxis
                   tick={{ fontSize: 12, fill: '#8b8b8b' }}
-                  stroke="rgba(255,255,255,0.2)"
+                  stroke="rgba(0,0,0,0.1)"
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={formatCurrency}
-                  domain={['dataMin - 200', 'dataMax + 200']}
+                  width={84}
                 />
-                <Tooltip content={<CashFlowTooltip />} />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend
+                  iconType="circle"
+                  iconSize={9}
+                  formatter={(value: string) => (
+                    <span style={{ color: '#5b6270', fontSize: '0.8rem' }}>{value}</span>
+                  )}
+                />
                 <Line
                   type="monotone"
-                  dataKey="netAmount"
-                  stroke="#4657D8"
-                  strokeWidth={3}
-                  dot={{ fill: '#4657D8', strokeWidth: 0, r: 5 }}
-                  activeDot={{ r: 8, stroke: '#4657D8', strokeWidth: 2, fill: '#ffffff' }}
-                  name="Net Amount"
-                  strokeDasharray="0"
+                  dataKey="income"
+                  name={t('charts.labels.income') as string}
+                  stroke="#3f7fbf"
+                  strokeWidth={2.25}
+                  dot={false}
+                  activeDot={{ r: 5, stroke: '#ffffff', strokeWidth: 2 }}
                 />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        </Grid>
-      )}
-
-      {/* Savings Rate Over Time */}
-      {hasMonthlyData && (
-        <Grid item xs={12} lg={6}>
-          <ChartCard title={t('charts.savingsRateOverTime')} isLoading={isLoading}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="5 5" stroke="rgba(255,255,255,0.1)" />
-                <XAxis
-                  dataKey="month"
-                  tick={{ fontSize: 12, fill: '#8b8b8b' }}
-                  stroke="rgba(255,255,255,0.2)"
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 12, fill: '#8b8b8b' }}
-                  stroke="rgba(255,255,255,0.2)"
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(value) => `${value}%`}
-                  domain={['dataMin - 2', 'dataMax + 2']}
-                />
-                <Tooltip content={<SavingsTooltip />} />
                 <Line
                   type="monotone"
-                  dataKey="savingsRate"
-                  stroke="#10b981"
-                  strokeWidth={3}
-                  dot={{ fill: '#10b981', strokeWidth: 0, r: 5 }}
-                  activeDot={{ r: 8, stroke: '#10b981', strokeWidth: 2, fill: '#ffffff' }}
-                  name={t('charts.labels.savingsRate')}
-                  strokeDasharray="0"
+                  dataKey="expense"
+                  name={t('charts.labels.expenses') as string}
+                  stroke="#c05f33"
+                  strokeWidth={2.25}
+                  dot={false}
+                  activeDot={{ r: 5, stroke: '#ffffff', strokeWidth: 2 }}
                 />
               </LineChart>
             </ResponsiveContainer>

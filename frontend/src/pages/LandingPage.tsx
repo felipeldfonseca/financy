@@ -740,7 +740,14 @@ const LandingPage: React.FC = () => {
           viewport={{ once: true }}
         >
           <ChartSection
-            monthlyData={mockMonthlyData}
+            evolution={{
+              mode: 'monthly',
+              points: mockMonthlyData.map((month) => ({
+                label: month.month,
+                income: month.income,
+                expense: month.expenses,
+              })),
+            }}
             categoryData={mockExpenseData}
             isLoading={false}
             userCurrency="USD"

@@ -393,6 +393,98 @@ export class TransactionsService {
     }));
   }
 
+  /**
+   * Income and expense per calendar month for the last `months` months,
+   * current one included — zero-filled, so the chart never sees holes.
+   * Same scope rules as every listing: the personal view excludes
+   * not-my-pocket contexts; a contextId requires membership.
+   */
+  async getMonthlySummary(
+    userId: string,
+    months: number = 6,
+    contextId?: string,
+  ): Promise<Array<{ month: string; income: number; expense: number }>> {
+    const span = Math.min(Math.max(Math.floor(months) || 6, 1), 24);
+    const now = new Date();
+    const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (span - 1), 1));
+
+    const queryBuilder = this.transactionsRepository.createQueryBuilder('transaction');
+    await this.applyScope(queryBuilder, userId, { contextId }, { includeAuthor: false });
+
+    const rows = await queryBuilder
+      .andWhere('transaction.date BETWEEN :startDate AND :endDate', {
+        startDate: start.toISOString().slice(0, 10),
+        endDate: now.toISOString().slice(0, 10),
+      })
+      .andWhere('transaction.status != :cancelledStatus', {
+        cancelledStatus: TransactionStatus.CANCELLED,
+      })
+      .select(`to_char(transaction.date, 'YYYY-MM')`, 'month')
+      .addSelect(
+        `SUM(CASE WHEN transaction.type = :incomeType THEN transaction.amount ELSE 0 END)`,
+        'income',
+      )
+      .addSelect(
+        `SUM(CASE WHEN transaction.type = :expenseType THEN transaction.amount ELSE 0 END)`,
+        'expense',
+      )
+      .setParameters({ incomeType: TransactionType.INCOME, expenseType: TransactionType.EXPENSE })
+      .groupBy(`to_char(transaction.date, 'YYYY-MM')`)
+      .getRawMany();
+
+    const totals = new Map(rows.map((row) => [row.month, row]));
+
+    return Array.from({ length: span }, (_, index) => {
+      const monthDate = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + index, 1));
+      const month = monthDate.toISOString().slice(0, 7);
+      const row = totals.get(month);
+      return {
+        month,
+        income: Number(row?.income ?? 0),
+        expense: Number(row?.expense ?? 0),
+      };
+    });
+  }
+
+  /**
+   * Expenses per member of a shared context in the date range — who spent
+   * what, the group-only chart. The context is required: the personal view
+   * has only one person in it.
+   */
+  async getMemberSpending(
+    userId: string,
+    contextId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<Array<{ userId: string; firstName: string; lastName: string; expense: number }>> {
+    const queryBuilder = this.transactionsRepository.createQueryBuilder('transaction');
+    await this.applyScope(queryBuilder, userId, { contextId }, { includeAuthor: false });
+
+    const rows = await queryBuilder
+      .innerJoin('transaction.user', 'author')
+      .andWhere('transaction.type = :expenseType', { expenseType: TransactionType.EXPENSE })
+      .andWhere('transaction.date BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .andWhere('transaction.status != :cancelledStatus', {
+        cancelledStatus: TransactionStatus.CANCELLED,
+      })
+      .select('transaction.userId', 'userId')
+      .addSelect('author.firstName', 'firstName')
+      .addSelect('author.lastName', 'lastName')
+      .addSelect('SUM(transaction.amount)', 'expense')
+      .groupBy('transaction.userId')
+      .addGroupBy('author.firstName')
+      .addGroupBy('author.lastName')
+      .orderBy('expense', 'DESC')
+      .getRawMany();
+
+    return rows.map((row) => ({
+      userId: row.userId,
+      firstName: row.firstName,
+      lastName: row.lastName,
+      expense: Number(row.expense),
+    }));
+  }
+
   getValidDashboardCategoriesForType(transactionType: string): string[] {
     return Array.from(getValidDashboardCategories(transactionType));
   }

@@ -228,6 +228,126 @@ describe('Transactions (e2e)', () => {
     });
   });
 
+  describe('dashboard aggregations', () => {
+    let aggrToken: string;
+    const iso = (date: Date) => date.toISOString().slice(0, 10);
+    const monthKey = (date: Date) => date.toISOString().slice(0, 7);
+    const today = new Date();
+    const lastMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, 15));
+
+    beforeAll(async () => {
+      // A fresh account, so the sums hold exactly what this block creates.
+      aggrToken = await signUp('aggr');
+      await create({ description: 'Salário', type: 'income', category: 'salary', subcategory: 'salary', dashboardCategory: 'other', amount: 1000, date: iso(today) }, aggrToken).expect(201);
+      await create({ description: 'Mercado agora', amount: 300, date: iso(today) }, aggrToken).expect(201);
+      await create({ description: 'Mercado passado', amount: 200, date: iso(lastMonth) }, aggrToken).expect(201);
+    });
+
+    it('aggregates by month, zero-filling months without data', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/transactions/monthly')
+        .query({ months: 3 })
+        .set('Authorization', `Bearer ${aggrToken}`)
+        .expect(200);
+
+      expect(response.body).toHaveLength(3);
+      const [empty, previous, current] = response.body;
+      expect(current.month).toBe(monthKey(today));
+      expect(current.income).toBe(1000);
+      expect(current.expense).toBe(300);
+      expect(previous.expense).toBe(200);
+      expect(empty.income).toBe(0);
+      expect(empty.expense).toBe(0);
+    });
+
+    it('keeps not-my-pocket contexts out of the personal monthly view', async () => {
+      const work = await request(app.getHttpServer())
+        .post('/api/v1/contexts')
+        .set('Authorization', `Bearer ${aggrToken}`)
+        .send({
+          name: 'Trabalho Aggr',
+          type: 'business',
+          defaultCurrency: 'BRL',
+          settings: { includeInPersonalFinances: false },
+        })
+        .expect(201);
+      await create(
+        { description: 'Almoço pago pela firma', amount: 999, date: iso(today), contextId: work.body.id },
+        aggrToken,
+      ).expect(201);
+
+      const personal = await request(app.getHttpServer())
+        .get('/api/v1/transactions/monthly')
+        .query({ months: 1 })
+        .set('Authorization', `Bearer ${aggrToken}`)
+        .expect(200);
+      expect(personal.body[0].expense).toBe(300); // the 999 stays out
+
+      const scoped = await request(app.getHttpServer())
+        .get('/api/v1/transactions/monthly')
+        .query({ months: 1, contextId: work.body.id })
+        .set('Authorization', `Bearer ${aggrToken}`)
+        .expect(200);
+      expect(scoped.body[0].expense).toBe(999);
+    });
+
+    it('breaks a shared context down by member, in each member name', async () => {
+      const ownerEmail = uniqueEmail('aggr-owner');
+      const ownerReg = await request(app.getHttpServer())
+        .post('/api/v1/auth/register')
+        .send({ email: ownerEmail, firstName: 'Ana', lastName: 'Dona', password: VALID_PASSWORD })
+        .expect(201);
+      const memberEmail = uniqueEmail('aggr-member');
+      const memberReg = await request(app.getHttpServer())
+        .post('/api/v1/auth/register')
+        .send({ email: memberEmail, firstName: 'Beto', lastName: 'Par', password: VALID_PASSWORD })
+        .expect(201);
+      const ownerTk = ownerReg.body.access_token;
+      const memberTk = memberReg.body.access_token;
+
+      const context = await request(app.getHttpServer())
+        .post('/api/v1/contexts')
+        .set('Authorization', `Bearer ${ownerTk}`)
+        .send({ name: 'Casa Aggr', type: 'family', defaultCurrency: 'BRL' })
+        .expect(201);
+      const invitation = await request(app.getHttpServer())
+        .post(`/api/v1/contexts/${context.body.id}/invite`)
+        .set('Authorization', `Bearer ${ownerTk}`)
+        .send({ email: memberEmail, role: 'member' })
+        .expect(201);
+      await request(app.getHttpServer())
+        .post(`/api/v1/contexts/invitations/${invitation.body.inviteToken}/accept`)
+        .set('Authorization', `Bearer ${memberTk}`)
+        .expect(201);
+
+      await create({ description: 'Luz', amount: 100, date: iso(today), contextId: context.body.id }, ownerTk).expect(201);
+      await create({ description: 'Feira', amount: 60, date: iso(today), contextId: context.body.id }, memberTk).expect(201);
+
+      const monthStart = `${monthKey(today)}-01`;
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/transactions/by-member')
+        .query({ contextId: context.body.id, startDate: monthStart, endDate: iso(today) })
+        .set('Authorization', `Bearer ${ownerTk}`)
+        .expect(200);
+
+      expect(response.body).toHaveLength(2);
+      expect(response.body[0]).toMatchObject({ firstName: 'Ana', expense: 100 });
+      expect(response.body[1]).toMatchObject({ firstName: 'Beto', expense: 60 });
+
+      // The context is required, and someone outside it sees nothing.
+      await request(app.getHttpServer())
+        .get('/api/v1/transactions/by-member')
+        .query({ startDate: monthStart, endDate: iso(today) })
+        .set('Authorization', `Bearer ${ownerTk}`)
+        .expect(400);
+      await request(app.getHttpServer())
+        .get('/api/v1/transactions/by-member')
+        .query({ contextId: context.body.id, startDate: monthStart, endDate: iso(today) })
+        .set('Authorization', `Bearer ${aggrToken}`)
+        .expect(403);
+    });
+  });
+
   describe('isolation between accounts', () => {
     it('hides one user transactions from another', async () => {
       const created = await create({ description: 'Private to owner' }).expect(201);

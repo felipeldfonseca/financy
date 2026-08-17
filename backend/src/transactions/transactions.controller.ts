@@ -18,6 +18,7 @@ import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { TransactionFiltersDto } from './dto/transaction-filters.dto';
 import { CalendarFiltersDto } from './dto/calendar-filters.dto';
+import { MonthlySummaryFiltersDto, MemberSpendingFiltersDto } from './dto/dashboard-filters.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('transactions')
@@ -88,6 +89,30 @@ export class TransactionsController {
       req.user.id,
       filters.month,
       filters.contextId,
+    );
+  }
+
+  @Get('monthly')
+  @ApiOperation({ summary: 'Income and expense per month for the last N months, zero-filled' })
+  @ApiResponse({ status: 200, description: 'Monthly summary retrieved successfully' })
+  async getMonthly(@Query() filters: MonthlySummaryFiltersDto, @Request() req) {
+    return await this.transactionsService.getMonthlySummary(
+      req.user.id,
+      filters.months,
+      filters.contextId,
+    );
+  }
+
+  @Get('by-member')
+  @ApiOperation({ summary: 'Expenses per member of a shared context in a date range' })
+  @ApiResponse({ status: 200, description: 'Member spending retrieved successfully' })
+  @ApiResponse({ status: 403, description: 'No access to the context' })
+  async getByMember(@Query() filters: MemberSpendingFiltersDto, @Request() req) {
+    return await this.transactionsService.getMemberSpending(
+      req.user.id,
+      filters.contextId,
+      filters.startDate,
+      filters.endDate,
     );
   }
 

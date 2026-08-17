@@ -89,7 +89,9 @@
       "expenses": "Gastos",
       "saved": "Ahorrado",
       "spent": "Gastado"
-    }
+    },
+    "evolutionMonthly": "Evolución mensual",
+    "evolutionDaily": "Este mes, día a día"
   },
   "contextSwitcher": {
     "personal": "PERSONAL",
@@ -106,5 +108,15 @@
   },
   "errors": {
     "failedToLoad": "Error al cargar datos del panel"
+  },
+  "periodFilter": {
+    "thisMonth": "Este mes",
+    "sixMonths": "6 meses",
+    "twelveMonths": "12 meses",
+    "hint": "controla el resumen, las categorías y los gráficos"
+  },
+  "memberSpending": {
+    "title": "Quién gastó",
+    "total": "Total del grupo"
   }
 }
