@@ -427,7 +427,15 @@ export class TransactionsService {
     const { includeAuthor = true } = options;
 
     if (!filters.contextId) {
-      queryBuilder.where('transaction.userId = :userId', { userId });
+      // The personal view sums what the user recorded anywhere — EXCEPT in
+      // contexts configured as not-my-pocket (a work context whose expenses
+      // the company pays). Absent settings mean "counts", the default.
+      queryBuilder
+        .leftJoin(Context, 'scopeContext', 'scopeContext.id = transaction.contextId')
+        .where('transaction.userId = :userId', { userId })
+        .andWhere(
+          `COALESCE(scopeContext.settings ->> 'includeInPersonalFinances', 'true') != 'false'`,
+        );
       return;
     }
 

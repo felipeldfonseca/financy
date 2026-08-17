@@ -48,7 +48,9 @@
     "nameRequired": "Dê um nome ao contexto.",
     "description": "Descrição",
     "type": "Tipo",
-    "currency": "Moeda padrão"
+    "currency": "Moeda padrão",
+    "includePersonal": "Contar nas finanças pessoais dos membros",
+    "includePersonalHint": "Desligue se as despesas deste contexto não saem do bolso de quem lança — um contexto de trabalho pago pela empresa, por exemplo. Elas continuam visíveis dentro do contexto."
   },
   "confirm": {
     "delete": "Excluir \"{{name}}\"? As transações continuam com quem as criou.",

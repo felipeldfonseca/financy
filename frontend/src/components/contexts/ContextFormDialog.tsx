@@ -7,9 +7,12 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
   Grid,
   MenuItem,
+  Switch,
   TextField,
+  Typography,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import {
@@ -50,6 +53,7 @@ export const ContextFormDialog: React.FC<Props> = ({ open, context, onClose, onS
     defaultCurrency: 'BRL',
     color: PALETTE[0],
   });
+  const [includePersonal, setIncludePersonal] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -64,6 +68,7 @@ export const ContextFormDialog: React.FC<Props> = ({ open, context, onClose, onS
       defaultCurrency: context?.defaultCurrency ?? 'BRL',
       color: context?.color ?? PALETTE[0],
     });
+    setIncludePersonal(context?.settings?.includeInPersonalFinances !== false);
   }, [open, context]);
 
   const change = (field: keyof CreateContextData) => (event: React.ChangeEvent<HTMLInputElement>) =>
@@ -79,7 +84,16 @@ export const ContextFormDialog: React.FC<Props> = ({ open, context, onClose, onS
     setError(null);
 
     try {
-      await onSubmit({ ...values, name: values.name.trim() });
+      // Merged over the existing settings so the budget (and future keys)
+      // survive the toggle; "on" removes the key — absence means the default.
+      const settings = { ...(context?.settings ?? {}) };
+      if (includePersonal) {
+        delete settings.includeInPersonalFinances;
+      } else {
+        settings.includeInPersonalFinances = false;
+      }
+
+      await onSubmit({ ...values, name: values.name.trim(), settings });
       onClose();
     } catch (err: any) {
       setError(err?.response?.data?.message || err.message);
@@ -147,6 +161,21 @@ export const ContextFormDialog: React.FC<Props> = ({ open, context, onClose, onS
                 </MenuItem>
               ))}
             </TextField>
+          </Grid>
+
+          <Grid item xs={12}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={includePersonal}
+                  onChange={(event) => setIncludePersonal(event.target.checked)}
+                />
+              }
+              label={t('form.includePersonal')}
+            />
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', ml: 0.5 }}>
+              {t('form.includePersonalHint')}
+            </Typography>
           </Grid>
 
           <Grid item xs={12}>

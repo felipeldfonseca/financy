@@ -48,7 +48,9 @@
     "nameRequired": "Give the context a name.",
     "description": "Description",
     "type": "Type",
-    "currency": "Default currency"
+    "currency": "Default currency",
+    "includePersonal": "Count towards members' personal finances",
+    "includePersonalHint": "Turn off if this context's expenses don't come out of the poster's own pocket — a work context paid by the company, for example. They stay visible inside the context."
   },
   "confirm": {
     "delete": "Delete \"{{name}}\"? Its transactions stay with whoever created them.",

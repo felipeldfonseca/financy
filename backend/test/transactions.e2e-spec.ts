@@ -136,6 +136,98 @@ describe('Transactions (e2e)', () => {
       .expect(404);
   });
 
+  describe('contexts kept out of the personal finances', () => {
+    let workContextId: string;
+    let sideContextId: string;
+
+    beforeAll(async () => {
+      // A work context whose expenses the company pays — configured out of
+      // the poster's personal finances — and a side project left at the
+      // default, which counts.
+      const work = await request(app.getHttpServer())
+        .post('/api/v1/contexts')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          name: 'Trabalho',
+          type: 'business',
+          defaultCurrency: 'BRL',
+          settings: { includeInPersonalFinances: false },
+        })
+        .expect(201);
+      workContextId = work.body.id;
+
+      const side = await request(app.getHttpServer())
+        .post('/api/v1/contexts')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: 'Projeto Pessoal', type: 'project', defaultCurrency: 'BRL' })
+        .expect(201);
+      sideContextId = side.body.id;
+
+      await create({ description: 'Almoço do trabalho', contextId: workContextId, date: '2026-08-11' }).expect(201);
+      await create({ description: 'Domínio do projeto', contextId: sideContextId, date: '2026-08-11' }).expect(201);
+    });
+
+    it('keeps a not-my-pocket context out of the personal list and summary', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/transactions')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      const descriptions = response.body.transactions.map((t: any) => t.description);
+      expect(descriptions).not.toContain('Almoço do trabalho');
+      expect(descriptions).toContain('Domínio do projeto');
+    });
+
+    it('still shows everything inside the context own view', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/transactions')
+        .query({ contextId: workContextId })
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(response.body.transactions.map((t: any) => t.description)).toContain(
+        'Almoço do trabalho',
+      );
+    });
+
+    it('keeps the excluded expense off the personal calendar', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/transactions/calendar')
+        .query({ month: '2026-08' })
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      const day = (response.body.days ?? response.body).find?.(
+        (entry: any) => String(entry.date).slice(0, 10) === '2026-08-11',
+      );
+      // Only the side project's 50 counts on that day; work's 50 stays out.
+      expect(Number(day?.expense ?? day?.expenses ?? 0)).toBe(50);
+    });
+
+    it('starts counting again the moment the setting is turned back on', async () => {
+      await request(app.getHttpServer())
+        .patch(`/api/v1/contexts/${workContextId}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ settings: { includeInPersonalFinances: true } })
+        .expect(200);
+
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/transactions')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+      expect(response.body.transactions.map((t: any) => t.description)).toContain(
+        'Almoço do trabalho',
+      );
+
+      // Back off again, so this suite leaves no surprises for later tests.
+      await request(app.getHttpServer())
+        .patch(`/api/v1/contexts/${workContextId}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ settings: { includeInPersonalFinances: false } })
+        .expect(200);
+    });
+  });
+
   describe('isolation between accounts', () => {
     it('hides one user transactions from another', async () => {
       const created = await create({ description: 'Private to owner' }).expect(201);

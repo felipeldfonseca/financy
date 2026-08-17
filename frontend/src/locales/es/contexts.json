@@ -48,7 +48,9 @@
     "nameRequired": "Ponle un nombre al contexto.",
     "description": "Descripción",
     "type": "Tipo",
-    "currency": "Moneda predeterminada"
+    "currency": "Moneda predeterminada",
+    "includePersonal": "Contar en las finanzas personales de los miembros",
+    "includePersonalHint": "Desactívalo si los gastos de este contexto no salen del bolsillo de quien los registra — un contexto de trabajo pagado por la empresa, por ejemplo. Siguen visibles dentro del contexto."
   },
   "confirm": {
     "delete": "¿Eliminar \"{{name}}\"? Las transacciones siguen con quien las creó.",
