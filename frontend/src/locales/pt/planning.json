@@ -112,7 +112,8 @@
     "menu": {
       "edit": "Editar",
       "archive": "Arquivar",
-      "delete": "Excluir"
+      "delete": "Excluir",
+      "unarchive": "Desarquivar"
     },
     "form": {
       "addTitle": "Nova meta de economia",
@@ -192,7 +193,10 @@
       "hint": "Ajustes aparecem no extrato marcados com ≈, separados dos aportes, e não contam na barra do mês.",
       "confirm": "Confirmar ajuste",
       "cancel": "Cancelar"
-    }
+    },
+    "showArchived": "Ver arquivadas ({{count}})",
+    "hideArchived": "Ocultar arquivadas",
+    "unarchived": "Meta reativada."
   },
   "helpBanner": {
     "title": "Ajude a Moldar Essas Funcionalidades",

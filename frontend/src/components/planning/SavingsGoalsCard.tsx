@@ -63,6 +63,7 @@ export const SavingsGoalsCard: React.FC = () => {
   const [adjustingGoal, setAdjustingGoal] = useState<Goal | null>(null);
   const [menuAnchor, setMenuAnchor] = useState<{ element: HTMLElement; goal: Goal } | null>(null);
   const [expandedGoalId, setExpandedGoalId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
   const [trail, setTrail] = useState<GoalContribution[]>([]);
   const [trailLoading, setTrailLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -76,7 +77,7 @@ export const SavingsGoalsCard: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      setGoals(await goalApi.list({ contextId: selectedContextId, status: 'active' }));
+      setGoals(await goalApi.list({ contextId: selectedContextId, status: 'all' }));
     } catch (err: any) {
       setError(err?.response?.data?.message || err.message);
     } finally {
@@ -114,9 +115,18 @@ export const SavingsGoalsCard: React.FC = () => {
     [i18n.language],
   );
 
-  const savedTotals = useMemo(
-    () => sumByCurrency(goals.map((goal) => ({ amount: goal.currentAmount, currency: goal.currency }))),
+  const activeGoals = useMemo(() => goals.filter((goal) => goal.status === 'active'), [goals]);
+  const archivedGoals = useMemo(
+    () => goals.filter((goal) => goal.status === 'archived'),
     [goals],
+  );
+
+  const savedTotals = useMemo(
+    () =>
+      sumByCurrency(
+        activeGoals.map((goal) => ({ amount: goal.currentAmount, currency: goal.currency })),
+      ),
+    [activeGoals],
   );
 
   const createGoal = async (data: CreateGoalData) => {
@@ -161,6 +171,17 @@ export const SavingsGoalsCard: React.FC = () => {
     setMenuAnchor(null);
     try {
       await goalApi.update(goal.id, { status: 'archived' });
+      await load();
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err.message);
+    }
+  };
+
+  const unarchiveGoal = async (goal: Goal) => {
+    setMenuAnchor(null);
+    try {
+      await goalApi.update(goal.id, { status: 'active' });
+      setMessage(t('goals.unarchived') as string);
       await load();
     } catch (err: any) {
       setError(err?.response?.data?.message || err.message);
@@ -237,7 +258,7 @@ export const SavingsGoalsCard: React.FC = () => {
           <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <CircularProgress size={32} />
           </Box>
-        ) : goals.length === 0 ? (
+        ) : activeGoals.length === 0 ? (
           <Box
             sx={{
               flex: 1,
@@ -256,7 +277,7 @@ export const SavingsGoalsCard: React.FC = () => {
           </Box>
         ) : (
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            {goals.map((goal) => {
+            {activeGoals.map((goal) => {
               // A habit's bar measures the month; an event's bar, the journey.
               const isHabit = goal.goalType === 'recurring';
               const progress = isHabit
@@ -526,25 +547,136 @@ export const SavingsGoalsCard: React.FC = () => {
           </Box>
         )}
 
+        {archivedGoals.length > 0 && (
+          <Box sx={{ mt: 2 }}>
+            <Chip
+              size="small"
+              label={
+                showArchived
+                  ? (t('goals.hideArchived') as string)
+                  : (t('goals.showArchived', { count: archivedGoals.length }) as string)
+              }
+              onClick={() => setShowArchived((current) => !current)}
+              sx={{
+                height: 24,
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                color: 'text.secondary',
+                background: 'rgba(0,0,0,0.05)',
+                border: '1px solid rgba(0,0,0,0.12)',
+                '&:hover': { background: 'rgba(0,0,0,0.1)' },
+              }}
+            />
+
+            <Collapse in={showArchived} unmountOnExit>
+              <Box sx={{ mt: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {archivedGoals.map((goal) => {
+                  const canModify = canModifyTransaction({
+                    transactionUserId: goal.userId,
+                    currentUserId,
+                    contextRole,
+                  });
+
+                  return (
+                    <Box
+                      key={goal.id}
+                      sx={{
+                        p: 1.5,
+                        borderRadius: '12px',
+                        border: '1px dashed rgba(0,0,0,0.18)',
+                        background: 'rgba(0,0,0,0.02)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        opacity: 0.8,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: '50%',
+                          backgroundColor: goal.color || ACCENT,
+                          flexShrink: 0,
+                          opacity: 0.6,
+                        }}
+                      />
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="body2" fontWeight={600} noWrap>
+                          {goal.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {formatCurrency(Number(goal.currentAmount), goal.currency)}
+                          {goal.targetAmount != null
+                            ? ` / ${formatCurrency(Number(goal.targetAmount), goal.currency)}`
+                            : ''}
+                        </Typography>
+                      </Box>
+
+                      {canModify && (
+                        <Chip
+                          size="small"
+                          label={t('goals.menu.unarchive')}
+                          onClick={() => unarchiveGoal(goal)}
+                          sx={{
+                            height: 24,
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            color: ACCENT,
+                            background: `${ACCENT}1f`,
+                            border: `1px solid ${ACCENT}66`,
+                            '&:hover': { background: `${ACCENT}33` },
+                          }}
+                        />
+                      )}
+
+                      {canModify && (
+                        <IconButton
+                          size="small"
+                          aria-label={t('goals.rowMenu') as string}
+                          onClick={(event) =>
+                            setMenuAnchor({ element: event.currentTarget, goal })
+                          }
+                        >
+                          <MoreVertIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                    </Box>
+                  );
+                })}
+              </Box>
+            </Collapse>
+          </Box>
+        )}
+
         <Menu
           anchorEl={menuAnchor?.element}
           open={Boolean(menuAnchor)}
           onClose={() => setMenuAnchor(null)}
         >
-          <MenuItem
-            onClick={() => {
-              if (menuAnchor) {
-                setEditingGoal(menuAnchor.goal);
-                setFormOpen(true);
-              }
-              setMenuAnchor(null);
-            }}
-          >
-            {t('goals.menu.edit')}
-          </MenuItem>
-          <MenuItem onClick={() => menuAnchor && archiveGoal(menuAnchor.goal)}>
-            {t('goals.menu.archive')}
-          </MenuItem>
+          {menuAnchor?.goal.status === 'archived' ? (
+            <MenuItem onClick={() => menuAnchor && unarchiveGoal(menuAnchor.goal)}>
+              {t('goals.menu.unarchive')}
+            </MenuItem>
+          ) : (
+            [
+              <MenuItem
+                key="edit"
+                onClick={() => {
+                  if (menuAnchor) {
+                    setEditingGoal(menuAnchor.goal);
+                    setFormOpen(true);
+                  }
+                  setMenuAnchor(null);
+                }}
+              >
+                {t('goals.menu.edit')}
+              </MenuItem>,
+              <MenuItem key="archive" onClick={() => menuAnchor && archiveGoal(menuAnchor.goal)}>
+                {t('goals.menu.archive')}
+              </MenuItem>,
+            ]
+          )}
           <MenuItem onClick={() => menuAnchor && deleteGoal(menuAnchor.goal)}>
             {t('goals.menu.delete')}
           </MenuItem>

@@ -112,7 +112,8 @@
     "menu": {
       "edit": "Edit",
       "archive": "Archive",
-      "delete": "Delete"
+      "delete": "Delete",
+      "unarchive": "Unarchive"
     },
     "form": {
       "addTitle": "New savings goal",
@@ -192,7 +193,10 @@
       "hint": "Adjustments show in the trail marked with ≈, apart from deposits, and never count towards the month bar.",
       "confirm": "Confirm adjustment",
       "cancel": "Cancel"
-    }
+    },
+    "showArchived": "Show archived ({{count}})",
+    "hideArchived": "Hide archived",
+    "unarchived": "Goal restored to active."
   },
   "helpBanner": {
     "title": "Help Shape These Features",

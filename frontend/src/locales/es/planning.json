@@ -112,7 +112,8 @@
     "menu": {
       "edit": "Editar",
       "archive": "Archivar",
-      "delete": "Eliminar"
+      "delete": "Eliminar",
+      "unarchive": "Desarchivar"
     },
     "form": {
       "addTitle": "Nueva meta de ahorro",
@@ -192,7 +193,10 @@
       "hint": "Los ajustes aparecen en el historial marcados con ≈, separados de los aportes, y no cuentan en la barra del mes.",
       "confirm": "Confirmar ajuste",
       "cancel": "Cancelar"
-    }
+    },
+    "showArchived": "Ver archivadas ({{count}})",
+    "hideArchived": "Ocultar archivadas",
+    "unarchived": "Meta reactivada."
   },
   "helpBanner": {
     "title": "Ayuda a Dar Forma a Estas Funcionalidades",

@@ -578,5 +578,34 @@ describe('Goals (e2e)', () => {
         .expect(200);
       expect(all.body.map((g: any) => g.id)).toContain(goal.body.id);
     });
+
+    it('unarchives back into the active list, trail intact', async () => {
+      const goal = await createGoal(owner, { name: 'De volta' }).expect(201);
+      await request(app.getHttpServer())
+        .post(`/api/v1/goals/${goal.body.id}/contributions`)
+        .set(auth(owner))
+        .send({ amount: 40 })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .patch(`/api/v1/goals/${goal.body.id}`)
+        .set(auth(owner))
+        .send({ status: 'archived' })
+        .expect(200);
+
+      const revived = await request(app.getHttpServer())
+        .patch(`/api/v1/goals/${goal.body.id}`)
+        .set(auth(owner))
+        .send({ status: 'active' })
+        .expect(200);
+      expect(revived.body.status).toBe('active');
+      expect(Number(revived.body.currentAmount)).toBe(40);
+
+      const active = await request(app.getHttpServer())
+        .get('/api/v1/goals')
+        .set(auth(owner))
+        .expect(200);
+      expect(active.body.map((g: any) => g.id)).toContain(goal.body.id);
+    });
   });
 });
