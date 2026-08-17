@@ -113,7 +113,7 @@
     "thisMonth": "Este mes",
     "sixMonths": "6 meses",
     "twelveMonths": "12 meses",
-    "hint": "controla el resumen, las categorías y los gráficos"
+    "label": "Período de los datos"
   },
   "memberSpending": {
     "title": "Quién gastó",

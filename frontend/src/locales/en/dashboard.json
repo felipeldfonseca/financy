@@ -111,7 +111,7 @@
     "thisMonth": "This month",
     "sixMonths": "6 months",
     "twelveMonths": "12 months",
-    "hint": "drives the summary, categories and charts"
+    "label": "Data period"
   },
   "memberSpending": {
     "title": "Who spent",

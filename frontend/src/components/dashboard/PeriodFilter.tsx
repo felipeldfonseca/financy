@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { DashboardPeriod } from '../../utils/dashboardPeriod';
 
@@ -17,8 +17,8 @@ export const PeriodFilter: React.FC<Props> = ({ value, onChange }) => {
   const { t } = useTranslation('dashboard');
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
       <ToggleButtonGroup
+        aria-label={t('periodFilter.label') as string}
         value={value}
         exclusive
         onChange={(_event, period: DashboardPeriod | null) => {
@@ -53,9 +53,5 @@ export const PeriodFilter: React.FC<Props> = ({ value, onChange }) => {
         <ToggleButton value="6m">{t('periodFilter.sixMonths')}</ToggleButton>
         <ToggleButton value="12m">{t('periodFilter.twelveMonths')}</ToggleButton>
       </ToggleButtonGroup>
-      <Typography variant="caption" color="text.secondary">
-        {t('periodFilter.hint')}
-      </Typography>
-    </Box>
   );
 };

@@ -123,13 +123,13 @@ const DashboardPage: React.FC = () => {
             contextId: selectedGroup?.id,
           }),
           period !== 'this-month'
-            ? transactionApi.getMonthly(periodMonths(period), selectedGroup?.id)
+            ? transactionApi.getMonthly(periodMonths(period), selectedGroup?.id).catch(() => null)
             : Promise.resolve(null),
           period === 'this-month'
-            ? transactionApi.getCalendar(endDate.slice(0, 7), selectedGroup?.id)
+            ? transactionApi.getCalendar(endDate.slice(0, 7), selectedGroup?.id).catch(() => null)
             : Promise.resolve(null),
           selectedGroup
-            ? transactionApi.getByMember(selectedGroup.id, startDate, endDate)
+            ? transactionApi.getByMember(selectedGroup.id, startDate, endDate).catch(() => [])
             : Promise.resolve([]),
         ]);
 
@@ -399,9 +399,22 @@ const DashboardPage: React.FC = () => {
         </Alert>
       )}
 
+      {/* The switcher never hides: it is how the user gets anywhere else. */}
+      {!isLoading && (
+        <Box sx={{ mb: 3 }}>
+          <ContextSwitcher
+            contextType={contextType}
+            groups={groups}
+            selectedGroupId={selectedGroup?.id}
+            onContextTypeChange={handleContextTypeChange}
+            onGroupSelect={handleGroupSelect}
+          />
+        </Box>
+      )}
+
       {/* Empty State or Dashboard Content */}
       {!isLoading && (
-        !hasTransactions ? (
+        contextType === 'personal' && !hasTransactions ? (
           <DashboardEmptyState
             onAddTransaction={handleAddTransaction}
             onConnectTelegram={handleConnectTelegram}
@@ -409,19 +422,8 @@ const DashboardPage: React.FC = () => {
           />
         ) : (
           <>
-            {/* Context Switcher */}
-            <Box sx={{ mb: 4 }}>
-              <ContextSwitcher
-                contextType={contextType}
-                groups={groups}
-                selectedGroupId={selectedGroup?.id}
-                onContextTypeChange={handleContextTypeChange}
-                onGroupSelect={handleGroupSelect}
-              />
-            </Box>
-
-            {/* Period filter — one row that drives everything below */}
-            <Box sx={{ mb: 4 }}>
+            {/* Period filter — anchored right, just above the cards it drives */}
+            <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end' }}>
               <PeriodFilter value={period} onChange={setPeriod} />
             </Box>
 
@@ -467,7 +469,7 @@ const DashboardPage: React.FC = () => {
       )}
 
       {/* Floating Help Button - Only shows when no transactions */}
-      {!isLoading && !hasTransactions && (
+      {!isLoading && contextType === 'personal' && !hasTransactions && (
         <Fab
           color="primary"
           aria-label="help"

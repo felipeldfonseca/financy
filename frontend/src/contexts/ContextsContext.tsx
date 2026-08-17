@@ -39,6 +39,9 @@ export const ContextsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedContextId, setSelectedContextId] = useState<string | undefined>(readStoredSelection);
+  // Only a successfully loaded list may judge the stored selection — before
+  // that, "not in the list" just means "the list hasn't arrived yet".
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   const reload = useCallback(async () => {
     if (!isAuthenticated) {
@@ -51,6 +54,7 @@ export const ContextsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     try {
       setContexts(await contextApi.list());
+      setHasLoaded(true);
     } catch (err: any) {
       setError(err?.response?.data?.message || err.message);
     } finally {
@@ -65,12 +69,12 @@ export const ContextsProvider: React.FC<{ children: ReactNode }> = ({ children }
   // A context the user left or lost access to must not stay selected, or every
   // subsequent request would be rejected.
   useEffect(() => {
-    if (isLoading || !selectedContextId) return;
+    if (!hasLoaded || isLoading || !selectedContextId) return;
     if (!contexts.some((context) => context.id === selectedContextId)) {
       setSelectedContextId(undefined);
       localStorage.removeItem(SELECTED_CONTEXT_KEY);
     }
-  }, [contexts, isLoading, selectedContextId]);
+  }, [contexts, hasLoaded, isLoading, selectedContextId]);
 
   const selectContext = useCallback((contextId?: string) => {
     setSelectedContextId(contextId);
