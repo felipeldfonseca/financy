@@ -556,6 +556,84 @@ describe('Goals (e2e)', () => {
     });
   });
 
+  describe('reordering', () => {
+    let sorter: Account;
+    let goalA: string;
+    let goalB: string;
+    let goalC: string;
+
+    const listedNames = async (account: Account): Promise<string[]> => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/goals')
+        .set(auth(account))
+        .expect(200);
+      return response.body.map((goal: any) => goal.name);
+    };
+
+    beforeAll(async () => {
+      // A fresh account, so the list holds exactly these goals.
+      sorter = await signUp('sorter');
+      goalA = (await createGoal(sorter, { name: 'Meta A' }).expect(201)).body.id;
+      goalB = (await createGoal(sorter, { name: 'Meta B' }).expect(201)).body.id;
+      goalC = (await createGoal(sorter, { name: 'Meta C' }).expect(201)).body.id;
+    });
+
+    it('lists by creation until someone drags', async () => {
+      expect(await listedNames(sorter)).toEqual(['Meta A', 'Meta B', 'Meta C']);
+    });
+
+    it('applies the hand-picked order, and appends new goals after it', async () => {
+      await request(app.getHttpServer())
+        .post('/api/v1/goals/reorder')
+        .set(auth(sorter))
+        .send({ goalIds: [goalC, goalA, goalB] })
+        .expect(204);
+
+      expect(await listedNames(sorter)).toEqual(['Meta C', 'Meta A', 'Meta B']);
+
+      // A goal created after the drag has no position yet — it joins the end.
+      await createGoal(sorter, { name: 'Meta D' }).expect(201);
+      expect(await listedNames(sorter)).toEqual(['Meta C', 'Meta A', 'Meta B', 'Meta D']);
+    });
+
+    it('rejects duplicates and leaves foreign goals untouchable', async () => {
+      await request(app.getHttpServer())
+        .post('/api/v1/goals/reorder')
+        .set(auth(sorter))
+        .send({ goalIds: [goalA, goalA] })
+        .expect(400);
+
+      // Smuggling someone else's goal into the list changes nothing at all.
+      const foreign = await createGoal(stranger, { name: 'Alheia' }).expect(201);
+      await request(app.getHttpServer())
+        .post('/api/v1/goals/reorder')
+        .set(auth(sorter))
+        .send({ goalIds: [foreign.body.id, goalA] })
+        .expect(404);
+      expect(await listedNames(sorter)).toEqual(['Meta C', 'Meta A', 'Meta B', 'Meta D']);
+    });
+
+    it('lets a contributing member drag, but not a viewer', async () => {
+      const shared = await createGoal(owner, {
+        name: 'Ordenável',
+        contextId,
+        targetAmount: 500,
+      }).expect(201);
+
+      await request(app.getHttpServer())
+        .post('/api/v1/goals/reorder')
+        .set(auth(member))
+        .send({ goalIds: [shared.body.id] })
+        .expect(204);
+
+      await request(app.getHttpServer())
+        .post('/api/v1/goals/reorder')
+        .set(auth(viewer))
+        .send({ goalIds: [shared.body.id] })
+        .expect(403);
+    });
+  });
+
   describe('archiving', () => {
     it('keeps archived goals out of the default list but reachable via status=all', async () => {
       const goal = await createGoal(owner, { name: 'Antiga' }).expect(201);

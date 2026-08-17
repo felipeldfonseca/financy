@@ -196,7 +196,8 @@
     },
     "showArchived": "Ver arquivadas ({{count}})",
     "hideArchived": "Ocultar arquivadas",
-    "unarchived": "Meta reativada."
+    "unarchived": "Meta reativada.",
+    "dragToReorder": "Arrastar para reordenar"
   },
   "helpBanner": {
     "title": "Ajude a Moldar Essas Funcionalidades",

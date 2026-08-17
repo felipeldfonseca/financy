@@ -95,6 +95,14 @@ export class Goal {
   @Column({ type: 'enum', enum: GoalStatus, default: GoalStatus.ACTIVE })
   status: GoalStatus;
 
+  /**
+   * Hand-picked list position; the dashboard shows the first three, so the
+   * order is the user's priority. Null means "never dragged" and sorts after
+   * every ordered goal, by creation date — new goals join at the end.
+   */
+  @Column({ type: 'int', nullable: true })
+  sortOrder: number;
+
   @Column('uuid')
   userId: string;
 

@@ -112,6 +112,11 @@ export const goalApi = {
     await api.delete(`/goals/${id}`);
   },
 
+  /** Hand-picked list order: index = position; first three reach the dashboard. */
+  async reorder(goalIds: string[]): Promise<void> {
+    await api.post('/goals/reorder', { goalIds });
+  },
+
   /** Deposits in the caller's own name. */
   async contribute(
     id: string,

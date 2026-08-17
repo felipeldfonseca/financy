@@ -18,6 +18,7 @@ import {
   GoalFiltersDto,
   ContributeDto,
   AdjustBalanceDto,
+  ReorderGoalsDto,
 } from './dto/goal.dtos';
 
 /**
@@ -95,7 +96,10 @@ export class GoalsService {
       queryBuilder.andWhere('goal.status = :status', { status });
     }
 
-    const goals = await queryBuilder.orderBy('goal.createdAt', 'ASC').getMany();
+    const goals = await queryBuilder
+      .orderBy('goal.sortOrder', 'ASC', 'NULLS LAST')
+      .addOrderBy('goal.createdAt', 'ASC')
+      .getMany();
     return this.attachMonthProgress(goals);
   }
 
@@ -138,7 +142,10 @@ export class GoalsService {
       }),
     );
 
-    const goals = await queryBuilder.orderBy('goal.createdAt', 'ASC').getMany();
+    const goals = await queryBuilder
+      .orderBy('goal.sortOrder', 'ASC', 'NULLS LAST')
+      .addOrderBy('goal.createdAt', 'ASC')
+      .getMany();
     return this.attachMonthProgress(goals);
   }
 
@@ -157,6 +164,28 @@ export class GoalsService {
   async remove(id: string, userId: string): Promise<void> {
     const goal = await this.findForMutation(id, userId);
     await this.goalsRepository.remove(goal);
+  }
+
+  /**
+   * Rewrites the hand-picked order: position = index in the list. Moving no
+   * money and renaming nothing, it takes the same tier as contributing —
+   * any member who records expenses may drag — but every goal is checked
+   * before anything is written, so a list smuggling someone else's goal
+   * changes nothing at all.
+   */
+  async reorder(dto: ReorderGoalsDto, userId: string): Promise<void> {
+    if (new Set(dto.goalIds).size !== dto.goalIds.length) {
+      throw new BadRequestException('Each goal may appear only once');
+    }
+
+    const goals: Goal[] = [];
+    for (const goalId of dto.goalIds) {
+      goals.push(await this.findContributable(goalId, userId));
+    }
+
+    await Promise.all(
+      goals.map((goal, index) => this.goalsRepository.update(goal.id, { sortOrder: index })),
+    );
   }
 
   /**

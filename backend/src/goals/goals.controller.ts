@@ -21,6 +21,7 @@ import {
   GoalFiltersDto,
   ContributeDto,
   AdjustBalanceDto,
+  ReorderGoalsDto,
 } from './dto/goal.dtos';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -44,6 +45,15 @@ export class GoalsController {
   @ApiResponse({ status: 200, description: 'Goals retrieved successfully' })
   async findAll(@Query() filters: GoalFiltersDto, @Request() req) {
     return await this.goalsService.findAll(req.user.id, filters);
+  }
+
+  @Post('reorder')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Set the hand-picked goal order (index = position)' })
+  @ApiResponse({ status: 204, description: 'Order updated' })
+  @ApiResponse({ status: 403, description: 'A listed goal is not editable by the caller' })
+  async reorder(@Body() reorderDto: ReorderGoalsDto, @Request() req) {
+    await this.goalsService.reorder(reorderDto, req.user.id);
   }
 
   @Get(':id')

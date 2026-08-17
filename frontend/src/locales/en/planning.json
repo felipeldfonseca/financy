@@ -196,7 +196,8 @@
     },
     "showArchived": "Show archived ({{count}})",
     "hideArchived": "Hide archived",
-    "unarchived": "Goal restored to active."
+    "unarchived": "Goal restored to active.",
+    "dragToReorder": "Drag to reorder"
   },
   "helpBanner": {
     "title": "Help Shape These Features",

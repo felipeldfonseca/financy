@@ -19,10 +19,26 @@ import {
   Celebration as AchievedIcon,
   CheckCircle as MonthDoneIcon,
   Delete as DeleteIcon,
+  DragIndicator as DragIcon,
   ExpandMore as ExpandIcon,
   MoreVert as MoreVertIcon,
   TrackChanges as GoalIcon,
 } from '@mui/icons-material';
+import {
+  DndContext,
+  DragEndEvent,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useTranslation } from 'react-i18next';
 import {
   goalApi,
@@ -43,6 +59,36 @@ import { AdjustBalanceDialog } from './AdjustBalanceDialog';
 import { GoalProjectionsPanel } from './GoalProjectionsPanel';
 
 const ACCENT = '#10b981';
+
+/**
+ * Positions one goal row inside the drag context and hands the row its drag
+ * handle — only the handle starts a drag, so buttons and chips keep working.
+ */
+const SortableGoalItem: React.FC<{
+  id: string;
+  disabled: boolean;
+  children: (handle: { attributes: any; listeners: any }) => React.ReactNode;
+}> = ({ id, disabled, children }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+    disabled,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.75 : 1,
+        position: 'relative',
+        zIndex: isDragging ? 1 : 'auto',
+      }}
+    >
+      {children({ attributes, listeners })}
+    </div>
+  );
+};
 
 /**
  * Savings goals with their named trail: every active goal of the current
@@ -214,6 +260,31 @@ export const SavingsGoalsCard: React.FC = () => {
     contextRole === 'owner' ||
     contextRole === 'admin';
 
+  // Dragging starts only after a small movement, so taps and clicks on the
+  // row's buttons keep working untouched.
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const canReorder = canPayBills(contextRole) && activeGoals.length > 1;
+
+  const onDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = activeGoals.findIndex((goal) => goal.id === active.id);
+    const newIndex = activeGoals.findIndex((goal) => goal.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+
+    // Optimistic: the list follows the finger; the server call makes it stick.
+    const reordered = arrayMove(activeGoals, oldIndex, newIndex);
+    setGoals([...reordered, ...archivedGoals]);
+
+    try {
+      await goalApi.reorder(reordered.map((goal) => goal.id));
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err.message);
+      await load();
+    }
+  };
+
   return (
     <Card
       sx={{
@@ -277,6 +348,16 @@ export const SavingsGoalsCard: React.FC = () => {
           </Box>
         ) : (
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={() => setExpandedGoalId(null)}
+              onDragEnd={onDragEnd}
+            >
+            <SortableContext
+              items={activeGoals.map((goal) => goal.id)}
+              strategy={verticalListSortingStrategy}
+            >
             {activeGoals.map((goal) => {
               // A habit's bar measures the month; an event's bar, the journey.
               const isHabit = goal.goalType === 'recurring';
@@ -292,8 +373,9 @@ export const SavingsGoalsCard: React.FC = () => {
               const expanded = expandedGoalId === goal.id;
 
               return (
+                <SortableGoalItem key={goal.id} id={goal.id} disabled={!canReorder}>
+                  {({ attributes, listeners }) => (
                 <Box
-                  key={goal.id}
                   sx={{
                     p: 2,
                     borderRadius: '14px',
@@ -302,6 +384,23 @@ export const SavingsGoalsCard: React.FC = () => {
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {canReorder && (
+                      <Box
+                        {...attributes}
+                        {...listeners}
+                        aria-label={t('goals.dragToReorder') as string}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          cursor: 'grab',
+                          touchAction: 'none',
+                          color: 'text.disabled',
+                          ml: -0.5,
+                        }}
+                      >
+                        <DragIcon fontSize="small" />
+                      </Box>
+                    )}
                     <Box
                       sx={{
                         width: 10,
@@ -525,8 +624,12 @@ export const SavingsGoalsCard: React.FC = () => {
                     </Box>
                   </Collapse>
                 </Box>
+                  )}
+                </SortableGoalItem>
               );
             })}
+            </SortableContext>
+            </DndContext>
 
             <Box
               sx={{

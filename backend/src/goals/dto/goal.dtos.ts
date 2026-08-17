@@ -1,4 +1,7 @@
 import {
+  ArrayMaxSize,
+  ArrayNotEmpty,
+  IsArray,
   IsNumber,
   IsString,
   IsOptional,
@@ -123,4 +126,13 @@ export class AdjustBalanceDto {
   @IsOptional()
   @IsDateString()
   date?: string;
+}
+
+/** The caller's goals in the order they should list — first three reach the dashboard. */
+export class ReorderGoalsDto {
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayMaxSize(100)
+  @IsUUID('4', { each: true })
+  goalIds: string[];
 }
