@@ -2110,8 +2110,15 @@ Once you're registered and linked, you'll be able to set up expense tracking for
       await this.sendMessage(chatId, welcomeMessage, { reply_markup: keyboard });
     } else if (data.startsWith('setup_name_')) {
       const name = decodeURIComponent(data.replace('setup_name_', ''));
-      this.contextSetup.updateSetupState(chatId.toString(), { name, step: 'permissions' });
-      await this.proceedToPermissionsSetup(chatId);
+      if (await this.contextsService.isContextNameTaken(name, userId)) {
+        await this.sendMessage(
+          chatId,
+          `You already have a context named "${name}". Please type a different name:`,
+        );
+      } else {
+        this.contextSetup.updateSetupState(chatId.toString(), { name, step: 'permissions' });
+        await this.proceedToPermissionsSetup(chatId);
+      }
     } else if (data.startsWith('setup_perms_')) {
       const permissions = data.replace('setup_perms_', '') as 'everyone' | 'admins';
       this.contextSetup.updateSetupState(chatId.toString(), { permissions, step: 'currency' });
@@ -2143,6 +2150,16 @@ Once you're registered and linked, you'll be able to set up expense tracking for
     const name = text.trim();
     if (name.length < 1 || name.length > 50) {
       await this.sendMessage(chatId, 'Please enter a name between 1 and 50 characters.');
+      return;
+    }
+
+    // Two contexts with the same name are indistinguishable everywhere a
+    // context is picked — refused here, while renaming costs one message.
+    if (await this.contextsService.isContextNameTaken(name, userId)) {
+      await this.sendMessage(
+        chatId,
+        `You already have a context named "${name}". Please type a different name:`,
+      );
       return;
     }
 
@@ -2212,6 +2229,17 @@ Once you're registered and linked, you'll be able to set up expense tracking for
 
       this.logger.log(`Context setup completed for chat ${chatId}: ${context.id}`);
     } catch (error) {
+      const status = typeof error?.getStatus === 'function' ? error.getStatus() : error?.status;
+      if (status === 409) {
+        // The name was taken between the name step and this save.
+        this.contextSetup.updateSetupState(chatId.toString(), { step: 'name' });
+        await this.sendMessage(
+          chatId,
+          `You already have a context named "${setupState.name}". Please type a different name:`,
+        );
+        return;
+      }
+
       this.logger.error('Error completing context setup:', error);
       await this.sendMessage(chatId, 'Error setting up context. Please try again later.');
     }

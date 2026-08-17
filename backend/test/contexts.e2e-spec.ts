@@ -90,6 +90,44 @@ describe('Shared contexts (e2e)', () => {
     it('requires authentication', async () => {
       await request(app.getHttpServer()).get('/api/v1/contexts').expect(401);
     });
+
+    it('refuses a second context with the same name for the same creator', async () => {
+      // Case and surrounding whitespace do not make it a different name.
+      await request(app.getHttpServer())
+        .post('/api/v1/contexts')
+        .set(auth(owner))
+        .send({ name: '  household ', type: 'family', defaultCurrency: 'BRL' })
+        .expect(409);
+    });
+
+    it('lets a different creator use the same name', async () => {
+      await request(app.getHttpServer())
+        .post('/api/v1/contexts')
+        .set(auth(stranger))
+        .send({ name: 'Household', type: 'family', defaultCurrency: 'BRL' })
+        .expect(201);
+    });
+
+    it('refuses a rename that collides, but keeps a self-rename fine', async () => {
+      const other = await request(app.getHttpServer())
+        .post('/api/v1/contexts')
+        .set(auth(owner))
+        .send({ name: 'Viagem', type: 'trip', defaultCurrency: 'BRL' })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .patch(`/api/v1/contexts/${other.body.id}`)
+        .set(auth(owner))
+        .send({ name: 'Household' })
+        .expect(409);
+
+      // Saving the context under its own current name is not a collision.
+      await request(app.getHttpServer())
+        .patch(`/api/v1/contexts/${other.body.id}`)
+        .set(auth(owner))
+        .send({ name: 'Viagem' })
+        .expect(200);
+    });
   });
 
   describe('invitations', () => {

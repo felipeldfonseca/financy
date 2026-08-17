@@ -330,6 +330,12 @@ describe('Telegram group-context linking (e2e)', () => {
       await pressButton('setup_new', OWNER_TG, GROUP3_CHAT);
       await pressButton('setup_type_family', OWNER_TG, GROUP3_CHAT);
       await pressButton('setup_confirm_family', OWNER_TG, GROUP3_CHAT);
+
+      // A name the owner already uses is refused right here, at the name
+      // step — the wizard stays put and asks for another.
+      await sendGroupText('Casa C', OWNER_TG, GROUP3_CHAT);
+      expect(sentMessages(outbox).at(-1)?.text).toContain('already have a context named');
+
       await sendGroupText('Contexto Wizard', OWNER_TG, GROUP3_CHAT);
       await pressButton('setup_perms_everyone', OWNER_TG, GROUP3_CHAT);
 

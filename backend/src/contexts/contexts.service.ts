@@ -26,6 +26,8 @@ export class ContextsService {
   ) {}
 
   async create(createContextDto: CreateContextDto, ownerId: string): Promise<Context> {
+    await this.assertNameAvailable(createContextDto.name, ownerId);
+
     const context = this.contextsRepository.create({
       ...createContextDto,
       ownerId,
@@ -37,6 +39,37 @@ export class ContextsService {
     await this.addOwnerAsMember(savedContext.id, ownerId);
 
     return savedContext;
+  }
+
+  /**
+   * One creator, one context per name: two active contexts both called
+   * "Casa" are indistinguishable everywhere a context is picked, so the name
+   * (case- and whitespace-insensitive) must be free among the caller's own
+   * active contexts. `excludeId` lets a rename keep its current name.
+   */
+  private async assertNameAvailable(
+    name: string,
+    ownerId: string,
+    excludeId?: string,
+  ): Promise<void> {
+    if (await this.isContextNameTaken(name, ownerId, excludeId)) {
+      throw new ConflictException(`You already have a context named "${name.trim()}"`);
+    }
+  }
+
+  /** Public so the bot's setup wizard can refuse a duplicate name early. */
+  async isContextNameTaken(name: string, ownerId: string, excludeId?: string): Promise<boolean> {
+    const queryBuilder = this.contextsRepository
+      .createQueryBuilder('context')
+      .where('context.ownerId = :ownerId', { ownerId })
+      .andWhere('context.isActive = true')
+      .andWhere('LOWER(TRIM(context.name)) = LOWER(TRIM(:name))', { name });
+
+    if (excludeId) {
+      queryBuilder.andWhere('context.id != :excludeId', { excludeId });
+    }
+
+    return queryBuilder.getExists();
   }
 
   async findUserContexts(userId: string): Promise<Context[]> {
@@ -83,6 +116,11 @@ export class ContextsService {
 
     if (!membership || !membership.canManageContext()) {
       throw new ForbiddenException('Only context owners can update context settings');
+    }
+
+    // A rename must not collide with another of the creator's contexts.
+    if (updateContextDto.name) {
+      await this.assertNameAvailable(updateContextDto.name, context.ownerId, context.id);
     }
 
     Object.assign(context, updateContextDto);
