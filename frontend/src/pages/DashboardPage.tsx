@@ -20,6 +20,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import { useFinancialContexts } from '../contexts/ContextsContext';
 import SummaryCards from '../components/dashboard/SummaryCards';
 import ChartSection from '../components/dashboard/ChartSection';
 import QuickActions from '../components/dashboard/QuickActions';
@@ -58,14 +59,6 @@ interface DashboardData {
   }>;
 }
 
-interface Group {
-  id: string;
-  name: string;
-  memberCount: number;
-  type: 'family' | 'friends' | 'business' | 'shared';
-  color: string;
-}
-
 const DashboardPage: React.FC = () => {
   const { t } = useTranslation('dashboard');
   const { state, logout } = useAuth();
@@ -74,8 +67,21 @@ const DashboardPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [contextType, setContextType] = useState<'personal' | 'groups'>('personal');
-  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  const { contexts, selectedContextId, selectContext } = useFinancialContexts();
+  // "Groups mode with nothing picked yet" needs its own flag, so the empty
+  // state can show; once a group is selected, the global selection rules.
+  const [groupsModeRequested, setGroupsModeRequested] = useState(false);
+
+  const groups = React.useMemo(
+    () => contexts.filter((context) => context.type !== 'personal' && context.isActive),
+    [contexts],
+  );
+  const selectedGroup = React.useMemo(
+    () => groups.find((group) => group.id === selectedContextId) ?? null,
+    [groups, selectedContextId],
+  );
+  const contextType: 'personal' | 'groups' =
+    selectedGroup || groupsModeRequested ? 'groups' : 'personal';
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [hasTransactions, setHasTransactions] = useState(false);
 
@@ -104,6 +110,7 @@ const DashboardPage: React.FC = () => {
           limit: 100,
           sortBy: 'date',
           sortOrder: 'DESC',
+          contextId: selectedGroup?.id,
         });
 
         // Check if user has any transactions
@@ -154,7 +161,7 @@ const DashboardPage: React.FC = () => {
       loadDashboardData();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.isAuthenticated]);
+  }, [state.isAuthenticated, selectedGroup?.id]);
 
   const handleAddTransaction = () => {
     navigate('/transactions');
@@ -173,18 +180,22 @@ const DashboardPage: React.FC = () => {
   };
 
   const handleContextTypeChange = (type: 'personal' | 'groups') => {
-    setContextType(type);
     if (type === 'personal') {
-      setSelectedGroup(null);
+      setGroupsModeRequested(false);
+      selectContext(undefined);
+      return;
     }
-    // Here you would typically reload data based on the context
-    console.log(`Context changed to: ${type}`);
+
+    setGroupsModeRequested(true);
+    // Landing in groups mode with nothing picked: the first group is the
+    // natural start; with none, the picker shows how to create one.
+    if (!selectedGroup && groups.length > 0) {
+      selectContext(groups[0].id);
+    }
   };
 
-  const handleGroupSelect = (group: Group) => {
-    setSelectedGroup(group);
-    // Here you would typically reload data for the selected group
-    console.log(`Group selected: ${group.name}`);
+  const handleGroupSelect = (group: { id: string }) => {
+    selectContext(group.id);
   };
 
 
@@ -358,7 +369,8 @@ const DashboardPage: React.FC = () => {
             <Box sx={{ mb: 4 }}>
               <ContextSwitcher
                 contextType={contextType}
-                selectedGroup={selectedGroup}
+                groups={groups}
+                selectedGroupId={selectedGroup?.id}
                 onContextTypeChange={handleContextTypeChange}
                 onGroupSelect={handleGroupSelect}
               />

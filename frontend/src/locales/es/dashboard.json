@@ -95,7 +95,9 @@
     "personal": "PERSONAL",
     "groups": "GRUPOS",
     "comingSoon": "Próximamente",
-    "members": "{{count}} miembros"
+    "members": "{{count}} miembros",
+    "noGroups": "Aún no participas en ningún grupo.",
+    "createGroup": "Crear un grupo"
   },
   "addButton": {
     "addTransaction": "Agregar Transacción",
