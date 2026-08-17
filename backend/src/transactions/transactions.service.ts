@@ -65,15 +65,19 @@ export class TransactionsService {
       throw new NotFoundException('User not found or inactive');
     }
 
-    // Handle context assignment
-    let assignedContextId = contextId;
-    if (contextId) {
+    // Handle context assignment. The context may arrive as the explicit
+    // argument (REST controller, bill settlement) or on the dto itself (the
+    // bot's confirm flows carry it there) — either way it is the same request
+    // and passes the same permission check. Ignoring the dto's copy is
+    // exactly how group expenses silently landed in the personal context.
+    let assignedContextId = contextId ?? createTransactionDto.contextId;
+    if (assignedContextId) {
       // Verify user has access to the specified context
       const membership = await this.contextMembersRepository.findOne({
-        where: { 
-          contextId, 
-          userId, 
-          status: MemberStatus.ACTIVE 
+        where: {
+          contextId: assignedContextId,
+          userId,
+          status: MemberStatus.ACTIVE
         },
       });
 

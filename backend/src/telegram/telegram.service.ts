@@ -32,7 +32,6 @@ import {
 import { MessageProcessorService } from './message-processor.service';
 import { ContextDetectionService } from './context-detection.service';
 import { ContextSetupService } from './context-setup.service';
-import { MemberRole } from '../contexts/entities/context-member.entity';
 import { getTelegramTranslation, formatTemplate, TelegramTranslations } from './translations';
 import { describeUpdate } from './utils/log-sanitizer';
 
@@ -541,7 +540,10 @@ export class TelegramService implements OnModuleInit, OnModuleDestroy {
 
       if (parsedTransactions && parsedTransactions.length > 0) {
         // Filter transactions with sufficient confidence
-        const validTransactions = parsedTransactions.filter(transaction => transaction.confidence > 0.6);
+        // Inclusive on purpose: the regex fallback reports exactly 0.6, and it
+        // exists precisely so an AI outage still yields a confirmable draft —
+        // a strict comparison silently discarded everything it produced.
+        const validTransactions = parsedTransactions.filter(transaction => transaction.confidence >= 0.6);
         
         if (validTransactions.length > 0) {
           // Add context info to all transactions
@@ -2191,8 +2193,9 @@ Once you're registered and linked, you'll be able to set up expense tracking for
       //   configuredAt: new Date().toISOString()
       // });
 
-      // Add creator as admin
-      await this.contextDetection.addUserToContext(userId, context.id, MemberRole.ADMIN);
+      // ContextsService.create already enrolled the creator as OWNER; adding
+      // them again violated the unique membership and errored the whole
+      // wizard AFTER the context existed — a retry then created a second one.
 
       // Show completion message
       const completionMessage = this.contextSetup.getCompletionMessage(

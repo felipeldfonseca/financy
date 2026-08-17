@@ -105,8 +105,8 @@ export class ContextDetectionService {
       // Create chat-context mapping
       await this.ensureChatContextMapping(chatId, chat.type, groupContext.id, chatTitle);
 
-      // Add user as admin (creator)
-      await this.addUserToContext(userId, groupContext.id, MemberRole.ADMIN);
+      // ContextsService.create already enrolled the creator as OWNER — adding
+      // them again here violated the unique membership constraint.
 
       return groupContext.id;
     } catch (error) {

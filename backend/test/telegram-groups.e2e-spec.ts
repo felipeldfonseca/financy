@@ -46,13 +46,13 @@ describe('Telegram group-context linking (e2e)', () => {
     title: 'Família C',
   });
 
-  const addBotToGroup = (fromId: number) =>
+  const addBotToGroup = (fromId: number, chatId: number = GROUP_CHAT) =>
     webhook({
       message: {
         message_id: updateCounter + 100,
         from: { id: fromId, is_bot: false, first_name: 'Adder' },
         date: 1754900000,
-        chat: groupChat(),
+        chat: groupChat(chatId),
         new_chat_members: [{ id: BOT_TG, is_bot: true, first_name: 'financy' }],
       },
     });
@@ -68,7 +68,7 @@ describe('Telegram group-context linking (e2e)', () => {
       },
     });
 
-  const pressButton = (callbackData: string, fromId: number) =>
+  const pressButton = (callbackData: string, fromId: number, chatId: number = GROUP_CHAT) =>
     webhook({
       callback_query: {
         id: `cb-${updateCounter}`,
@@ -78,7 +78,7 @@ describe('Telegram group-context linking (e2e)', () => {
         message: {
           message_id: updateCounter + 200,
           date: 1754900000,
-          chat: groupChat(),
+          chat: groupChat(chatId),
         },
       },
     });
@@ -311,5 +311,89 @@ describe('Telegram group-context linking (e2e)', () => {
     expect(await membershipCount(casaId, strangerId)).toBe(0);
     await sendGroupText('olá pessoal', STRANGER_TG, GROUP2_CHAT);
     expect(await membershipCount(casaId, strangerId)).toBe(1);
+  });
+
+  describe('create-new wizard, end to end', () => {
+    const GROUP3_CHAT = -100999888779;
+    let wizardContextId: string;
+
+    const ownerContextCount = async (): Promise<number> => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/contexts')
+        .set(auth(ownerToken))
+        .expect(200);
+      return response.body.length;
+    };
+
+    it('creates exactly one context, with one membership and the mapping', async () => {
+      await addBotToGroup(OWNER_TG, GROUP3_CHAT);
+      await pressButton('setup_new', OWNER_TG, GROUP3_CHAT);
+      await pressButton('setup_type_family', OWNER_TG, GROUP3_CHAT);
+      await pressButton('setup_confirm_family', OWNER_TG, GROUP3_CHAT);
+      await sendGroupText('Contexto Wizard', OWNER_TG, GROUP3_CHAT);
+      await pressButton('setup_perms_everyone', OWNER_TG, GROUP3_CHAT);
+
+      const before = await ownerContextCount();
+      outbox.length = 0;
+
+      await pressButton('setup_currency_BRL', OWNER_TG, GROUP3_CHAT);
+
+      const finalText = sentMessages(outbox).at(-1)?.text ?? '';
+      expect(finalText).toContain('Context Setup Complete');
+      expect(finalText).not.toContain('Error');
+
+      expect(await ownerContextCount()).toBe(before + 1);
+
+      const contexts = await request(app.getHttpServer())
+        .get('/api/v1/contexts')
+        .set(auth(ownerToken))
+        .expect(200);
+      const wizardContext = contexts.body.find(
+        (context: any) => context.name === 'Contexto Wizard',
+      );
+      expect(wizardContext).toBeDefined();
+      wizardContextId = wizardContext.id;
+
+      // The creator is enrolled exactly once, by the context creation itself.
+      expect(await membershipCount(wizardContextId, ownerId)).toBe(1);
+
+      const mappings = await dataSource.query(
+        'SELECT context_id, auto_enroll FROM chat_contexts WHERE chat_id = $1',
+        [String(GROUP3_CHAT)],
+      );
+      expect(mappings).toHaveLength(1);
+      expect(mappings[0].context_id).toBe(wizardContextId);
+      expect(mappings[0].auto_enroll).toBe(true);
+    });
+
+    it('ignores a stale currency button instead of creating a second context', async () => {
+      const before = await ownerContextCount();
+      outbox.length = 0;
+
+      await pressButton('setup_currency_BRL', OWNER_TG, GROUP3_CHAT);
+
+      expect(sentMessages(outbox).at(-1)?.text).toContain('expired');
+      expect(await ownerContextCount()).toBe(before);
+    });
+
+    it('files a plain group expense in the group context, not the personal one', async () => {
+      outbox.length = 0;
+
+      // No AI key in tests: the regex fallback parses this shape.
+      await sendGroupText('spent 25 on groceries', OWNER_TG, GROUP3_CHAT);
+      const confirm = sentButtons(outbox).find((button) =>
+        button.callback_data.startsWith('confirm_'),
+      );
+      expect(confirm).toBeDefined();
+
+      await pressButton(confirm!.callback_data, OWNER_TG, GROUP3_CHAT);
+      expect(sentMessages(outbox).at(-1)?.text).toContain('Transaction confirmed');
+
+      const rows = await dataSource.query(
+        'SELECT "contextId" FROM transactions WHERE "userId" = $1 ORDER BY "createdAt" DESC LIMIT 1',
+        [ownerId],
+      );
+      expect(rows[0].contextId).toBe(wizardContextId);
+    });
   });
 });
