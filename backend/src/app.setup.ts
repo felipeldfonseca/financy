@@ -58,15 +58,30 @@ export function configureApp(app: INestApplication): void {
 }
 
 /**
- * Origins allowed to call the API from a browser. FRONTEND_URL is what the
- * deployed frontend runs on; the localhost entries keep local development
- * working against either dev-server port.
+ * Origins allowed to call the API from a browser. FRONTEND_URL is the one
+ * canonical address of the deployed frontend — links in invitation emails and
+ * bot messages are built from it. EXTRA_CORS_ORIGINS (comma-separated) admits
+ * origins that must keep working without being canonical: after a move to a
+ * custom domain the old .vercel.app address stays live and stays printed in
+ * every invitation email already delivered, so it has to remain callable. The
+ * localhost entries keep local development working against either dev-server
+ * port.
  */
 export function corsOrigins(): string[] {
   const origins = ['http://localhost:3000', 'http://localhost:3001'];
 
-  if (process.env.FRONTEND_URL) {
-    origins.push(process.env.FRONTEND_URL);
+  const configured = [
+    process.env.FRONTEND_URL ?? '',
+    ...(process.env.EXTRA_CORS_ORIGINS ?? '').split(','),
+  ];
+
+  for (const entry of configured) {
+    // Browsers send the Origin header without a trailing slash, so a pasted
+    // value carrying one would silently never match.
+    const origin = entry.trim().replace(/\/+$/, '');
+    if (origin && !origins.includes(origin)) {
+      origins.push(origin);
+    }
   }
 
   return origins;

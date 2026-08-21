@@ -2,18 +2,23 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { createTestApp, uniqueEmail, VALID_PASSWORD } from './utils/app';
 
-const DEPLOYED_FRONTEND = 'https://financy-frontend.vercel.app';
+const DEPLOYED_FRONTEND = 'https://financybr.com';
+const LEGACY_FRONTEND = 'https://financy-frontend.vercel.app';
 
 describe('Application (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
-    // configureApp reads this when building the CORS allow-list.
+    // configureApp reads these when building the CORS allow-list. The extra
+    // value is deliberately messy — spaces and a trailing slash — because it
+    // is pasted by an operator and corsOrigins() promises to normalise it.
     process.env.FRONTEND_URL = DEPLOYED_FRONTEND;
+    process.env.EXTRA_CORS_ORIGINS = ` ${LEGACY_FRONTEND}/ `;
     app = await createTestApp();
   });
 
   afterAll(async () => {
+    delete process.env.EXTRA_CORS_ORIGINS;
     await app?.close();
   });
 
@@ -38,6 +43,20 @@ describe('Application (e2e)', () => {
         .expect(200);
 
       expect(response.headers['access-control-allow-origin']).toBe(DEPLOYED_FRONTEND);
+    });
+
+    /**
+     * After the move to a custom domain, the old .vercel.app address keeps
+     * serving the app and stays printed in every invitation email already
+     * delivered — so it must remain an allowed origin alongside FRONTEND_URL.
+     */
+    it('allows the legacy origins listed in EXTRA_CORS_ORIGINS, normalised', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/health')
+        .set('Origin', LEGACY_FRONTEND)
+        .expect(200);
+
+      expect(response.headers['access-control-allow-origin']).toBe(LEGACY_FRONTEND);
     });
 
     it('allows local development origins', async () => {
