@@ -103,6 +103,75 @@ describe('Authentication (e2e)', () => {
     });
   });
 
+  describe('Telegram link status', () => {
+    const linkTelegram = (token: string, body: Record<string, unknown>) =>
+      request(app.getHttpServer())
+        .post('/api/v1/users/link-telegram')
+        .set('Authorization', `Bearer ${token}`)
+        .send(body);
+
+    const getProfile = (token: string) =>
+      request(app.getHttpServer())
+        .get('/api/v1/auth/profile')
+        .set('Authorization', `Bearer ${token}`);
+
+    /**
+     * Regression guard: isTelegramLinked is computed by a @Transform from
+     * telegramUserId, and the global serializer used to run that transform a
+     * second time while flattening the response — by then the DTO no longer
+     * carries telegramUserId (it is excluded), so the second pass overwrote
+     * true with false and the app showed every linked account as "not
+     * connected".
+     */
+    it('reports a linked account as linked, without leaking the telegram id', async () => {
+      const registration = await register({ email: uniqueEmail('tg-linked') }).expect(201);
+      const token = registration.body.access_token;
+
+      const linked = await linkTelegram(token, {
+        telegramUserId: `990${Date.now()}`,
+        telegramUsername: 'linked_user',
+      }).expect(201);
+
+      expect(linked.body.isTelegramLinked).toBe(true);
+      expect(linked.body).not.toHaveProperty('telegramUserId');
+
+      const profile = await getProfile(token).expect(200);
+
+      expect(profile.body.user.isTelegramLinked).toBe(true);
+      expect(profile.body.user.telegramUsername).toBe('linked_user');
+      // The raw telegram id is bot-internal; only the boolean leaves the API.
+      expect(profile.body.user).not.toHaveProperty('telegramUserId');
+    });
+
+    it('reports an account that never linked as not linked', async () => {
+      const registration = await register({ email: uniqueEmail('tg-never') }).expect(201);
+
+      const profile = await getProfile(registration.body.access_token).expect(200);
+
+      expect(profile.body.user.isTelegramLinked).toBe(false);
+    });
+
+    /**
+     * A Telegram account with no public @username links with only the id set.
+     * Asking for a fresh token in that state must refuse — not treat the link
+     * as "partial" and silently destroy it, which is what used to happen.
+     */
+    it('refuses a new linking token while linked, keeping the link intact', async () => {
+      const registration = await register({ email: uniqueEmail('tg-no-username') }).expect(201);
+      const token = registration.body.access_token;
+
+      await linkTelegram(token, { telegramUserId: `991${Date.now()}` }).expect(201);
+
+      await request(app.getHttpServer())
+        .post('/api/v1/users/generate-telegram-link-token')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(409);
+
+      const profile = await getProfile(token).expect(200);
+      expect(profile.body.user.isTelegramLinked).toBe(true);
+    });
+  });
+
   describe('protected routes', () => {
     it('requires a token', async () => {
       await request(app.getHttpServer()).get('/api/v1/auth/profile').expect(401);

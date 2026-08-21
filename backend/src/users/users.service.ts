@@ -186,14 +186,17 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    // Check if user already has Telegram fully linked (both fields populated)
-    if (user.telegramUserId && user.telegramUsername) {
+    // Linked means the Telegram id is present. The username is optional on
+    // Telegram's own side, so its absence can never mean "partially linked" —
+    // that reading used to wipe real links for accounts without a public
+    // @username the moment they asked for a new token.
+    if (user.telegramUserId) {
       throw new ConflictException('Telegram account is already linked to this user');
     }
 
-    // Clean up any stale partial linking data before generating new token
-    if (user.telegramUserId || user.telegramUsername) {
-      user.telegramUserId = null;
+    // A username without an id is meaningless leftover; clear it so the
+    // fresh link starts clean.
+    if (user.telegramUsername) {
       user.telegramUsername = null;
       await this.usersRepository.save(user);
     }

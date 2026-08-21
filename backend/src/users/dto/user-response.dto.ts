@@ -48,8 +48,12 @@ export class UserResponseDto {
     return `${this.firstName} ${this.lastName}`;
   }
 
+  // toClassOnly matters: the transform reads telegramUserId off the source
+  // entity while this DTO is built, but the response serializer runs
+  // transforms again on the way out — by then telegramUserId is excluded,
+  // so a second pass would overwrite the computed true with false.
   @Expose()
-  @Transform(({ obj }) => !!obj.telegramUserId)
+  @Transform(({ obj }) => !!obj.telegramUserId, { toClassOnly: true })
   isTelegramLinked: boolean;
 
   @Exclude()
