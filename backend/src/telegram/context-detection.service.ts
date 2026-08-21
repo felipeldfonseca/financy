@@ -24,6 +24,17 @@ export class ContextDetectionService {
     const chatType = message.chat.type;
 
     try {
+      // A private chat belongs to whoever the Telegram account is linked to
+      // NOW, so it always resolves to that user's own personal context. The
+      // stored mapping cannot decide here: it is keyed by chat id, and a
+      // private chat keeps its id when the Telegram account is unlinked and
+      // relinked to a different Financy user — the stale row would keep
+      // aiming the new owner's records at the previous owner's personal
+      // context, where their membership check rightly refuses them.
+      if (chatType === 'private') {
+        return await this.getOrCreatePersonalContext(userId, chatId);
+      }
+
       // Check if we already have a context for this chat
       const existingChatContext = await this.chatContextRepository.findOne({
         where: { chatId, chatType },
@@ -31,16 +42,14 @@ export class ContextDetectionService {
       });
 
       if (existingChatContext) {
-        // A mapped chat always answers with its context. Whether a
+        // A mapped group always answers with its context. Whether a
         // non-member may act there is the permission gate's decision
         // (enrollGroupSender), never a silent side effect of asking.
         return existingChatContext.contextId;
       }
 
       // Create new context based on chat type
-      if (chatType === 'private') {
-        return await this.getOrCreatePersonalContext(userId, chatId);
-      } else if (chatType === 'group' || chatType === 'supergroup') {
+      if (chatType === 'group' || chatType === 'supergroup') {
         return await this.getOrCreateGroupContext(userId, message.chat);
       }
 
@@ -55,9 +64,13 @@ export class ContextDetectionService {
 
   private async getOrCreatePersonalContext(userId: string, chatId: string): Promise<string> {
     try {
-      // Look for existing personal context for this user
+      // The user's OWN personal context — matching any personal context they
+      // merely belong to could pick another user's, the same trap the REST
+      // default-context resolution (getOrCreateDefaultContext) spells out.
       const userContexts = await this.contextsService.findUserContexts(userId);
-      let personalContext = userContexts.find(ctx => ctx.type === 'personal');
+      let personalContext = userContexts.find(
+        ctx => ctx.type === 'personal' && ctx.ownerId === userId,
+      );
 
       if (!personalContext) {
         // Create personal context
@@ -135,6 +148,17 @@ export class ContextDetectionService {
 
       await this.chatContextRepository.save(chatContext);
       this.logger.log(`Created chat-context mapping: ${chatId} -> ${contextId}`);
+      return;
+    }
+
+    // A private chat follows its Telegram account: when that account is
+    // relinked to another Financy user the old row must repoint to the new
+    // owner's personal context. Group mappings are left alone — those are
+    // managed by their own flows (the setup wizard and explicit linking).
+    if (chatType === 'private' && existing.contextId !== contextId) {
+      existing.contextId = contextId;
+      await this.chatContextRepository.save(existing);
+      this.logger.log(`Repointed chat-context mapping: ${chatId} -> ${contextId}`);
     }
   }
 
