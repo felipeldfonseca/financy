@@ -1,9 +1,9 @@
 # Open Finance Integration Study
 ## Automatic Bank Account Sync for Financy (Brazil)
 
-**Version**: 0.1 (study)
-**Last Updated**: 2026-08-10
-**Status**: Research / pre-implementation
+**Version**: 0.2 (study + Phase 0 spike)
+**Last Updated**: 2026-08-23
+**Status**: Phase 0 spike implemented (see §7) — pending sandbox validation with real Pluggy credentials
 **Goal**: Let users connect their bank accounts so transactions flow into Financy automatically, instead of typing every purchase.
 
 ---
@@ -200,7 +200,7 @@ Ordered; items 1–3 are hard blockers for correctness, 4–5 for security:
 
 | Phase | Scope | Cost |
 |---|---|---|
-| **0. Spike (1–2 weeks)** | Pluggy sandbox + trial: connect widget in web app, create items, pull transactions into a dev context, validate dedupe | R$ 0 |
+| **0. Spike (1–2 weeks)** | ✅ Implemented — Pluggy sandbox + trial: connect widget in web app, create items, pull transactions into a dev context, validate dedupe. Run guide in §7 | R$ 0 |
 | **1. Private beta** | Meu Pluggy path for ~10–30 power users; OFX/CSV import for everyone; measure retention lift | R$ 0 |
 | **2. Paid launch** | Pluggy production plan (negotiate startup tier vs R$ 2.500/month floor); gate bank sync behind Financy's paid plan to cover per-item cost | ~R$ 2,5k/month |
 | **3. Scale** | Re-quote Belvo/others with volume; consider investments/loans scopes; mobile widget (React Native) | negotiable |
@@ -212,7 +212,46 @@ Open questions to validate in Phase 0:
 
 ---
 
-## 7. Sources
+## 7. Phase 0 Spike — What Was Built and How to Run It
+
+### 7.1 What is in the codebase
+
+**Backend** (`backend/src/open-finance/`):
+- `entities/` — `BankConnection` (one row per Pluggy item/consent) and `BankAccount` (per account, with provider balance). `Transaction` gained nullable `accountId` + `providerTransactionId`, and `InputMethod.OPEN_FINANCE`.
+- `migrations/1787000000000-CreateOpenFinanceTables.ts` — tables, FKs, the **partial unique index `(accountId, providerTransactionId)`** (idempotency backbone), and the new enum value. All guarded; runs automatically on production boot.
+- `pluggy/pluggy-api.service.ts` — REST client (auth with 90-min API-key cache and re-auth retry, connect tokens, items, accounts, paginated transactions).
+- `services/open-finance-sync.service.ts` — the sync pipeline: item status → accounts upsert → transactions import with two dedupe layers (pre-check by provider id + 23505 catch), currency conversion mirroring `TransactionsService.create`, `status: confirmed`.
+- `services/category-mapping.service.ts` — Pluggy category/description → Financy `category` + `dashboardCategory` (pt-BR descriptors like "PIX ENVIADO" handled; provider DEBIT/CREDIT flag decides expense vs income).
+- `services/open-finance-scheduler.service.ts` — daily 09:00 UTC reconciliation sweep (`@nestjs/schedule`), webhooks remain the primary trigger.
+- `open-finance.controller.ts` — `GET /open-finance/status`, `POST /open-finance/connect-token`, `POST/GET /open-finance/connections`, `POST /open-finance/connections/:id/sync`, `DELETE /open-finance/connections/:id`.
+- `open-finance-webhook.controller.ts` — `POST /webhooks/open-finance?token=...` (shared-secret check; body treated as untrusted hints, data always re-fetched from the API).
+- Fixed on the way: Telegram call sites now pass `inputMethod: TELEGRAM` (everything used to land as `manual`).
+- Tests: `category-mapping.service.spec.ts` + `open-finance-sync.service.spec.ts` (16 tests) cover dedupe, the 23505 race, currency conversion, status handling and incremental windows.
+
+**Frontend** (behind `REACT_APP_ENABLE_OPEN_FINANCE=true`):
+- `/settings/banks` (`pages/BankConnectionsPage.tsx`) — connect via the official `react-pluggy-connect` widget, list connections/accounts/balances with status chips, "Sync now", disconnect with confirmation.
+- Bank Connections card on the Settings page (same pattern as the Telegram card), `services/openFinanceApi.ts`, i18n namespace `banks` in en/pt/es.
+
+### 7.2 Running the spike (local)
+
+1. **Create a Pluggy account** at dashboard.pluggy.ai (free; sandbox works immediately, full production trial for 14 days, no card). Create an application and copy the Client ID / Client Secret.
+2. **Backend env** (`backend/.env.development`): set `PLUGGY_CLIENT_ID` and `PLUGGY_CLIENT_SECRET`. Optional for webhook testing: start `ngrok http 3000`, then set `PLUGGY_WEBHOOK_SECRET=<any-random-string>` and `PLUGGY_WEBHOOK_URL=https://<ngrok-host>/api/v1/webhooks/open-finance?token=<same-string>`.
+3. **Frontend env** (`frontend/.env.development`): `REACT_APP_ENABLE_OPEN_FINANCE=true`.
+4. `npm run dev`, log into the web app → Settings → Bank Connections → "Connect bank account".
+5. In the widget, pick the **Pluggy Bank (sandbox)** connector — credentials `user-ok` / `password-ok` — and finish the flow. The first sync imports the sandbox history in the background; check `/transactions`.
+6. **Validate dedupe**: press "Sync now" twice — the second run must report 0 imported / N skipped, and `SELECT COUNT(*) FROM transactions GROUP BY "providerTransactionId" HAVING COUNT(*) > 1` must return nothing.
+7. With the 14-day trial, repeat with a real bank account (regulated Open Finance consent flow, redirects to the bank's app).
+
+### 7.3 Spike findings still to validate in sandbox
+
+1. Credit-card amount-sign semantics per connector (mapping currently trusts the DEBIT/CREDIT flag and stores the raw amount in `metadata.rawAmount` for auditing).
+2. Webhook latency/reliability per major bank, and which events Pluggy actually emits on daily refreshes.
+3. Category quality: Pluggy taxonomy vs our keyword mapping vs future AI refinement.
+4. Field-level encryption for provider ids (planned in `docs/security/`, still pending — item ids are not credentials, but the hardening belongs in Phase 2).
+
+---
+
+## 8. Sources
 
 - Open Finance Brasil — [modelo de participação](https://openfinancebrasil.org.br/modelo-de-participacao/), [regras de custeio](https://openfinancebrasil.org.br/regras-de-custeio/), [onboarding](https://openfinancebrasil.org.br/onboarding/)
 - BACEN — [renovação simplificada de consentimento / prazos maiores (RC nº 7/2023)](https://agenciagov.ebc.com.br/noticias/202310/bc-simplifica-renovacao-de-consentimentos-no-open-finance-e-amplia-prazo-de-validade-do-compartilhamento); [fim do limite de 12 meses (Finsiders)](https://finsidersbrasil.com.br/regulamentacao/bc-acaba-com-limite-de-12-meses-para-compartilhamento-de-dados-no-open-finance/); [Celcoin — novos prazos](https://www.celcoin.com.br/news/open-finance-tem-novos-prazos-de-consentimento-e-renovacoes/)

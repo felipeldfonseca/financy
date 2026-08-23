@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import {
   Telegram as TelegramIcon,
+  AccountBalance as BankIcon,
   ArrowForward as ArrowIcon,
   Visibility,
   VisibilityOff,
@@ -25,7 +26,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { authApi } from '../services/authApi';
+import { openFinanceApi } from '../services/openFinanceApi';
 import { SUPPORTED_CURRENCIES, getCurrencySymbol } from '../utils/currency.utils';
+
+const OPEN_FINANCE_ENABLED = process.env.REACT_APP_ENABLE_OPEN_FINANCE === 'true';
 
 // Get language options with translations
 const getLanguageOptions = (t: any) => [
@@ -88,6 +92,17 @@ const SettingsPage: React.FC = () => {
   const [errorPassword, setErrorPassword] = useState<string | null>(null);
 
   const isTelegramLinked = !!authState.user?.isTelegramLinked;
+
+  // Open Finance card state (feature-flagged)
+  const [bankConnectionsCount, setBankConnectionsCount] = useState(0);
+
+  useEffect(() => {
+    if (!OPEN_FINANCE_ENABLED) return;
+    openFinanceApi
+      .listConnections()
+      .then(connections => setBankConnectionsCount(connections.length))
+      .catch(() => setBankConnectionsCount(0));
+  }, []);
 
   // Update local state when auth state changes
   useEffect(() => {
@@ -552,6 +567,58 @@ const SettingsPage: React.FC = () => {
             )}
           </Paper>
         </Grid>
+
+        {/* Open Finance / Bank Connections */}
+        {OPEN_FINANCE_ENABLED && (
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                {t('openFinance.title')}
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <BankIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+                  <Box>
+                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                      {t('openFinance.description')}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                      <Chip
+                        label={
+                          bankConnectionsCount > 0
+                            ? t('openFinance.connected', { count: bankConnectionsCount })
+                            : t('openFinance.notConnected')
+                        }
+                        size="small"
+                        sx={bankConnectionsCount > 0
+                          ? { bgcolor: 'success.main', color: 'white' }
+                          : { bgcolor: 'grey.300', color: 'text.secondary' }
+                        }
+                      />
+                    </Box>
+                  </Box>
+                </Box>
+                <Button
+                  variant="contained"
+                  endIcon={<ArrowIcon />}
+                  onClick={() => navigate('/settings/banks')}
+                >
+                  {bankConnectionsCount > 0
+                    ? t('openFinance.manageButton')
+                    : t('openFinance.connectButton')}
+                </Button>
+              </Box>
+
+              {bankConnectionsCount === 0 && (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  {t('openFinance.infoMessage')}
+                </Alert>
+              )}
+            </Paper>
+          </Grid>
+        )}
       </Grid>
     </Box>
   );

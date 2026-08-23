@@ -1,0 +1,42 @@
+{
+  "title": "Conexões Bancárias",
+  "subtitle": "Conecte suas contas bancárias via Open Finance e suas transações serão importadas automaticamente.",
+  "consentInfo": "O Open Finance é regulamentado pelo Banco Central. Você decide o que compartilhar e por quanto tempo, e pode cancelar a permissão quando quiser — aqui ou no app do seu banco.",
+  "connectButton": "Conectar conta bancária",
+  "connectSuccess": "Banco conectado! Seu histórico de transações está sendo importado — ele aparece em instantes.",
+  "syncButton": "Sincronizar",
+  "syncSuccess": "Sincronização concluída: {{imported}} transações novas importadas ({{skipped}} já existiam).",
+  "disconnectButton": "Desconectar",
+  "disconnectSuccess": "Banco desconectado. As transações importadas foram mantidas.",
+  "empty": "Nenhum banco conectado ainda. Conecte um e pare de digitar cada compra!",
+  "unknownInstitution": "Banco",
+  "lastSynced": "Última sincronização {{date}}",
+  "status": {
+    "connected": "Conectado",
+    "updating": "Atualizando",
+    "login_error": "Reconexão necessária",
+    "consent_expired": "Consentimento expirado",
+    "error": "Erro"
+  },
+  "accountTypes": {
+    "checking": "Conta corrente",
+    "savings": "Poupança",
+    "credit_card": "Cartão de crédito",
+    "unknown": "Conta"
+  },
+  "disconnectDialog": {
+    "title": "Desconectar banco?",
+    "message": "Isso revoga o acesso do Financy aos dados de {{institution}}. As transações já importadas serão mantidas.",
+    "cancel": "Cancelar",
+    "confirm": "Desconectar"
+  },
+  "errors": {
+    "load": "Não foi possível carregar as conexões bancárias.",
+    "notConfigured": "A sincronização bancária ainda não está disponível neste servidor.",
+    "connectToken": "Não foi possível iniciar a conexão. Tente novamente.",
+    "register": "O banco foi conectado mas não pôde ser registrado. Tente novamente.",
+    "widget": "O fluxo de conexão foi interrompido. Tente novamente.",
+    "sync": "A sincronização falhou. Tente novamente.",
+    "disconnect": "Não foi possível desconectar. Tente novamente."
+  }
+}

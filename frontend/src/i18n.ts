@@ -12,6 +12,7 @@ import enTransactions from './locales/en/transactions.json';
 import enTelegram from './locales/en/telegram.json';
 import enPlanning from './locales/en/planning.json';
 import enLanding from './locales/en/landing.json';
+import enBanks from './locales/en/banks.json';
 
 import ptCommon from './locales/pt/common.json';
 import ptOnboarding from './locales/pt/onboarding.json';
@@ -23,6 +24,7 @@ import ptTransactions from './locales/pt/transactions.json';
 import ptTelegram from './locales/pt/telegram.json';
 import ptPlanning from './locales/pt/planning.json';
 import ptLanding from './locales/pt/landing.json';
+import ptBanks from './locales/pt/banks.json';
 
 import esCommon from './locales/es/common.json';
 import esOnboarding from './locales/es/onboarding.json';
@@ -34,6 +36,7 @@ import esTransactions from './locales/es/transactions.json';
 import esTelegram from './locales/es/telegram.json';
 import esPlanning from './locales/es/planning.json';
 import esLanding from './locales/es/landing.json';
+import esBanks from './locales/es/banks.json';
 
 const resources = {
   en: {
@@ -47,6 +50,7 @@ const resources = {
     telegram: enTelegram,
     planning: enPlanning,
     landing: enLanding,
+    banks: enBanks,
   },
   pt: {
     common: ptCommon,
@@ -59,6 +63,7 @@ const resources = {
     telegram: ptTelegram,
     planning: ptPlanning,
     landing: ptLanding,
+    banks: ptBanks,
   },
   es: {
     common: esCommon,
@@ -71,6 +76,7 @@ const resources = {
     telegram: esTelegram,
     planning: esPlanning,
     landing: esLanding,
+    banks: esBanks,
   },
 };
 
@@ -107,7 +113,7 @@ i18n
 
     // Namespace configuration
     defaultNS: 'common',
-    ns: ['common', 'onboarding', 'navigation', 'settings', 'dashboard', 'auth', 'transactions', 'telegram', 'planning', 'landing'],
+    ns: ['common', 'onboarding', 'navigation', 'settings', 'dashboard', 'auth', 'transactions', 'telegram', 'planning', 'landing', 'banks'],
 
     // Debug mode for development
     debug: process.env.NODE_ENV === 'development',

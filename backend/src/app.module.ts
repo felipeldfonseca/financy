@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
 import { redisStore } from 'cache-manager-redis-store';
 import { AppController } from './app.controller';
@@ -13,6 +14,7 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { ContextsModule } from './contexts/contexts.module';
 import { TelegramModule } from './telegram/telegram.module';
 import { CurrencyModule } from './currency/currency.module';
+import { OpenFinanceModule } from './open-finance/open-finance.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { typeOrmConfig } from './config/typeorm.config';
 
@@ -66,6 +68,9 @@ import { typeOrmConfig } from './config/typeorm.config';
       },
     ]),
 
+    // Cron jobs (Open Finance daily reconciliation sweep)
+    ScheduleModule.forRoot(),
+
     // Feature modules
     AuthModule,
     UsersModule,
@@ -73,6 +78,7 @@ import { typeOrmConfig } from './config/typeorm.config';
     ContextsModule,
     TelegramModule,
     CurrencyModule,
+    OpenFinanceModule,
   ],
   controllers: [AppController],
   providers: [

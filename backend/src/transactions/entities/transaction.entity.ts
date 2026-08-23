@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Context } from '../../contexts/entities/context.entity';
+import { BankAccount } from '../../open-finance/entities/bank-account.entity';
 
 export enum TransactionType {
   EXPENSE = 'expense',
@@ -29,6 +30,7 @@ export enum InputMethod {
   VOICE = 'voice',
   OCR = 'ocr',
   API = 'api',
+  OPEN_FINANCE = 'open_finance',
 }
 
 @Entity('transactions')
@@ -128,6 +130,23 @@ export class Transaction {
 
   @Column('uuid', { nullable: true })
   contextId: string;
+
+  // Bank account this transaction was synced from (Open Finance). Manual and
+  // Telegram transactions keep this null. ON DELETE SET NULL so imported
+  // history survives a disconnected bank.
+  @ManyToOne(() => BankAccount, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'accountId' })
+  account: BankAccount;
+
+  @Column('uuid', { nullable: true })
+  accountId: string;
+
+  // Aggregator-side transaction id. UNIQUE(accountId, providerTransactionId)
+  // (partial index, see CreateOpenFinanceTables migration) is what makes
+  // bank-sync idempotent — webhook replays and overlapping fetch windows
+  // cannot duplicate a transaction.
+  @Column({ nullable: true })
+  providerTransactionId: string;
 
   @CreateDateColumn()
   createdAt: Date;

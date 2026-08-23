@@ -15,6 +15,7 @@ import ContextsPage from './pages/ContextsPage';
 import PlanningPage from './pages/PlanningPage';
 import SettingsPage from './pages/SettingsPage';
 import TelegramSettingsPage from './pages/TelegramSettingsPage';
+import BankConnectionsPage from './pages/BankConnectionsPage';
 import './i18n'; // Initialize i18n
 
 function App() {
@@ -120,6 +121,18 @@ function App() {
               </ProtectedRoute>
             }
           />
+          {process.env.REACT_APP_ENABLE_OPEN_FINANCE === 'true' && (
+            <Route
+              path="/settings/banks"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <BankConnectionsPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+          )}
 
           {/* Fallback routes */}
           <Route path="/register" element={<Navigate to="/login" replace />} />

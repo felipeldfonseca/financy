@@ -8,6 +8,7 @@ import * as crypto from 'crypto';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { TransactionsService } from '../transactions/transactions.service';
+import { InputMethod } from '../transactions/entities/transaction.entity';
 import { ContextsService } from '../contexts/contexts.service';
 import { 
   TelegramUpdate, 
@@ -829,6 +830,7 @@ Once linked, you can track transactions directly through Telegram! 🚀
         merchantName: transactionData.merchantName,
         date: new Date().toISOString(),
         contextId: transactionData.contextId,
+        inputMethod: InputMethod.TELEGRAM,
       }, userId);
 
       await this.sendMessage(chatId, `✅ Transaction confirmed!\n\n💰 ${transactionData.amount} ${transactionData.currency} - ${transactionData.description}`);
@@ -1083,6 +1085,7 @@ ${closing}
             merchantName: transactionData.merchantName,
             date: new Date().toISOString(),
             contextId: transactionData.contextId,
+            inputMethod: InputMethod.TELEGRAM,
           }, userId);
           
           savedTransactions.push(transaction);

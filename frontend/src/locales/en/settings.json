@@ -58,6 +58,15 @@
     "connectButton": "Connect Telegram",
     "infoMessage": "Link your Telegram account to track transactions with text messages, voice notes, or photos on the go!"
   },
+  "openFinance": {
+    "title": "Bank Connections",
+    "description": "Automatic transaction import via Open Finance",
+    "connected": "{{count}} connected",
+    "notConnected": "Not connected",
+    "manageButton": "Manage Banks",
+    "connectButton": "Connect Bank",
+    "infoMessage": "Connect your bank accounts via Open Finance (regulated by the Central Bank) and stop typing every purchase — transactions are imported automatically."
+  },
   "languages": {
     "en": "English",
     "es": "Español",

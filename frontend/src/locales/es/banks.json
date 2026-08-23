@@ -1,0 +1,42 @@
+{
+  "title": "Conexiones Bancarias",
+  "subtitle": "Conecta tus cuentas bancarias vía Open Finance y tus transacciones se importarán automáticamente.",
+  "consentInfo": "Open Finance está regulado por el Banco Central de Brasil. Tú decides qué compartir y por cuánto tiempo, y puedes revocar el acceso cuando quieras — aquí o en la app de tu banco.",
+  "connectButton": "Conectar cuenta bancaria",
+  "connectSuccess": "¡Banco conectado! Tu historial de transacciones se está importando — aparecerá en unos instantes.",
+  "syncButton": "Sincronizar",
+  "syncSuccess": "Sincronización completa: {{imported}} transacciones nuevas importadas ({{skipped}} ya existían).",
+  "disconnectButton": "Desconectar",
+  "disconnectSuccess": "Banco desconectado. Las transacciones importadas se conservaron.",
+  "empty": "Ningún banco conectado todavía. ¡Conecta uno y deja de escribir cada compra!",
+  "unknownInstitution": "Banco",
+  "lastSynced": "Última sincronización {{date}}",
+  "status": {
+    "connected": "Conectado",
+    "updating": "Actualizando",
+    "login_error": "Reconexión necesaria",
+    "consent_expired": "Consentimiento expirado",
+    "error": "Error"
+  },
+  "accountTypes": {
+    "checking": "Cuenta corriente",
+    "savings": "Cuenta de ahorros",
+    "credit_card": "Tarjeta de crédito",
+    "unknown": "Cuenta"
+  },
+  "disconnectDialog": {
+    "title": "¿Desconectar banco?",
+    "message": "Esto revoca el acceso de Financy a los datos de {{institution}}. Las transacciones ya importadas se conservarán.",
+    "cancel": "Cancelar",
+    "confirm": "Desconectar"
+  },
+  "errors": {
+    "load": "No se pudieron cargar las conexiones bancarias.",
+    "notConfigured": "La sincronización bancaria aún no está disponible en este servidor.",
+    "connectToken": "No se pudo iniciar la conexión. Inténtalo de nuevo.",
+    "register": "El banco se conectó pero no pudo registrarse. Inténtalo de nuevo.",
+    "widget": "El flujo de conexión fue interrumpido. Inténtalo de nuevo.",
+    "sync": "La sincronización falló. Inténtalo de nuevo.",
+    "disconnect": "No se pudo desconectar. Inténtalo de nuevo."
+  }
+}

@@ -58,6 +58,15 @@
     "connectButton": "Conectar Telegram",
     "infoMessage": "Conecte sua conta do Telegram para rastrear transações com mensagens de texto, notas de voz ou fotos em qualquer lugar!"
   },
+  "openFinance": {
+    "title": "Conexões Bancárias",
+    "description": "Importação automática de transações via Open Finance",
+    "connected": "{{count}} conectado(s)",
+    "notConnected": "Não conectado",
+    "manageButton": "Gerenciar Bancos",
+    "connectButton": "Conectar Banco",
+    "infoMessage": "Conecte suas contas bancárias via Open Finance (regulamentado pelo Banco Central) e pare de digitar cada compra — as transações são importadas automaticamente."
+  },
   "languages": {
     "en": "English",
     "es": "Español",

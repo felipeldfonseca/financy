@@ -520,7 +520,9 @@ export class TransactionsService {
     this.logger.log(`Completed reconversion for user ${userId}`);
   }
 
-  private async getOrCreateDefaultContext(userId: string): Promise<string> {
+  // Public: also used by OpenFinanceService to file synced transactions when
+  // the user doesn't pick a context.
+  async getOrCreateDefaultContext(userId: string): Promise<string> {
     // First, try to find an existing personal context for the user
     const existingMembership = await this.contextMembersRepository.findOne({
       where: { 

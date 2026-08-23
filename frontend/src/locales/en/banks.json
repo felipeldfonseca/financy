@@ -1,0 +1,42 @@
+{
+  "title": "Bank Connections",
+  "subtitle": "Connect your bank accounts via Open Finance and your transactions will be imported automatically.",
+  "consentInfo": "Open Finance is regulated by the Central Bank of Brazil. You choose what to share and for how long, and you can revoke access at any time — here or in your bank's app.",
+  "connectButton": "Connect bank account",
+  "connectSuccess": "Bank connected! Your transaction history is being imported — it will appear in a few moments.",
+  "syncButton": "Sync now",
+  "syncSuccess": "Sync complete: {{imported}} new transactions imported ({{skipped}} already existed).",
+  "disconnectButton": "Disconnect",
+  "disconnectSuccess": "Bank disconnected. Imported transactions were kept.",
+  "empty": "No bank connected yet. Connect one and stop typing every purchase!",
+  "unknownInstitution": "Bank",
+  "lastSynced": "Last synced {{date}}",
+  "status": {
+    "connected": "Connected",
+    "updating": "Updating",
+    "login_error": "Reconnection needed",
+    "consent_expired": "Consent expired",
+    "error": "Error"
+  },
+  "accountTypes": {
+    "checking": "Checking account",
+    "savings": "Savings account",
+    "credit_card": "Credit card",
+    "unknown": "Account"
+  },
+  "disconnectDialog": {
+    "title": "Disconnect bank?",
+    "message": "This revokes Financy's access to {{institution}} data. Transactions already imported will be kept.",
+    "cancel": "Cancel",
+    "confirm": "Disconnect"
+  },
+  "errors": {
+    "load": "Failed to load bank connections.",
+    "notConfigured": "Bank sync is not available on this server yet.",
+    "connectToken": "Failed to start the connection flow. Please try again.",
+    "register": "The bank was connected but could not be registered. Please try again.",
+    "widget": "The connection flow was interrupted. Please try again.",
+    "sync": "Sync failed. Please try again.",
+    "disconnect": "Failed to disconnect. Please try again."
+  }
+}
