@@ -66,7 +66,6 @@ interface PageResponse<T> {
   total: number;
 }
 
-const PLUGGY_BASE_URL = 'https://api.pluggy.ai';
 // Pluggy API keys are valid for 2 hours; refresh comfortably before that.
 const API_KEY_TTL_MS = 90 * 60 * 1000;
 const TRANSACTIONS_PAGE_SIZE = 500;
@@ -76,11 +75,16 @@ export class PluggyApiService {
   private readonly logger = new Logger(PluggyApiService.name);
   private apiKey: string | null = null;
   private apiKeyFetchedAt = 0;
+  // Overridable so tests and offline dev can point at a local mock
+  // (see backend/test/mock-pluggy-server.js).
+  private readonly baseUrl: string;
 
   constructor(
     private httpService: HttpService,
     private configService: ConfigService,
-  ) {}
+  ) {
+    this.baseUrl = this.configService.get('PLUGGY_BASE_URL', 'https://api.pluggy.ai');
+  }
 
   isConfigured(): boolean {
     return Boolean(
@@ -179,7 +183,7 @@ export class PluggyApiService {
     this.assertConfigured();
 
     const response = await lastValueFrom(
-      this.httpService.post(`${PLUGGY_BASE_URL}/auth`, {
+      this.httpService.post(`${this.baseUrl}/auth`, {
         clientId: this.configService.get('PLUGGY_CLIENT_ID'),
         clientSecret: this.configService.get('PLUGGY_CLIENT_SECRET'),
       }),
@@ -210,7 +214,7 @@ export class PluggyApiService {
       const response = await lastValueFrom(
         this.httpService.request<T>({
           method,
-          url: `${PLUGGY_BASE_URL}${path}`,
+          url: `${this.baseUrl}${path}`,
           data,
           params,
           headers: { 'X-API-KEY': apiKey },

@@ -242,7 +242,28 @@ Open questions to validate in Phase 0:
 6. **Validate dedupe**: press "Sync now" twice — the second run must report 0 imported / N skipped, and `SELECT COUNT(*) FROM transactions GROUP BY "providerTransactionId" HAVING COUNT(*) > 1` must return nothing.
 7. With the 14-day trial, repeat with a real bank account (regulated Open Finance consent flow, redirects to the bank's app).
 
-### 7.3 Spike findings still to validate in sandbox
+### 7.3 Offline smoke test (no Pluggy account needed)
+
+`backend/test/mock-pluggy-server.js` is a dependency-free mock of the Pluggy API
+(1 item, checking + credit card, 12 Brazilian-looking transactions, forced
+pagination). Point the backend at it with `PLUGGY_BASE_URL=http://127.0.0.1:8788`
+plus dummy `PLUGGY_CLIENT_ID/SECRET`, then register a connection with
+`{"itemId": "mock-item-1"}`.
+
+This full flow was executed against a real PostgreSQL 16 on 2026-08-24, all green:
+
+| Check | Result |
+|---|---|
+| Migration on a pre-existing schema (production simulation: old migrations marked applied) | Applied cleanly; partial unique index + `open_finance` enum value verified in `pg_indexes`/`pg_enum` |
+| Boot + schema via `synchronize` (dev path) | Entities and migration agree; app up in ~3s |
+| Register connection → background first sync | 2 accounts upserted (checking/credit_card, balances, masked numbers), 12 transactions imported through the pagination loop |
+| Category mapping on import | 12/12 correct (PIX→transfer/accounts, salário→income/employment, fatura→transfer/debt, iFood/mercado→fooddining, Uber/posto→transportation, aluguel→housing, drogaria→healthfitness, Netflix→entertainmentshopping, rendimento→income/investment) |
+| Manual re-sync ×2 (dedupe + incremental window) | 0 imported; only the 7-day overlap window was re-fetched; 0 duplicates by `(accountId, providerTransactionId)` |
+| Webhook token guard | Wrong/missing token → 401; correct token → 200 + async re-sync with no duplicates; unknown item ignored |
+| Disconnect | `DELETE /items/{id}` sent to provider, connection + accounts removed, all 12 transactions kept with `accountId = NULL` |
+| Currency convention | `originalAmount/originalCurrency=BRL` preserved, `status=confirmed`, `inputMethod=open_finance` (offline FX fallback rate 1.0 — real rates apply with network access) |
+
+### 7.4 Spike findings still to validate in sandbox
 
 1. Credit-card amount-sign semantics per connector (mapping currently trusts the DEBIT/CREDIT flag and stores the raw amount in `metadata.rawAmount` for auditing).
 2. Webhook latency/reliability per major bank, and which events Pluggy actually emits on daily refreshes.
